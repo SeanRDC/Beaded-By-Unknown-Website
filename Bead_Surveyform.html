@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Beaded by Unknown Surver Form</title>
+        <link rel="stylesheet" href="Surveyform.css" />
+    </head>
+    <body>
+        <div class="header-styles"> 
+            <h1 id="title">Beaded Survey Form</h1>
+            <p id="description">We'd love to hear your thoughts! Your feedback helps us craft better content, products, and experiences.</p>
+        </div>
+        <div class="form-styles">
+            <form id="survey-form">
+
+                <!--For text input from the user-->
+            <fieldset>
+                <label for="name" id="name-label">Enter Your Name: <input id="name" name="name" type="text" placeholder="Enter your name" required /></label>
+                <label for="email" id="email-label">Enter Your Email: <input id="email" name="email" type="email" placeholder="Enter your Email" required /></label>
+                <label for="number" id="number-label">Enter your age: (Optional) <input id="number" type="number" min="13" max="120" placeholder="Age">
+            </fieldset>
+                <!--Ends here-->
+
+                <!--For the selector-->
+            <fieldset>
+                <label for="dropdown">How did you hear about us?
+                <select id="dropdown" name="role" >
+                    <option value="">(select one)</option>
+                    <option value="1">Social media</option>
+                    <option value="2">Search engine</option>
+                    <option value="3">Word of mouth</option>
+                    <option value="4">Other</option>
+                </select>
+                </label>
+            </fieldset>
+                <!--Ends here-->
+
+            <!--For checkbox Elements 1-->
+            <fieldset>
+            <p>What type of beads are you most interested in?</p>
+
+            <div class="checkbox-group">
+                <label>
+                <input type="checkbox" name="Seed" value="1" />
+                Seed beads
+                </label>
+                <label>
+                <input type="checkbox" name="Gemstone" value="2" />
+                Gemstone beads
+                </label>
+                <label>
+                <input type="checkbox" name="Glass" value="3" />
+                Glass beads
+                </label>
+                <label>
+                <input type="checkbox" name="Wooden" value="4" />
+                Wooden beads
+                </label>
+                <label>
+                <input type="checkbox" name="Metal" value="5" />
+                Metal beads
+                </label>
+                <label>
+                <input type="checkbox" name="Plastic" value="6" />
+                Plastic beads
+                </label>
+            </div>
+            </fieldset>
+            
+            <!--Ends here-->
+
+            <!--For checkbox Elements 2-->
+            <fieldset>
+            <p>What matters most when buying beads?</p>
+
+            <div class="checkbox-group">
+                <label>
+                <input type="checkbox" name="Price" value="1" />
+                Price
+                </label>
+                <label>
+                <input type="checkbox" name="Quality" value="2" />
+                Quality
+                </label>
+                <label>
+                <input type="checkbox" name="Unique" value="3" />
+                Uniqueness of design
+                </label>
+                <label>
+                <input type="checkbox" name="Fast-shipping" value="4" />
+                Fast Shipping
+            </div>
+            </fieldset>
+            
+            <!--Ends here-->
+
+            <!--For checkbox Elements 3-->
+            <fieldset>
+            <p>What kind of beading inspiration would you love to explore more?</p>
+
+            <div class="checkbox-group">
+                <label>
+                <input type="checkbox" name="Nature" value="1" />
+                Nature-inspired designs (leaves, flowers, stones, animals)
+                </label>
+                <label>
+                <input type="checkbox" name="Fashin" value="2" />
+                Fashion-forward styles (trend-focused beads, runway flair)
+                </label>
+                <label>
+                <input type="checkbox" name="Cultural" value="3" />
+                Cultural and traditional patterns (tribal, ethnic, symbolic)
+                </label>
+                <label>
+                <input type="checkbox" name="Sentimental" value="4" />
+                Sentimental pieces (customized memory-based crafts)
+            </div>
+            </fieldset>
+            
+            <!--Ends here-->
+
+            <!-- Satisfaction Bar -->
+            <fieldset>
+            <legend><p>How satisfied are you with our website so far?</p></legend>
+            <div class="satisfaction-bar">
+                <input type="range" id="satisfaction" name="satisfaction" min="0" max="100" value="50" />
+                <div class="satisfaction-labels">
+                <span>😞 Not satisfied</span>
+                <span>😊 Very satisfied</span>
+                </div>
+            </div>
+            </fieldset>
+            <!--Ends here-->
+
+            <!--For the Radio buttons-->
+            <fieldset>
+                <legend class="legend-weight">Would you recommend Beaded by Unknown products to a friend?</legend>
+                <label for="Yes"><input id="Yes" type="radio" name="recomendation-type" class="inline" value="1" checked /> Yes</label>
+                <label for="Maybe"><input id="Maybe" type="radio" name="recomendation-type" class="inline" value="2" /> Maybe</label>
+                <label for="No"><input id="No" type="radio" name="recomendation-type" class="inline" value="3" /> No</label>
+            </fieldset>
+            <!--Ends here-->
+
+            <!--For textarea Elements-->
+            <fieldset>
+                <label for="bio">Any Comments or Suggestions? 
+                <textarea id="bio" name="bio" rows="6" cols="30" placeholder="Please type here your comments or suggestion..."></textarea>
+                </label>
+            </fieldset>
+            <!--Ends here-->
+
+            <!--For Accepting of terms and agreements-->
+            <p class="confidentiality-note">All responses and personal information shared through this survey will be treated with the utmost confidentiality. Your privacy matters to us, and no data will be disclosed, published, or shared without your explicit consent. Your feedback is solely used to improve our products, services, and your experience.</p>
+            <!--Ends here-->
+
+            <!--For Submit button-->
+            <tobutn id="submit" type="submit">Submit</button>
+            <!--Ends here-->
+
+            </form>
+        </div>
+
+
+
+    </body>
+</html>
