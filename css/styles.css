@@ -23,10 +23,20 @@ a {
 }
 
 /* -----------------------------------
+  COLOR VARIABLE DECLARATION
+----------------------------------- */
+:root {
+  --baby-pink: #ffb8cf; 
+  --carnation-pink: #ffa6c9;
+  --white: #f7f7f7;
+  --white-ish: #fff9f4;
+}
+
+/* -----------------------------------
   NAVIGATION BAR
 ----------------------------------- */
 .navbar {
-  background: #f6c6d8;
+  background-color: var(--baby-pink);
   box-shadow: 0 4px 2px -2px rgba(255, 255, 255, 0.2);
   color: white;
   padding: 1rem 2rem;
@@ -173,33 +183,18 @@ section h2 {
 }
 
 .product-card img {
-  width: 100%;
+  width: 280px;
   height: 200px;
-  object-fit: cover;
+  object-fit: none;             
+  object-position: center;       
   border-radius: 12px;
+  background-color: #f0f0f0; 
 }
+
 
 .product-card h3 {
   margin-top: 1rem;
   color: #ff6a88;
-}
-
-.product-card p {
-  font-weight: bold;
-}
-
-.product-card button {
-  margin-top: 0.8rem;
-  background: #ff6a88;
-  color: white;
-  border: none;
-  padding: 0.5rem 1.2rem;
-  border-radius: 25px;
-  cursor: pointer;
-}
-
-.product-card button:hover {
-  background: #e7546e;
 }
 
 /* -----------------------------------
@@ -227,7 +222,7 @@ section h2 {
 
 .testimonial h4 {
   margin-top: 0.5rem;
-  color: #ff6a88;
+  color: #ffa6c9;
 }
 
 /* -----------------------------------
@@ -249,7 +244,7 @@ section h2 {
 }
 
 .contact-section button {
-  background: #ff6a88;
+  background: #ffb8cf;
   color: white;
   border: none;
   padding: 0.8rem;
@@ -275,7 +270,7 @@ section h2 {
 
 .cart-popup h2 {
   margin-bottom: 1rem;
-  color: #ff6a88;
+  color: #ffb8cf;
 }
 
 .cart-popup ul {
@@ -291,7 +286,7 @@ section h2 {
 }
 
 .cart-popup button {
-  background: #ff6a88;
+  background: #ffb8cf;
   color: white;
   width: 100%;
   padding: 0.6rem;
@@ -304,7 +299,7 @@ section h2 {
   FOOTER
 ----------------------------------- */
 footer {
-  background: #ffdde1;
+  background: #ffb8cf;
   text-align: center;
   padding: 1.5rem 1rem;
   color: #555;
@@ -315,6 +310,6 @@ footer {
   FUTURE FEATURES / NOTES
 ----------------------------------- */
 /* 
-- Categorize the bead products from raclet to necklace to kearings to keychains
+- Categorize the bead products from braclet to necklace to kearings to keychains
 - Add information input from the user before checking out -> after adding to cart the product
 */
