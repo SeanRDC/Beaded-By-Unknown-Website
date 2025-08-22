@@ -32,6 +32,7 @@ a {
   --white-ish: #fff9f4;
   --soft-pink: #ffeaea;
   --flamingo-pink: #f893a8;
+  --pink: #E1306C;
 }
 
 /* -----------------------------------
@@ -39,15 +40,16 @@ a {
 ----------------------------------- */
 .navbar {
   background-color: var(--baby-pink);
-  box-shadow: 0 4px 2px -2px rgba(255, 255, 255, 0.2);
   color: white;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 1000;
+  width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
@@ -57,7 +59,7 @@ a {
 
 .nav-links {
   display: flex;
-  gap: 1rem;
+  gap: 2.5rem;
   align-items: center;
 }
 
@@ -76,28 +78,11 @@ a {
   font-weight: bold;
 }
 
-.cart-icon {
-  cursor: pointer;
-  font-size: 1.2rem;
-  position: relative;
-}
-
-#cart-count {
-  background: white;
-  color: var(--flamingo-pink);
-  border-radius: 50%;
-  padding: 2px 8px;
-  font-size: 0.8rem;
-  position: absolute;
-  top: -10px;
-  right: -10px;
-}
-
 /* -----------------------------------
   HERO SECTION
 ----------------------------------- */
 .hero {
-  background: url('../images/img4.jpg') center/cover no-repeat;
+  background: url('../images/phone-hero.jpg') center/cover no-repeat;
   height: 80vh;
   display: flex;
   flex-direction: column;
@@ -123,13 +108,18 @@ a {
   background: var(--white);
   color: var(--carnation-pink);
   padding: 0.7rem 1.5rem;
-  border-radius: 30px;
+  border-radius: 25px;
   font-weight: bold;
-  transition: background 0.3s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .btn:hover {
-  background: #f2f2f2;
+  background: var(--carnation-pink);
+  color: var(--white);
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 /* -----------------------------------
@@ -147,22 +137,28 @@ section h2 {
 }
 
 /* -----------------------------------
-  ABOUT SECTION
+  ABOUT US SECTION
 ----------------------------------- */
 .about-section p {
   max-width: 800px;
   margin: 0 auto;
   font-size: 1.1rem;
   line-height: 1.6;
-  text-align: justify;
+  text-align: center;
 }
 
 .space {
   margin: 2em;
 }
 /* -----------------------------------
-  PRODUCT GRID (for product & highlight sections)
+  COLLECTIONS SECTION / PRODUCTS SECTION
 ----------------------------------- */
+.product-section {
+  max-width: 1200px; 
+  margin: 0 auto;  
+  padding: 0 2.5em 3em 2.5em;
+}
+
 .product-section .product-grid,
 .highlight-section .product-grid {
   display: grid;
@@ -185,13 +181,16 @@ section h2 {
 }
 
 .product-card img {
-  width: 280px;
-  height: 200px;
-  object-fit: none;             
-  object-position: center;       
+  width: 100%;                
+  height: auto;               
+  max-height: 200px;          
+  object-fit: cover;          
+  object-position: center;    
   border-radius: 12px;
-  background-color: var(--white-ish); 
+  background-color: var(--white-ish);
+  display: block;             
 }
+
 
 .product-card h3 {
   margin-top: 1rem;
@@ -199,8 +198,12 @@ section h2 {
 }
 
 /* -----------------------------------
-  TESTIMONIALS SECTION
+  TESTIMONIALS SECTION / REVIEWS SECTION
 ----------------------------------- */
+.testimonial-section {
+  padding: 0 2.5em 3em 2.5em;
+}
+
 .testimonial-grid {
   display: flex;
   gap: 2rem;
@@ -227,8 +230,12 @@ section h2 {
 }
 
 /* -----------------------------------
-  CONTACT FORM SECTION AND SOCIALS
+  CONTACT US SECTION AND SOCIALS
 ----------------------------------- */
+.contact-section {
+  padding: 0 2.5em 3em 2.5em;
+}
+
 .contact-section form {
   max-width: 500px;
   margin: 0 auto;
@@ -244,6 +251,12 @@ section h2 {
   border-radius: 8px;
 }
 
+.button-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 7px;
+}
+
 .contact-section button {
   background: var(--baby-pink);
   color: white;
@@ -251,53 +264,30 @@ section h2 {
   padding: 0.8rem;
   border-radius: 8px;
   cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  transition: transform 0.2s ease;
 }
 
-/* -----------------------------------
-  CART POPUP
------------------------------------ */
-.cart-popup {
-  position: fixed;
-  top: 70px;
-  right: 20px;
-  background: white;
-  width: 300px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 1rem;
-  display: none;
-  z-index: 999;
-}
-
-.cart-popup h2 {
-  margin-bottom: 1rem;
-  color: var(--baby-pink);
-}
-
-.cart-popup ul {
-  list-style: none;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-}
-
-.cart-popup li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
-}
-
-.cart-popup button {
+.contact-section a {
   background: var(--baby-pink);
   color: white;
-  width: 100%;
-  padding: 0.6rem;
   border: none;
+  padding: 0.8rem;
   border-radius: 8px;
   cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.contact-section button:hover,
+.contact-section a:hover {
+  transform: scale(.98);
 }
 
 /* -----------------------------------
-  FOOTER
+  FOOTER / COPYRIGHT SECTION
 ----------------------------------- */
 footer {
   background: var(--baby-pink);
@@ -315,6 +305,5 @@ footer a:hover {
   FUTURE FEATURES / NOTES
 ----------------------------------- */
 /* 
-- Categorize the bead products from braclet to necklace to kearings to keychains
 - Add information input from the user before checking out -> after adding to cart the product
 */
