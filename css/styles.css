@@ -13,7 +13,7 @@ html {
 
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #fff9f4;
+  background-color: var(--white-ish);
   color: #333;
 }
 
@@ -30,6 +30,8 @@ a {
   --carnation-pink: #ffa6c9;
   --white: #f7f7f7;
   --white-ish: #fff9f4;
+  --soft-pink: #ffeaea;
+  --flamingo-pink: #f893a8;
 }
 
 /* -----------------------------------
@@ -60,13 +62,13 @@ a {
 }
 
 .nav-links a {
-  color: white;
+  color: var(--white);
   font-weight: bold;
   padding-bottom: 4px;
 }
 
 .nav-links a.active {
-  border-bottom: 2px solid #fff;
+  border-bottom: 2px solid var(--white)
 }
 
 .logo {
@@ -82,7 +84,7 @@ a {
 
 #cart-count {
   background: white;
-  color: #ff6a88;
+  color: var(--flamingo-pink);
   border-radius: 50%;
   padding: 2px 8px;
   font-size: 0.8rem;
@@ -101,7 +103,7 @@ a {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: var(--white);
   text-align: center;
   padding: 2rem;
 }
@@ -118,8 +120,8 @@ a {
 }
 
 .btn {
-  background: white;
-  color: #ff6a88;
+  background: var(--white);
+  color: var(--carnation-pink);
   padding: 0.7rem 1.5rem;
   border-radius: 30px;
   font-weight: bold;
@@ -139,7 +141,7 @@ section {
 }
 
 section h2 {
-  color: #ff6a88;
+  color: var(--flamingo-pink);
   font-size: 2rem;
   margin-bottom: 1rem;
 }
@@ -170,7 +172,7 @@ section h2 {
 }
 
 .product-card {
-  background: white;
+  background: var(--white);
   border-radius: 15px;
   padding: 1rem;
   text-align: center;
@@ -188,13 +190,12 @@ section h2 {
   object-fit: none;             
   object-position: center;       
   border-radius: 12px;
-  background-color: #f0f0f0; 
+  background-color: var(--white-ish); 
 }
-
 
 .product-card h3 {
   margin-top: 1rem;
-  color: #ff6a88;
+  color: var(--carnation-pink)
 }
 
 /* -----------------------------------
@@ -209,7 +210,7 @@ section h2 {
 }
 
 .testimonial {
-  background: #ffeaea;
+  background: var(--soft-pink);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   max-width: 400px;
@@ -222,11 +223,11 @@ section h2 {
 
 .testimonial h4 {
   margin-top: 0.5rem;
-  color: #ffa6c9;
+  color: var(--carnation-pink);
 }
 
 /* -----------------------------------
-  CONTACT FORM SECTION
+  CONTACT FORM SECTION AND SOCIALS
 ----------------------------------- */
 .contact-section form {
   max-width: 500px;
@@ -244,7 +245,7 @@ section h2 {
 }
 
 .contact-section button {
-  background: #ffb8cf;
+  background: var(--baby-pink);
   color: white;
   border: none;
   padding: 0.8rem;
@@ -270,7 +271,7 @@ section h2 {
 
 .cart-popup h2 {
   margin-bottom: 1rem;
-  color: #ffb8cf;
+  color: var(--baby-pink);
 }
 
 .cart-popup ul {
@@ -286,7 +287,7 @@ section h2 {
 }
 
 .cart-popup button {
-  background: #ffb8cf;
+  background: var(--baby-pink);
   color: white;
   width: 100%;
   padding: 0.6rem;
@@ -299,11 +300,15 @@ section h2 {
   FOOTER
 ----------------------------------- */
 footer {
-  background: #ffb8cf;
+  background: var(--baby-pink);
   text-align: center;
   padding: 1.5rem 1rem;
   color: #555;
   font-size: 0.9rem;
+}
+
+footer a:hover {
+  text-decoration: underline;
 }
 
 /* -----------------------------------
