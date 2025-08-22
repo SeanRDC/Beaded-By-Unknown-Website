@@ -67,10 +67,16 @@ a {
   color: var(--white);
   font-weight: bold;
   padding-bottom: 4px;
+  position: relative;
+  transition: border-bottom 0.3s ease, transform 0.3 ease;
 }
 
 .nav-links a.active {
   border-bottom: 2px solid var(--white)
+}
+
+.nav-links a:hover {
+  transform: scale(1.05);
 }
 
 .logo {
