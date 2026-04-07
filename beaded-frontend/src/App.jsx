@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from './firebase';
 
 // Unified Data (Desktop images + Mobile structure)
 const P = [
@@ -47,8 +49,8 @@ function App() {
   const [qvId, setQvId] = useState(null);
   const [sgOpen, setSgOpen] = useState(false);
   const [selProd, setSelProd] = useState(P[0]);
-  const [cart, setCart] = useState([{ ...P[0], qty: 1, sz: 'M' }, { ...P[4], qty: 2, sz: 'S' }]);
-  const [wish, setWish] = useState([2, 5, 7]);
+  const [cart, setCart] = useState([]);
+  const [wish, setWish] = useState([]);
   const [scrolled, setScrolled] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchQ, setSearchQ] = useState('');
@@ -72,8 +74,46 @@ function App() {
   const [chatMsgs, setChatMsgs] = useState([{ from: 'bot', text: 'Hi! Welcome to beadedbyunknown 👋' }]);
   const [gAmt, setGAmt] = useState(50);
   const r = useRef(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
 
-  // Scroll handler for desktop transparent header
+  // Auto-login check
+  // 1. Auto-login & Fetch Data on Refresh
+  useEffect(() => {
+    const token = localStorage.getItem('beaded_token');
+    if (token && !logged) {
+      fetch('http://localhost:4242/api/user/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setLogged(data.user);
+          setCart(data.cart || []);
+          setWish(data.wishlist || []);
+        } else {
+          localStorage.removeItem('beaded_token');
+        }
+      }).catch(err => console.error(err));
+    }
+  }, []);
+
+  // 2. Auto-Sync to Database (Only runs when you actually change the cart/wishlist)
+  useEffect(() => {
+    const token = localStorage.getItem('beaded_token');
+    // Prevent syncing empty arrays immediately on first load before the database responds
+    if (logged && token && (cart.length > 0 || wish.length > 0)) {
+      fetch('http://localhost:4242/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ cart, wishlist: wish })
+      }).catch(err => console.error("Sync error:", err));
+    }
+  }, [cart, wish]); // Only triggers when cart or wishlist states change
+
+   // Scroll handler for desktop transparent 
   useEffect(() => {
     const handleS = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleS);
@@ -97,6 +137,92 @@ function App() {
   const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [cat, sort]);
   const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
 
+  const handleCheckout = async () => {
+    try {
+      const response = await fetch('http://localhost:4242/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart }),
+      });
+      const data = await response.json();
+
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        flash('Failed to generate payment link', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      flash('Payment failed to initialize.', 'error');
+    }
+  };
+
+  const handleAuth = async (type) => {
+    if (type === 'register' && (!authFirstName || !authLastName || !authEmail || !authPassword)) {
+      alert("Please fill in all fields."); return;
+    }
+    if (type === 'signin' && (!authEmail || !authPassword)) {
+      alert("Please enter your email and password."); return;
+    }
+
+    const endpoint = type === 'register' ? '/api/register' : '/api/login';
+    const payload = type === 'register' 
+      ? { firstName: authFirstName, lastName: authLastName, email: authEmail, password: authPassword }
+      : { email: authEmail, password: authPassword };
+
+    try {
+      const res = await fetch(`http://localhost:4242${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(`Error: ${data.error}`); 
+      } else {
+        localStorage.setItem('beaded_token', data.token);
+        setLogged(data.user); 
+        setCart(data.cart || []);
+        setWish(data.wishlist || []);
+        setLoginOpen(false);
+        flash(`Welcome back, ${data.user.firstName}!`, 'success');
+      }
+    } catch (err) {
+      alert('Cannot connect to the server.');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
+      
+      const res = await fetch('http://localhost:4242/api/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: result.user.email,
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(' ') || ''
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (!data.error) {
+        localStorage.setItem('beaded_token', data.token);
+        setLogged(data.user);
+        setCart(data.cart || []);
+        setWish(data.wishlist || []);
+        setLoginOpen(false);
+        flash(`Welcome, ${data.user.firstName}!`, 'success');
+      }
+    } catch (error) {
+      flash('Google sign-in failed.', 'error');
+    }
+  };
+  
   const stars = (rt) => Array.from({ length: 5 }, (_, i) => (
     <Star key={i} className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < Math.floor(rt) ? 'fill-[#C9A96E] text-[#C9A96E]' : 'text-[#E8DFD3]'}`} />
   ));
@@ -153,7 +279,12 @@ function App() {
             <div className="flex items-center justify-end gap-5 flex-1">
               <button onClick={() => go('blog')} className="hidden md:block text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
               <button onClick={() => setSearchOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><Search className="w-[18px] h-[18px]" /></button>
-              <button onClick={() => logged ? go('account') : setLoginOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><User className="w-[18px] h-[18px]" /></button>
+              <button 
+              onClick={() => logged ? go('account') : setLoginOpen(true)} 
+              className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"
+            >
+              <User className="w-[18px] h-[18px]" />
+            </button>
               <button onClick={() => go('wishlist')} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors relative">
                 <Heart className={`w-[18px] h-[18px] ${wish.length > 0 ? 'fill-[#A0522D] text-[#A0522D]' : ''}`} />
                 {wish.length > 0 && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#A0522D] text-white text-[10px] rounded-full flex items-center justify-center">{wish.length}</span>}
@@ -243,6 +374,7 @@ function App() {
               </div>
             </section>
 
+            {/* THE BEAD TRIBE SECTION */}
             <section className="px-5 md:px-8 pb-8 md:pb-20 max-w-[1200px] mx-auto">
               <div className="bg-[#3E2F1C] rounded-xl md:rounded-2xl p-6 md:p-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
                 <div className="mb-4 md:mb-0">
@@ -257,6 +389,70 @@ function App() {
               </div>
             </section>
 
+            {/* OUR STORY SECTION */}
+            <section className="py-16 md:py-24 bg-[#FAF6F1]">
+              <div className="max-w-[1200px] mx-auto px-5 md:px-8">
+                <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
+                  <div className="flex-1 space-y-6">
+                    <h2 className="text-3xl md:text-4xl text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      Crafted with Intention
+                    </h2>
+                    <div className="w-12 h-1 bg-[#A0522D]"></div>
+                    <p className="text-[#8B7D6B] leading-relaxed">
+                      Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.
+                    </p>
+                    <p className="text-[#8B7D6B] leading-relaxed">
+                      Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.
+                    </p>
+                    <button onClick={() => go('collection')} className="inline-block mt-4 text-[#A0522D] font-semibold tracking-widest uppercase text-sm border-b border-[#A0522D] pb-1 hover:text-[#8B4526] transition-colors">
+                      Discover Our Process
+                    </button>
+                  </div>
+                  <div className="flex-1 w-full relative">
+                    <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10">
+                      <div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">
+                        [Studio Image Placeholder]
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* THE JOURNAL SECTION */}
+            <section className="py-16 md:py-24 bg-white">
+              <div className="max-w-[1200px] mx-auto px-5 md:px-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>The Journal</h2>
+                  <p className="text-[#8B7D6B] max-w-xl mx-auto">Stories, styling tips, and the meaning behind the stones.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {[
+                    { title: 'How to Clean and Care for Your Stone Beads', category: 'Care Guide', date: 'Oct 12' },
+                    { title: 'The Meaning Behind Tiger\'s Eye', category: 'Stone Focus', date: 'Oct 05' },
+                    { title: 'Stacking 101: Building Your Signature Look', category: 'Style', date: 'Sep 28' }
+                  ].map((post, i) => (
+                    <div key={i} className="group cursor-pointer">
+                      <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-4 overflow-hidden">
+                        <div className="w-full h-full bg-[#E8DFD3] group-hover:scale-105 transition-transform duration-500"></div>
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-2">
+                        <span>{post.category}</span>
+                        <span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span>
+                        <span className="text-[#8B7D6B]">{post.date}</span>
+                      </div>
+                      <h3 className="text-lg text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors">
+                        {post.title}
+                      </h3>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* FOOTER */}
             <footer className="bg-[#3E2F1C] text-[#B0A395]">
               <div className="max-w-[1200px] mx-auto px-5 md:px-8 py-10 md:py-16">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 text-center md:text-left">
@@ -277,6 +473,68 @@ function App() {
                 </div>
               </div>
             </footer>
+
+          </div>
+        )}
+
+        {/* OUR STORY PAGE */}
+        {pg === 'about' && (
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-12 pb-16 md:pb-24">
+            <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Our Story</span></div>
+            <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
+              <div className="flex-1 space-y-6">
+                <h2 className="text-3xl md:text-5xl text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Crafted with Intention
+                </h2>
+                <div className="w-12 h-1 bg-[#A0522D]"></div>
+                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
+                  Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.
+                </p>
+                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
+                  Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.
+                </p>
+              </div>
+              <div className="flex-1 w-full relative">
+                <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10">
+                  <div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">
+                    [Studio Image Placeholder]
+                  </div>
+                </div>
+                <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* JOURNAL PAGE */}
+        {pg === 'blog' && (
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-12 pb-16 md:pb-24">
+            <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Journal</span></div>
+            
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-3xl md:text-5xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>The Journal</h2>
+              <p className="text-[#8B7D6B] max-w-xl mx-auto md:text-lg">Stories, styling tips, and the meaning behind the stones.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+              {/* This automatically loops through the "blogs" array at the top of your file! */}
+              {blogs.map((post) => (
+                <div key={post.id} className="group cursor-pointer">
+                  <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
+                    <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-3">
+                    <span>{post.cat}</span>
+                    <span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span>
+                    <span className="text-[#8B7D6B]">{post.date}</span>
+                  </div>
+                  <h3 className="text-xl text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors mb-2">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm text-[#8B7D6B] line-clamp-2">{post.ex}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -466,6 +724,228 @@ function App() {
           </div>
         )}
 
+        {/* CHECKOUT */}
+        {pg === 'checkout' && (
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E8DFD3]">
+              <h2 className="text-[24px] md:text-[32px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Checkout</h2>
+              <div className="hidden md:flex gap-4">
+                {['Information', 'Shipping', 'Payment'].map((s, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className={`text-xs tracking-wider uppercase ${i + 1 <= chkStep ? 'font-medium text-[#3E2F1C]' : 'text-[#B0A395]'}`}>{s}</span>
+                    {i < 2 && <ChevronRight className="w-3 h-3 text-[#B0A395]" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-16">
+              <div className="md:col-span-3 order-2 md:order-1">
+                {chkStep === 1 && (
+                  <div>
+                    <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Contact & Shipping</h2>
+                    <div className="space-y-4">
+                      <input placeholder="Email" className="w-full px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <input placeholder="First name" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input placeholder="Last name" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      </div>
+                      <input placeholder="Address" className="w-full px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      <div className="grid grid-cols-3 gap-4">
+                        <input placeholder="City" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input placeholder="Province" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input placeholder="ZIP" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      </div>
+                    </div>
+                    <button onClick={() => setChkStep(2)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 mt-8 hover:bg-[#8B4526] font-semibold">Continue to Shipping</button>
+                  </div>
+                )}
+                {chkStep === 2 && (
+                  <div>
+                    <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Method</h2>
+                    <div className="space-y-3 mb-8">
+                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '$4.99' }, { n: 'Express (2-3 days)', p: '$9.99' }].map((m, i) => (
+                        <div key={i} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${i === 0 ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${i === 0 ? 'border-[#A0522D]' : 'border-[#B0A395]'}`}>{i === 0 && <div className="w-2 h-2 rounded-full bg-[#A0522D]" />}</div>
+                            <span className="text-sm font-medium">{m.n}</span>
+                          </div>
+                          <span className={`text-sm font-medium ${m.p === 'Free' ? 'text-[#7A8B6F]' : ''}`}>{m.p}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-4">
+                      <button onClick={() => setChkStep(1)} className="flex items-center gap-2 text-sm"><ChevronLeft className="w-4 h-4" /> Back</button>
+                      <button onClick={() => setChkStep(3)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold">Continue to Payment</button>
+                    </div>
+                  </div>
+                )}
+                {chkStep === 3 && (
+                  <div>
+                    <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Payment</h2>
+                    <div className="bg-[#F0EBE4] rounded-xl p-8 mb-8 text-center">
+                      <Lock className="w-8 h-8 text-[#A0522D] mx-auto mb-3" />
+                      <h3 className="text-lg font-medium mb-2">Secure Checkout</h3>
+                      <p className="text-sm text-[#8B7D6B] max-w-[300px] mx-auto">You will be redirected to PayMongo to securely complete your purchase using GCash, Maya, QR Ph, or Card.</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button onClick={() => setChkStep(2)} className="flex items-center gap-2 text-sm"><ChevronLeft className="w-4 h-4" /> Back</button>
+                      <button onClick={handleCheckout} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2">
+                        <Lock className="w-4 h-4" /> Pay ${cTotal} Securely
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-2 order-1 md:order-2">
+                <div className="bg-[#FAF6F1] p-6 rounded-xl md:sticky md:top-32 border border-[#E8DFD3] md:border-none">
+                  <h3 className="text-sm font-semibold tracking-wider uppercase mb-4">Order Summary</h3>
+                  {cart.map(it => (
+                    <div key={it.id} className="flex items-center gap-3 mb-4">
+                      <div className="w-14 h-14 rounded-lg bg-[#E8DFD3] overflow-hidden relative">
+                        <img src={it.img} alt="" className="w-full h-full object-cover" />
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#3E2F1C] text-white text-[10px] rounded-full flex items-center justify-center">{it.qty}</span>
+                      </div>
+                      <div className="flex-1"><p className="text-sm font-medium">{it.name}</p></div>
+                      <span className="text-sm font-medium">${it.price * it.qty}</span>
+                    </div>
+                  ))}
+                  <div className="border-t border-[#E8DFD3] pt-4 mt-4 flex justify-between">
+                    <span className="font-semibold">Total</span>
+                    <span className="text-lg font-bold">${cTotal}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ACCOUNT / PROFILE */}
+        {pg === 'account' && logged && (
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+              {/* Sidebar Navigation */}
+              <div className="w-full md:w-64 space-y-1">
+                <h2 className="text-2xl mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>My Account</h2>
+                {['Overview', 'Orders', 'Wishlist', 'Settings'].map(tab => (
+                  <button 
+                    key={tab} 
+                    onClick={() => tab === 'Wishlist' ? go('wishlist') : setAcctTab(tab.toLowerCase())}
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${acctTab === tab.toLowerCase() ? 'bg-[#A0522D] text-white' : 'hover:bg-[#F0EBE4] text-[#3E2F1C]'}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+                <button 
+                  onClick={() => { setLogged(false); 
+                    setCart([]);
+                    setWish([]);
+                    localStorage.removeItem('beaded_token'); go('home'); }} 
+                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-[#B85C5C] hover:bg-[#FDECEC] mt-4 flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" /> Logout
+                </button>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 bg-white rounded-2xl p-6 md:p-10 border border-[#E8DFD3]">
+                {acctTab === 'overview' && (
+                  <div>
+                    <div className="flex items-center gap-4 mb-8 pb-8 border-b border-[#F0EBE4]">
+                      <div className="w-16 h-16 rounded-full bg-[#A0522D] flex items-center justify-center text-white text-2xl font-bold">
+                        {logged.firstName?.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-[#3E2F1C]">{logged.firstName} {logged.lastName}</h3>
+                        <p className="text-sm text-[#8B7D6B]">{logged.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
+                        <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
+                          <Crown className="w-5 h-5" />
+                          <span className="text-xs font-bold uppercase tracking-widest">The Bead Tribe</span>
+                        </div>
+                        <p className="text-3xl font-bold text-[#3E2F1C]">{logged.points || 0}</p>
+                        <p className="text-xs text-[#8B7D6B] mt-1">Available reward points</p>
+                      </div>
+                      
+                      <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
+                        <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
+                          <Package className="w-5 h-5" />
+                          <span className="text-xs font-bold uppercase tracking-widest">Recent Orders</span>
+                        </div>
+                        <p className="text-sm text-[#3E2F1C]">No orders yet.</p>
+                        <button onClick={() => go('collection')} className="text-xs text-[#A0522D] underline mt-2 font-medium">Start Shopping</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {acctTab === 'orders' && (
+                  <div className="py-12 text-center">
+                    <Package className="w-12 h-12 text-[#E8DFD3] mx-auto mb-4" />
+                    <p className="text-[#8B7D6B]">You haven't placed any orders yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LOGIN MODAL */}
+        {loginOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setLoginOpen(false)} />
+            <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-8 shadow-2xl">
+              <button onClick={() => setLoginOpen(false)} className="absolute top-4 right-4 p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
+              
+              <div className="text-center mb-6">
+                <h3 className="text-2xl" style={{ fontFamily: 'Playfair Display, serif' }}>{loginTab === 'signin' ? 'Welcome Back' : 'Join Us'}</h3>
+              </div>
+              
+              <div className="flex mb-6 border-b border-[#E8DFD3]">
+                <button onClick={() => setLoginTab('signin')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'signin' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Sign In</button>
+                <button onClick={() => setLoginTab('register')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'register' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Create Account</button>
+
+                <div className="flex items-center gap-4 mt-6 pt-4">
+                  <div className="flex-1 h-px bg-[#E8DFD3]" />
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#B0A395]">Or continue with</span>
+                  <div className="flex-1 h-px bg-[#E8DFD3]" />
+                </div>
+                
+                <div className="flex gap-3 mt-4">
+                  <button onClick={handleGoogleLogin} className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
+                    Google
+                  </button>
+                  <button className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
+                    Facebook
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {loginTab === 'register' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="First name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                    <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Last name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                  </div>
+                )}
+                
+                <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                
+                {loginTab === 'signin' && <button className="text-xs text-[#A0522D] text-right w-full">Forgot password?</button>}
+                
+                <button onClick={() => handleAuth(loginTab)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-3.5 hover:bg-[#8B4526] font-semibold">
+                  {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* MOBILE BOTTOM NAV */}
@@ -477,7 +957,11 @@ function App() {
             { icon: <Heart className="w-5 h-5" />, label: 'Wishlist', p: 'wishlist' },
             { icon: <User className="w-5 h-5" />, label: 'Account', p: 'account' },
           ].map(tab => (
-            <button key={tab.p} onClick={() => tab.p === 'search' ? setSearchOpen(true) : go(tab.p === 'account' ? (logged ? 'account' : 'account') : tab.p)} className={`flex-1 flex flex-col items-center py-2.5 ${pg === tab.p ? 'text-[#A0522D]' : 'text-[#8B7D6B]'}`}>
+            <button key={tab.p} onClick={() => {
+            if (tab.p === 'search') return setSearchOpen(true);
+            if (tab.p === 'account') return logged ? go('account') : setLoginOpen(true);
+            go(tab.p);
+          }} className={`flex-1 flex flex-col items-center py-2.5 ${pg === tab.p ? 'text-[#A0522D]' : 'text-[#8B7D6B]'}`}>
               {tab.icon}
               <span className="text-[9px] mt-0.5">{tab.label}</span>
             </button>
@@ -504,7 +988,7 @@ function App() {
       )}
 
       {/* RESPONSIVE CART DRAWER */}
-      {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">${it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">${50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">${cTotal}</span></div><button className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
+      {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">${it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">${50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">${cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
 
       {/* SEARCH OVERLAY */}
       {searchOpen && <div className="fixed inset-0 z-[60] bg-[#FAF6F1] md:bg-black/30"><div className="md:absolute top-0 left-0 right-0 bg-white md:shadow-xl"><div className="md:max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-10"><div className="flex items-center gap-3 md:gap-4 border-b md:border-b-2 border-[#E8DFD3] md:border-[#3E2F1C] pb-3 md:mb-6"><Search className="w-5 h-5 text-[#8B7D6B]" /><input value={searchQ} onChange={(e)=>setSearchQ(e.target.value)} placeholder="Search bracelets..." className="flex-1 text-sm md:text-lg outline-none bg-transparent placeholder:text-[#B0A395]" autoFocus /><button onClick={() => { setSearchOpen(false); setSearchQ(''); }}><X className="w-5 h-5 text-[#8B7D6B]" /></button></div></div></div></div>}
