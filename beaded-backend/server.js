@@ -117,6 +117,36 @@ app.post('/api/user/sync', verifyToken, async (req, res) => {
 });
 
 // =====================================================================
+// 2.1 CATALOG & ADMIN ROUTES
+// =====================================================================
+
+// PUBLIC: Get all products to display on the website
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
+
+// SECRET ADMIN: Add a new product
+app.post('/api/admin/products', async (req, res) => {
+  // Check the secret key from the headers
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
+  }
+  
+  try {
+    const newProduct = new Product(req.body);
+    await newProduct.save();
+    res.json(newProduct);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save product to database' });
+  }
+});
+
+// =====================================================================
 // 3. PAYMONGO ROUTES
 // =====================================================================
 app.post('/api/create-checkout-session', async (req, res) => {
