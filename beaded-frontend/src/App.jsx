@@ -3,7 +3,7 @@ import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, P
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 
-// Unified Data (Desktop images + Mobile structure)
+/*
 const P = [
   { id: 1, name: 'Sunstone Serenity', price: 38, img: 'https://images.unsplash.com/photo-1766560359154-c28794703384?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBjcnlzdGFsJTIwYmVhZCUyMGJyYWNlbGV0JTIwaGFuZG1hZGV8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHdlYXJpbmclMjBiZWFkJTIwYnJhY2VsZXQlMjBjbG9zZXVwfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#A0522D', '#E8DFD3'], cat: 'Gemstone', rating: 4.8, reviews: 124, mat: 'Natural Sunstone', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
   { id: 2, name: 'Moonlit Whisper', price: 42, img: 'https://images.unsplash.com/photo-1774096399392-e89c66ed8512?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHBlYXJsJTIwYnJhY2VsZXQlMjBlbGVnYW50fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763739906638-5b50dbef6005?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxkZWxpY2F0ZSUyMHdoaXRlJTIwYnJhY2VsZXQlMjBqZXdlbHJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#FFFFFF', '#E8DFD3', '#C9A96E'], cat: 'Pearl', rating: 4.9, reviews: 89, mat: 'Freshwater Pearl', sizes: ['S', 'M', 'L'], tag: 'New' },
@@ -14,6 +14,7 @@ const P = [
   { id: 7, name: 'Blush Dream', price: 40, img: 'https://images.unsplash.com/photo-1652500965593-58e2b71d3cdc?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxwaW5rJTIwcm9zZSUyMHF1YXJ0eiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1762762938024-6d69c11d8c0a?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxyb3NlJTIwcXVhcnR6JTIwamV3ZWxyeSUyMGZlbWluaW5lfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#D4A0A0', '#E8DFD3', '#C9A96E'], cat: 'Gemstone', rating: 4.8, reviews: 143, mat: 'Rose Quartz', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
   { id: 8, name: 'Midnight Stone', price: 48, img: 'https://images.unsplash.com/photo-1559555698-cc683c339bdb?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMG9ueXglMjBiZWFkJTIwYnJhY2VsZXR8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1767049603596-79204ada5273?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMHN0b25lJTIwYnJhY2VsZXQlMjBkYXJrfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#2C2C2C', '#3E2F1C', '#C9A96E'], cat: 'Gemstone', rating: 4.7, reviews: 112, mat: 'Black Onyx', sizes: ['S', 'M', 'L', 'XL'], tag: '' },
 ];
+*/
 
 const blogs = [
   { id: 1, title: 'The Art of Intentional Adornment', ex: 'How choosing your daily bracelet can become a mindful ritual.', cat: 'Style Guide', date: 'Dec 15, 2024', time: '5 min', img: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGhhbmRzJTIwbWVkaXRhdGlvbiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
@@ -41,6 +42,7 @@ const charmOpts = [
 
 function App() {
   const [pg, setPg] = useState('home');
+  const [P, setP] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -112,6 +114,18 @@ function App() {
       }).catch(err => console.error("Sync error:", err));
     }
   }, [cart, wish]); // Only triggers when cart or wishlist states change
+
+  // 3. Fetch Products from MongoDB
+  useEffect(() => {
+    fetch('http://localhost:4242/api/products')
+      .then(res => res.json())
+      .then(data => {
+         setP(data);
+         // Make sure selProd doesn't crash if the user visits a product page
+         if (data.length > 0 && !selProd) setSelProd(data[0]); 
+      })
+      .catch(err => console.error("Failed to load catalog:", err));
+  }, []);
 
    // Scroll handler for desktop transparent 
   useEffect(() => {
