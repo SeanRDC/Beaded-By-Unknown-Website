@@ -1,3 +1,5 @@
+const Product = require('./models/Product');
+const Order = require('./models/Order');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -146,6 +148,35 @@ app.post('/api/admin/products', async (req, res) => {
   }
 });
 
+// SECRET ADMIN: Update an existing product
+app.put('/api/admin/products/:id', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
+  }
+  try {
+    // findByIdAndUpdate replaces the old data with the new req.body
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedProduct);
+  } catch (err) {
+    console.error("🔥 UPDATE ERROR:", err.message);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+// SECRET ADMIN: Delete a product
+app.delete('/api/admin/products/:id', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
+  }
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("🔥 DELETE ERROR:", err.message);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
 // =====================================================================
 // 3. PAYMONGO ROUTES
 // =====================================================================
@@ -187,6 +218,60 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.json({ checkout_url: sessionData.data.attributes.checkout_url });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create payment link' });
+  }
+});
+
+// =====================================================================
+// PAYMONGO WEBHOOK (Listens for successful payments)
+// =====================================================================
+app.post('/api/webhooks/paymongo', async (req, res) => {
+  try {
+    const event = req.body.data;
+    
+    // PayMongo sends various events. We only care when a payment succeeds.
+    if (event.attributes.type === 'checkout_session.payment.paid') {
+      const session = event.attributes.data.attributes;
+      
+      const newOrder = new Order({
+        checkoutSessionId: event.attributes.data.id,
+        customerName: session.billing?.name || 'Guest',
+        customerEmail: session.billing?.email || 'No Email',
+        amountPaid: session.payment_intent.attributes.amount / 100, // Convert centavos back to PHP
+        items: session.line_items
+      });
+
+      await newOrder.save();
+      console.log(`💰 NEW SALE RECORDED: ₱${newOrder.amountPaid}`);
+    }
+
+    // Always tell PayMongo "Message Received" so they stop pinging you
+    res.status(200).send('Webhook received');
+  } catch (error) {
+    console.error('🔥 Webhook error:', error);
+    res.status(500).send('Webhook failed');
+  }
+});
+
+// =====================================================================
+// ADMIN STATS ROUTE (Sends real data to your dashboard)
+// =====================================================================
+app.get('/api/admin/stats', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  
+  try {
+    const orders = await Order.find();
+    
+    // Calculate total revenue by adding up all amountPaid values
+    const totalRevenue = orders.reduce((sum, order) => sum + order.amountPaid, 0);
+    
+    res.json({
+      revenue: totalRevenue,
+      totalOrders: orders.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
