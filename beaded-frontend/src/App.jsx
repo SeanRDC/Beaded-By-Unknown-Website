@@ -117,15 +117,23 @@ function App() {
 
   // 3. Fetch Products from MongoDB
   useEffect(() => {
-    fetch('http://localhost:4242/api/products')
-      .then(res => res.json())
-      .then(data => {
+  fetch('http://localhost:4242/api/products')
+    .then(res => res.json())
+    .then(data => {
+       // Only set P if data is actually an array
+       if (Array.isArray(data)) {
          setP(data);
-         // Make sure selProd doesn't crash if the user visits a product page
-         if (data.length > 0 && !selProd) setSelProd(data[0]); 
-      })
-      .catch(err => console.error("Failed to load catalog:", err));
-  }, []);
+         if (data.length > 0 && !selProd) setSelProd(data[0]);
+       } else {
+         console.error("Backend sent an error:", data);
+         setP([]); // Keep it as an empty array so .slice() doesn't crash
+       }
+    })
+    .catch(err => {
+      console.error("Failed to load catalog:", err);
+      setP([]); // Keep it as an empty array on network failure
+    });
+}, []);
 
    // Scroll handler for desktop transparent 
   useEffect(() => {
@@ -346,7 +354,7 @@ function App() {
                 <button onClick={() => go('collection')} className="text-xs md:text-sm text-[#A0522D] font-medium flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight className="w-3 h-3 md:w-4 md:h-4" /></button>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {P.slice(0, 4).map(p => <Card key={p.id} p={p} />)}
+                {Array.isArray(P) && P.slice(0, 4).map(p => <Card key={p.id} p={p} />)}
               </div>
             </section>
 
