@@ -603,6 +603,7 @@ function App() {
               <ul className="space-y-4 text-sm text-[#D1CBC3]">
                 <li><button onClick={() => go('sizeguide')} className="hover:text-white transition-colors">Size Guide</button></li>
                 <li><button onClick={() => go('shipping')} className="hover:text-white transition-colors">Shipping</button></li>
+                <li><button onClick={() => go('terms')} className="hover:text-white transition-colors">Terms & Privacy</button></li>
                 <li><button onClick={() => go('faq')} className="hover:text-white transition-colors">FAQ</button></li>
               </ul>
             </div>
@@ -1196,52 +1197,165 @@ function App() {
         )}
 
         {/* LOGIN MODAL */}
-        {loginOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setLoginOpen(false)} />
-            <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-8 shadow-2xl">
-              <button onClick={() => setLoginOpen(false)} className="absolute top-4 right-4 p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
-              
-              <div className="text-center mb-6">
-                <h3 className="text-2xl" style={{ fontFamily: 'Playfair Display, serif' }}>{loginTab === 'signin' ? 'Welcome Back' : 'Join Us'}</h3>
+{loginOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6">
+          {/* Backdrop with subtle blur */}
+          <div className="absolute inset-0 bg-[#3E2F1C]/40 backdrop-blur-sm" onClick={() => setLoginOpen(false)} />
+          
+          <div className="relative w-full max-w-[440px] bg-white rounded-[2rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-300">
+            {/* Close Button */}
+            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 p-2 text-[#8B7D6B] hover:bg-[#FAF6F1] rounded-full transition-colors z-10">
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="p-8 md:p-10">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h3 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  {loginTab === 'signin' ? 'Welcome Back' : 'Create Account'}
+                </h3>
+                <p className="text-sm text-[#8B7D6B]">
+                  {loginTab === 'signin' ? 'Sign in to access your wishlist and orders.' : 'Join the community for a personalized experience.'}
+                </p>
               </div>
               
-              <div className="flex mb-6 border-b border-[#E8DFD3]">
-                <button onClick={() => setLoginTab('signin')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'signin' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Sign In</button>
-                <button onClick={() => setLoginTab('register')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'register' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Create Account</button>
-
-                <div className="flex items-center gap-4 mt-6 pt-4">
-                  <div className="flex-1 h-px bg-[#E8DFD3]" />
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#B0A395]">Or continue with</span>
-                  <div className="flex-1 h-px bg-[#E8DFD3]" />
-                </div>
-                
-                <div className="flex gap-3 mt-4">
-                  <button onClick={handleGoogleLogin} className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
-                    Google
-                  </button>
-                  <button className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
-                    Facebook
-                  </button>
-                </div>
+              {/* Tab Switcher (Pill Style) */}
+              <div className="flex p-1 bg-[#FAF6F1] rounded-full mb-8">
+                <button 
+                  onClick={() => setLoginTab('signin')} 
+                  className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'signin' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => setLoginTab('register')} 
+                  className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'register' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
+                >
+                  Register
+                </button>
               </div>
 
+              {/* Social Login */}
+              <div className="space-y-3 mb-8">
+                <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 py-3 border-2 border-[#E8DFD3] rounded-xl text-sm font-semibold text-[#3E2F1C] hover:bg-[#FAF6F1] hover:border-[#3E2F1C] transition-all">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Continue with Google
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 mb-8">
+                <div className="flex-1 h-px bg-[#E8DFD3]" />
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#B0A395]">Or use email</span>
+                <div className="flex-1 h-px bg-[#E8DFD3]" />
+              </div>
+
+              {/* Form Fields */}
               <div className="space-y-4">
                 {loginTab === 'register' && (
                   <div className="grid grid-cols-2 gap-4">
-                    <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="First name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                    <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Last name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">First Name</label>
+                      <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="Jane" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Last Name</label>
+                      <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Doe" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
                   </div>
                 )}
                 
-                <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                
-                {loginTab === 'signin' && <button className="text-xs text-[#A0522D] text-right w-full">Forgot password?</button>}
-                
-                <button onClick={() => handleAuth(loginTab)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-3.5 hover:bg-[#8B4526] font-semibold">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
+                  <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Password</label>
+                    {loginTab === 'signin' && <button className="text-[10px] font-bold uppercase tracking-widest text-[#A0522D] hover:underline">Forgot?</button>}
+                  </div>
+                  <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                </div>
+
+                <button 
+                  onClick={() => handleAuth(loginTab)} 
+                  className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
+                >
                   {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
                 </button>
+              </div>
+
+              {/* Bottom Policy Link */}
+              <p className="text-[10px] text-[#B0A395] text-center mt-8 leading-relaxed px-4">
+                By continuing, you agree to our 
+                <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Terms of Service</button> 
+                and 
+                <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Privacy Policy</button>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* TERMS AND CONDITIONS / PRIVACY POLICY */}
+      
+        {pg === 'terms' && (
+          <div className="max-w-4xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
+            <button 
+              onClick={() => go('home')} 
+              className="text-xs text-[#8B7D6B] mb-8 hover:text-[#A0522D] flex items-center gap-1 transition-colors font-medium uppercase tracking-widest"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Back to Home
+            </button>
+
+            <h1 className="text-3xl md:text-5xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Terms & Privacy</h1>
+            <p className="text-[#8B7D6B] mb-12 border-b border-[#E8DFD3] pb-8">Last Updated: April 2026</p>
+
+            <div className="space-y-12 text-[#3E2F1C]">
+              {/* Data Usage */}
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-widest mb-4">1. Data Collection & Usage</h2>
+                <p className="leading-relaxed mb-4 text-sm md:text-base">
+                  When you use Beaded by Unknown, we collect information to provide a personalized shopping experience. This includes:
+                </p>
+                <ul className="list-disc pl-5 space-y-2 text-sm text-[#5A4A3A]">
+                  <li><strong>Account Info:</strong> Name and email via Google or Email registration to manage your profile.</li>
+                  <li><strong>Sync Data:</strong> We store your Cart and Wishlist items in our database (MongoDB) so you can access them across different devices.</li>
+                  <li><strong>Payment Info:</strong> We do not store credit card details. All payments are processed securely via <strong>PayMongo</strong>.</li>
+                </ul>
+              </section>
+
+              {/* Handmade Nature */}
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-widest mb-4">2. Product Disclaimer</h2>
+                <p className="leading-relaxed text-sm md:text-base">
+                  Our bracelets are handcrafted using natural gemstones. Because these are products of the earth, subtle variations in color, shape, and size are to be expected. These are not flaws, but rather the unique "fingerprint" of your specific piece.
+                </p>
+              </section>
+
+              {/* Shipping */}
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-widest mb-4">3. Shipping & Orders</h2>
+                <p className="leading-relaxed text-sm md:text-base">
+                  Orders are processed within 2-4 business days. Once a custom bracelet has been started, we cannot accept cancellations. Please ensure your wrist measurement is accurate according to our Size Guide before placing an order.
+                </p>
+              </section>
+
+              {/* Intellectual Property */}
+              <section>
+                <h2 className="text-lg font-bold uppercase tracking-widest mb-4">4. Intellectual Property</h2>
+                <p className="leading-relaxed text-sm md:text-base">
+                  All designs, photography, and journal content on this website are the property of Beaded by Unknown and Sean Rhani Dela Cruz. Unauthorized use or reproduction is prohibited.
+                </p>
+              </section>
+
+              <div className="bg-[#FAF6F1] p-8 rounded-2xl border border-[#E8DFD3] text-center">
+                <p className="text-sm italic text-[#8B7D6B]">
+                  Questions regarding our terms? Contact us at support@beadedbyunknown.com
+                </p>
               </div>
             </div>
           </div>
