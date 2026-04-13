@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, DollarSign, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, DollarSign, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
@@ -25,9 +25,22 @@ export default function AdminDashboard() {
     name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L'
   });
 
+  // Blog states
+  const [blogs, setBlogs] = useState([]);
+  const [editBlogId, setEditBlogId] = useState(null);
+  const [blogForm, setBlogForm] = useState({ 
+    title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' 
+  });
+
   const fetchAllData = async () => {
     try {
       const prodRes = await fetch('http://localhost:4242/api/products');
+      // blog logic
+      const blogRes = await fetch('http://localhost:4242/api/blogs');
+      if (blogRes.ok) {
+        const blogData = await blogRes.json();
+        if (Array.isArray(blogData)) setBlogs(blogData);
+      }
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) setProducts(prodData);
@@ -150,11 +163,44 @@ export default function AdminDashboard() {
     } catch (err) { setStatus('❌ Server error.'); }
   };
 
+  const handleBlogSubmit = async (e) => {
+    e.preventDefault();
+    if (!secretKey) return setStatus('❌ Admin Key Required.');
+    setStatus('Saving Article...');
+
+    const url = editBlogId ? `http://localhost:4242/api/admin/blogs/${editBlogId}` : 'http://localhost:4242/api/admin/blogs';
+    const method = editBlogId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
+        body: JSON.stringify(blogForm)
+      });
+      if (res.ok) {
+        setStatus(`✅ Article ${editBlogId ? 'updated' : 'published'}!`);
+        setBlogForm({ title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' });
+        setEditBlogId(null);
+        fetchAllData();
+        setTimeout(() => setStatus(''), 2000);
+      } else { setStatus('❌ Error saving article.'); }
+    } catch (err) { setStatus('❌ Server error.'); }
+  };
+
+  const handleEditBlog = (b) => {
+    setEditBlogId(b._id);
+    setBlogForm({ title: b.title, ex: b.ex, content: b.content, cat: b.cat, time: b.time, img: b.img });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleDelete = async (id, type = 'product') => {
     if (!secretKey) return alert("Admin Secret Key required.");
     if (!window.confirm(`Delete this ${type} permanently?`)) return;
     try {
-      const url = type === 'product' ? `http://localhost:4242/api/admin/products/${id}` : `http://localhost:4242/api/admin/reviews/${id}`;
+      let url = `http://localhost:4242/api/admin/products/${id}`;
+      if (type === 'review') url = `http://localhost:4242/api/admin/reviews/${id}`;
+      if (type === 'blog') url = `http://localhost:4242/api/admin/blogs/${id}`;
+
       const res = await fetch(url, { method: 'DELETE', headers: { 'admin_secret': secretKey } });
       if (res.ok) fetchAllData();
     } catch (err) { alert("Server error."); }
@@ -186,6 +232,7 @@ export default function AdminDashboard() {
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
+          <NavButton id="journal" icon={BookOpen} label="Journal Editor" /> 
           <NavButton id="community" icon={MessageSquare} label="Community Love" />
           <NavButton id="settings" icon={SettingsIcon} label="Store Settings" />
         </nav>
@@ -400,6 +447,88 @@ export default function AdminDashboard() {
                 </div>
               )}
 
+              {/* --- JOURNAL TAB --- */}
+              {activeTab === 'journal' && (
+                <div className="animate-in fade-in duration-300 relative w-full">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    
+                    {/* Write/Edit Form */}
+                    <div className="xl:col-span-1">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          {editBlogId ? 'Edit Article' : 'Write an Article'}
+                        </h3>
+                        {editBlogId && (
+                          <button onClick={() => { setEditBlogId(null); setBlogForm({ title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' }); }} className="text-xs font-bold text-[#8B7D6B] flex items-center gap-1 hover:text-[#3E2F1C]">
+                            <X className="w-3 h-3" /> Cancel Edit
+                          </button>
+                        )}
+                      </div>
+
+                      <form onSubmit={handleBlogSubmit} className="space-y-4 bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Article Title</label>
+                          <input required value={blogForm.title} onChange={(e) => setBlogForm({...blogForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Cover Image URL</label>
+                          <input required value={blogForm.img} onChange={(e) => setBlogForm({...blogForm, img: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Short Excerpt (Shows on home page)</label>
+                          <textarea required value={blogForm.ex} onChange={(e) => setBlogForm({...blogForm, ex: e.target.value})} rows="2" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm resize-none" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Full Story (Use Enter for paragraphs)</label>
+                          <textarea required value={blogForm.content} onChange={(e) => setBlogForm({...blogForm, content: e.target.value})} rows="10" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
+                            <input required value={blogForm.cat} onChange={(e) => setBlogForm({...blogForm, cat: e.target.value})} placeholder="e.g. Style Guide" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Read Time</label>
+                            <input required value={blogForm.time} onChange={(e) => setBlogForm({...blogForm, time: e.target.value})} placeholder="e.g. 5 min" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                        </div>
+                        <button type="submit" className="w-full bg-[#3E2F1C] text-white py-3 rounded-lg font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs mt-2">
+                          {editBlogId ? 'Update Article' : 'Publish Article'}
+                        </button>
+                      </form>
+                      {status && status.includes('Article') && <div className="mt-4 text-sm text-center text-[#A0522D] font-bold">{status}</div>}
+                    </div>
+
+                    {/* Live Articles List */}
+                    <div className="xl:col-span-1">
+                      <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Live Articles ({blogs.length})</h3>
+                      {blogs.length === 0 ? (
+                        <p className="text-sm text-[#8B7D6B] py-8 text-center border border-dashed border-[#E8DFD3] rounded-xl">No articles published yet.</p>
+                      ) : (
+                        <div className="space-y-4">
+                          {blogs.map(b => (
+                            <div key={b._id} className="p-4 border border-[#E8DFD3] rounded-xl bg-white flex justify-between items-center gap-4 hover:border-[#A0522D] transition-colors">
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <img src={b.img} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#E8DFD3]" />
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-[#3E2F1C] text-sm truncate">{b.title}</h4>
+                                  <p className="text-xs text-[#8B7D6B] mt-1">{b.date} • {b.cat}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2 shrink-0">
+                                <button onClick={() => handleEditBlog(b)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] hover:bg-[#E8DFD3] rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleDelete(b._id, 'blog')} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
               {/* --- SETTINGS TAB --- */}
               {activeTab === 'settings' && (
                 <div className="animate-in fade-in duration-300 relative w-full max-w-2xl">
@@ -433,9 +562,12 @@ export default function AdminDashboard() {
           </div>
         </main>
 
+        {/* MOBILE BOTTOM NAVIGATION */}
         <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex justify-around p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
           <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
           <NavButton id="inventory" icon={Package} label="Catalog" />
+          {/* Added the Journal Tab here */}
+          <NavButton id="journal" icon={BookOpen} label="Journal" /> 
           <NavButton id="community" icon={MessageSquare} label="Reviews" />
           <NavButton id="settings" icon={SettingsIcon} label="Settings" />
         </nav>
@@ -444,3 +576,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+const Blog = require('./models/Blog');
 const Review = require('./models/Review');
 const Settings = require('./models/Settings');
 const Product = require('./models/Product');
@@ -396,5 +397,53 @@ app.get('/api/bestsellers', async (req, res) => {
   } catch (error) {
     console.error("Bestseller Algo Error:", error);
     res.status(500).json({ error: 'Failed to calculate bestsellers' });
+  }
+});
+
+// =====================================================================
+// JOURNAL / BLOG ROUTES
+// =====================================================================
+
+// GET: Storefront reads all blog posts
+app.get('/api/blogs', async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 });
+    res.json(blogs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch blogs' });
+  }
+});
+
+// POST: Admin creates a new blog post
+app.post('/api/admin/blogs', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
+  try {
+    const newBlog = new Blog(req.body);
+    await newBlog.save();
+    res.json(newBlog);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create post' });
+  }
+});
+
+// PUT: Admin edits an existing blog post
+app.put('/api/admin/blogs/:id', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
+  try {
+    const updated = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update post' });
+  }
+});
+
+// DELETE: Admin removes a blog post
+app.delete('/api/admin/blogs/:id', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
+  try {
+    await Blog.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete post' });
   }
 });

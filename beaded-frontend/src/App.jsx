@@ -16,11 +16,13 @@ const P = [
 ];
 */
 
+/* Default blogs
 const blogs = [
   { id: 1, title: 'The Art of Intentional Adornment', ex: 'How choosing your daily bracelet can become a mindful ritual.', cat: 'Style Guide', date: 'Dec 15, 2024', time: '5 min', img: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGhhbmRzJTIwbWVkaXRhdGlvbiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
   { id: 2, title: 'Behind the Beads: Sourcing Stones', ex: 'A journey to the mines where we find our beautiful gemstones.', cat: 'Behind the Scenes', date: 'Dec 8, 2024', time: '7 min', img: 'https://images.unsplash.com/photo-1762921010575-2fcdb3c36ca1?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMGdlbXN0b25lcyUyMGNyeXN0YWxzfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
   { id: 3, title: 'Caring for Handmade Jewelry', ex: 'Simple tips to keep your bracelets beautiful for years.', cat: 'Care Tips', date: 'Dec 1, 2024', time: '4 min', img: 'https://images.unsplash.com/photo-1520781359717-3eb98461c9fe?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxqZXdlbHJ5JTIwY2xlYW5pbmclMjBjbG90aHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
 ];
+*/
 
 const beadOpts = [
   { id: 'b1', name: 'Rose Quartz', color: '#D4A0A0', price: 3 }, { id: 'b2', name: 'Tiger Eye', color: '#A0522D', price: 3 },
@@ -85,40 +87,49 @@ function App() {
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
   const [bestsellers, setBestsellers] = useState([]);
-const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
+  const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
+  const [blogs, setBlogs] = useState([]);
+  const [selBlog, setSelBlog] = useState(null);
 
-useEffect(() => {
-  // Fetch the calculated bestsellers from our new algorithm
-  fetch('http://localhost:4242/api/bestsellers')
+  useEffect(() => {
+  fetch('http://localhost:4242/api/blogs')
     .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) setBestsellers(data);
-    })
-    .catch(err => console.error("Failed to load bestsellers:", err));
+    .then(data => { if (Array.isArray(data)) setBlogs(data); })
+    .catch(err => console.error("Failed to load blogs:", err));
 }, []);
 
-useEffect(() => {
-  fetch('http://localhost:4242/api/reviews')
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) setReviews(data);
-    })
-    .catch(err => console.error("Failed to load reviews:", err));
-}, []);
+  useEffect(() => {
+    // Fetch the calculated bestsellers from our new algorithm
+    fetch('http://localhost:4242/api/bestsellers')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setBestsellers(data);
+      })
+      .catch(err => console.error("Failed to load bestsellers:", err));
+  }, []);
 
-useEffect(() => {
-  fetch('http://localhost:4242/api/settings')
-    .then(res => res.json())
-    .then(data => {
-      if (data) {
-        if (data.topBannerText) setTopBannerText(data.topBannerText);
-        if (data.featureOne) setFeatureOne(data.featureOne);
-        if (data.featureTwo) setFeatureTwo(data.featureTwo);
-        if (data.featureThree) setFeatureThree(data.featureThree);
-      }
-    })
-    .catch(err => console.error("Failed to load settings:", err));
-}, []);
+  useEffect(() => {
+    fetch('http://localhost:4242/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setReviews(data);
+      })
+      .catch(err => console.error("Failed to load reviews:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:4242/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          if (data.topBannerText) setTopBannerText(data.topBannerText);
+          if (data.featureOne) setFeatureOne(data.featureOne);
+          if (data.featureTwo) setFeatureTwo(data.featureTwo);
+          if (data.featureThree) setFeatureThree(data.featureThree);
+        }
+      })
+      .catch(err => console.error("Failed to load settings:", err));
+  }, []);
   
   // Auto-login check
   // 1. Auto-login & Fetch Data on Refresh
@@ -182,7 +193,13 @@ useEffect(() => {
   }, []);
 
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
-  const go = useCallback((p, prod) => { setPg(p); if (prod) setSelProd(prod); setMenuOpen(false); window.scrollTo({top: 0, behavior: 'smooth'}); }, []);
+  const go = useCallback((p, data) => { 
+    setPg(p); 
+    if (p === 'product' && data) setSelProd(data); 
+    if (p === 'blog-post' && data) setSelBlog(data);
+    setMenuOpen(false); 
+    window.scrollTo({top: 0, behavior: 'smooth'}); 
+  }, []);
 
   const addCart = useCallback((p) => {
     setCart(prev => { const ex = prev.find(i => i.id === p.id); if (ex) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + qty } : i); return [...prev, { ...p, qty: qty, sz: selSz }]; });
@@ -505,30 +522,36 @@ useEffect(() => {
               <div className="max-w-[1200px] mx-auto px-5 md:px-8">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl md:text-4xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>The Journal</h2>
-                  <p className="text-[#8B7D6B] max-w-xl mx-auto">Stories, styling tips, and the meaning behind the stones.</p>
+                  <p className="text-[#8B7D6B] max-w-xl mx-auto md:text-lg">Stories, styling tips, and the meaning behind the stones.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    { title: 'How to Clean and Care for Your Stone Beads', category: 'Care Guide', date: 'Oct 12' },
-                    { title: 'The Meaning Behind Tiger\'s Eye', category: 'Stone Focus', date: 'Oct 05' },
-                    { title: 'Stacking 101: Building Your Signature Look', category: 'Style', date: 'Sep 28' }
-                  ].map((post, i) => (
-                    <div key={i} className="group cursor-pointer">
-                      <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-4 overflow-hidden">
-                        <div className="w-full h-full bg-[#E8DFD3] group-hover:scale-105 transition-transform duration-500"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+                  {blogs.slice(0, 3).map((post) => (
+                    <div key={post._id || post.id} className="group cursor-pointer" onClick={() => go('blog-post', post)}>
+                      <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
+                        <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-2">
-                        <span>{post.category}</span>
+                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-3">
+                        <span>{post.cat}</span>
                         <span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span>
                         <span className="text-[#8B7D6B]">{post.date}</span>
                       </div>
-                      <h3 className="text-lg text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors">
+                      <h3 className="text-xl text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors mb-2">
                         {post.title}
                       </h3>
+                      <p className="text-sm text-[#8B7D6B] line-clamp-2">{post.ex}</p>
                     </div>
                   ))}
                 </div>
+
+                {/* Show a "Read All" button if there are more than 3 articles */}
+                {blogs.length > 3 && (
+                  <div className="text-center mt-10">
+                    <button onClick={() => go('blog')} className="text-sm uppercase tracking-widest font-bold border-b border-[#3E2F1C] pb-1 hover:text-[#A0522D] hover:border-[#A0522D] transition-colors">
+                      Read All Articles
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -730,9 +753,9 @@ useEffect(() => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-              {/* This automatically loops through the "blogs" array at the top of your file! */}
+             {/* This automatically loops through the "blogs" array at the top of your file! */}
               {blogs.map((post) => (
-                <div key={post.id} className="group cursor-pointer">
+                <div key={post._id || post.id} className="group cursor-pointer" onClick={() => go('blog-post', post)}>
                   <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
                     <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
@@ -747,6 +770,69 @@ useEffect(() => {
                   <p className="text-sm text-[#8B7D6B] line-clamp-2">{post.ex}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* SINGLE BLOG POST READING VIEW */}
+        
+        {pg === 'blog-post' && selBlog && (
+          <div className="bg-white min-h-screen">
+            <div className="max-w-[800px] mx-auto px-5 md:px-8 pt-8 md:pt-16 pb-24 animate-in fade-in duration-500">
+              
+              {/* Back Navigation */}
+              <button 
+                onClick={() => go('blog')} 
+                className="text-xs text-[#8B7D6B] mb-8 hover:text-[#A0522D] flex items-center gap-1 transition-colors font-medium uppercase tracking-widest"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back to Journal
+              </button>
+
+              {/* Article Header */}
+              <div className="text-center mb-10 md:mb-16">
+                <div className="flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] text-[#A0522D] font-bold mb-6">
+                  <span>{selBlog.cat || 'Journal'}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E8DFD3]"></span>
+                  <span className="text-[#8B7D6B]">{selBlog.date}</span>
+                </div>
+                <h1 className="text-3xl md:text-5xl text-[#3E2F1C] leading-tight mb-8" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  {selBlog.title}
+                </h1>
+                {selBlog.ex && (
+                  <p className="text-lg md:text-xl text-[#8B7D6B] italic max-w-2xl mx-auto leading-relaxed">
+                    "{selBlog.ex}"
+                  </p>
+                )}
+              </div>
+
+              {/* Hero Image */}
+              <div className="w-full aspect-[16/9] md:aspect-[2/1] rounded-2xl overflow-hidden bg-[#FAF6F1] mb-12 shadow-sm border border-[#F0EBE4]">
+                <img src={selBlog.img} alt={selBlog.title} className="w-full h-full object-cover" />
+              </div>
+
+              {/* Article Body Content */}
+              <div className="max-w-none text-[#3E2F1C] leading-loose space-y-6">
+                {/* This part takes your text and keeps the paragraphs you typed in Admin */}
+                {(selBlog.content || '').split('\n').map((paragraph, idx) => (
+                  paragraph.trim() && (
+                    <p key={idx} className="text-base md:text-lg">
+                      {paragraph}
+                    </p>
+                  )
+                ))}
+              </div>
+
+              {/* End of Post Footer */}
+              <div className="mt-20 pt-10 border-t border-[#E8DFD3] flex flex-col items-center">
+                <p className="text-xs uppercase tracking-widest text-[#8B7D6B] mb-6">End of Story</p>
+                <button 
+                  onClick={() => go('blog')} 
+                  className="text-sm font-bold uppercase tracking-widest border border-[#3E2F1C] text-[#3E2F1C] py-3.5 px-10 rounded-lg hover:bg-[#3E2F1C] hover:text-white transition-all duration-300 shadow-sm"
+                >
+                  Return to Journal
+                </button>
+              </div>
+              
             </div>
           </div>
         )}
@@ -849,6 +935,8 @@ useEffect(() => {
             </div>
           );
         })()}
+
+
 
         {/* CUSTOMIZER */}
         {pg === 'customizer' && (
