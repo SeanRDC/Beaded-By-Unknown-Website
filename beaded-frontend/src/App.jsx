@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
@@ -81,6 +82,20 @@ function App() {
   const [authFirstName, setAuthFirstName] = useState('');
   const [authLastName, setAuthLastName] = useState('');
 
+// Inside your main function component:
+const [topBannerText, setTopBannerText] = useState('WELCOME'); // Default fallback
+
+useEffect(() => {
+  fetch('http://localhost:4242/api/settings')
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.topBannerText) {
+        setTopBannerText(data.topBannerText);
+      }
+    })
+    .catch(err => console.error("Failed to load settings:", err));
+}, []);
+  
   // Auto-login check
   // 1. Auto-login & Fetch Data on Refresh
   useEffect(() => {
@@ -282,7 +297,9 @@ function App() {
       {/* HEADER - Responsive */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
-          <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">WELCOME</div>
+          <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">
+          {topBannerText}
+          </div>
           <nav className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between">
             {/* Mobile Menu Icon */}
             <button onClick={() => setMenuOpen(true)} className="md:hidden p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
