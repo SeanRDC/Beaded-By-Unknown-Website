@@ -1,3 +1,4 @@
+const Settings = require('./models/Settings');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
 require('dotenv').config();
@@ -278,4 +279,41 @@ app.get('/api/admin/stats', async (req, res) => {
 const PORT = process.env.PORT || 4242;
 app.listen(PORT, () => {
   console.log(`🚀 Master Backend running on http://localhost:${PORT}`);
+});
+
+// =====================================================================
+// STORE SETTINGS (Top Banner)
+// =====================================================================
+
+// GET: Public route for the storefront to read the banner
+app.get('/api/settings', async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    // If no settings exist yet, create a default one
+    if (!settings) {
+      settings = await Settings.create({ topBannerText: 'WELCOME' });
+    }
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// PUT: Admin route to update the banner
+app.put('/api/admin/settings', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings({ topBannerText: req.body.topBannerText });
+    } else {
+      settings.topBannerText = req.body.topBannerText;
+    }
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
 });
