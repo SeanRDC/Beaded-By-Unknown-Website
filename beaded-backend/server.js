@@ -367,3 +367,34 @@ app.delete('/api/admin/reviews/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete review' });
   }
 });
+
+// =====================================================================
+// SMART BESTSELLERS ALGORITHM
+// =====================================================================
+app.get('/api/bestsellers', async (req, res) => {
+  try {
+    // 1. Ask MongoDB to calculate the top selling items from the Orders collection
+    const topSellingItems = await Order.aggregate([
+      { $unwind: "$items" }, // Break apart orders that have multiple items
+      { 
+        $group: { 
+          _id: "$items.name", // Group them together by the product name
+          totalSold: { $sum: "$items.quantity" } // Add up the quantities
+        } 
+      },
+      { $sort: { totalSold: -1 } }, // Sort descending (highest sales at the top)
+      { $limit: 4 } // Only keep the top 4
+    ]);
+
+    // 2. Extract just the names of the winning products
+    const topNames = topSellingItems.map(item => item._id);
+
+    // 3. Fetch the full product details (images, prices, etc.) for those specific names
+    const bestsellers = await Product.find({ name: { $in: topNames } });
+
+    res.json(bestsellers);
+  } catch (error) {
+    console.error("Bestseller Algo Error:", error);
+    res.status(500).json({ error: 'Failed to calculate bestsellers' });
+  }
+});

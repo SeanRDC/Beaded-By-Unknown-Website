@@ -84,9 +84,18 @@ function App() {
   const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
+  const [bestsellers, setBestsellers] = useState([]);
+const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
 
-// Inside your main function component:
-const [topBannerText, setTopBannerText] = useState('WELCOME'); // Default fallback
+useEffect(() => {
+  // Fetch the calculated bestsellers from our new algorithm
+  fetch('http://localhost:4242/api/bestsellers')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) setBestsellers(data);
+    })
+    .catch(err => console.error("Failed to load bestsellers:", err));
+}, []);
 
 useEffect(() => {
   fetch('http://localhost:4242/api/reviews')
@@ -383,16 +392,50 @@ useEffect(() => {
               </span>
             </div>
 
-            <section className="px-5 md:px-8 py-8 md:py-20 max-w-[1200px] mx-auto">
-              <div className="flex items-end justify-between mb-5 md:mb-10">
-                <div>
-                  <p className="text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em] text-[#A0522D] uppercase mb-1 md:mb-2 font-medium">Curated for you</p>
-                  <h2 className="text-[24px] md:text-[36px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Bestsellers</h2>
+            <section className="py-16 md:py-24 bg-white">
+              <div className="max-w-6xl mx-auto px-6">
+                <div className="text-center mb-12 md:mb-16">
+                  <h2 className="text-3xl md:text-4xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    Current Bestsellers
+                  </h2>
+                  <p className="text-[#8B7D6B] text-sm tracking-wide">Automatically updated based on Live purchases</p>
                 </div>
-                <button onClick={() => go('collection')} className="text-xs md:text-sm text-[#A0522D] font-medium flex items-center gap-1 hover:gap-2 transition-all">View All <ArrowRight className="w-3 h-3 md:w-4 md:h-4" /></button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {Array.isArray(P) && P.slice(0, 4).map(p => <Card key={p.id} p={p} />)}
+
+                {bestsellers.length === 0 ? (
+                  <div className="text-center text-[#8B7D6B] py-10 border border-dashed border-[#E8DFD3]">
+                    <p>Calculating top products... check back after our first sales!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                    {bestsellers.map(product => (
+                      <div key={product._id} className="group cursor-pointer">
+                        <div className="relative overflow-hidden bg-[#FAF6F1] aspect-[3/4] mb-4">
+                          <img 
+                            src={product.img} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                          {/* Optional Hover Image Logic */}
+                          {product.img2 && (
+                            <img 
+                              src={product.img2} 
+                              alt={`${product.name} alternate`} 
+                              className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                            />
+                          )}
+                          {/* Automatic Bestseller Badge */}
+                          <div className="absolute top-3 left-3 bg-[#3E2F1C] text-white text-[9px] uppercase tracking-widest px-2.5 py-1">
+                            Top Rated
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-[#3E2F1C] text-sm md:text-base mb-1">{product.name}</h3>
+                          <p className="text-[#A39B8F] text-xs md:text-sm">₱{product.price}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
