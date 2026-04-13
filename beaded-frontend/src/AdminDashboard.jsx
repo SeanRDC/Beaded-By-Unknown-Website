@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, DollarSign, ShoppingBag, X, KeyRound, Wifi, WifiOff } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, DollarSign, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
@@ -9,14 +9,15 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ revenue: 0, totalOrders: 0 });
   const [editId, setEditId] = useState(null);
   
-  // Real-time server connection state
   const [serverStatus, setServerStatus] = useState('checking'); 
+  
+  // NEW: State for the banner text
+  const [bannerText, setBannerText] = useState('WELCOME');
   
   const [product, setProduct] = useState({
     name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L'
   });
 
-  // The Ping function: Actively checks if the backend is alive
   const checkConnectionAndFetch = async () => {
     try {
       const res = await fetch('http://localhost:4242/api/products');
@@ -43,9 +44,22 @@ export default function AdminDashboard() {
     }
   };
 
-  // Initial load + Set up a 15-second recurring ping
+  // NEW: Fetch global settings (like banner text)
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('http://localhost:4242/api/settings');
+      const data = await res.json();
+      if (data && data.topBannerText) {
+        setBannerText(data.topBannerText);
+      }
+    } catch (err) {
+      console.error("Failed to fetch settings");
+    }
+  };
+
   useEffect(() => { 
     checkConnectionAndFetch(); 
+    fetchSettings();
     const interval = setInterval(checkConnectionAndFetch, 15000);
     return () => clearInterval(interval);
   }, []);
@@ -89,6 +103,30 @@ export default function AdminDashboard() {
     }
   };
 
+  // NEW: Submit handler for the settings tab
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    if (!secretKey) return setStatus('❌ Admin Key Required.');
+    setStatus('Updating Banner...');
+
+    try {
+      const res = await fetch('http://localhost:4242/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
+        body: JSON.stringify({ topBannerText: bannerText })
+      });
+
+      if (res.ok) {
+        setStatus(`✅ Banner Text Updated!`);
+        setTimeout(() => { setStatus(''); }, 2000);
+      } else {
+        setStatus(`❌ Failed to update settings.`);
+      }
+    } catch (err) {
+      setStatus('❌ Failed to connect to server.');
+    }
+  };
+
   const handleEditClick = (p) => {
     setEditId(p._id);
     setProduct({ ...p, colors: p.colors ? p.colors.join(', ') : '', sizes: p.sizes ? p.sizes.join(', ') : '' });
@@ -108,7 +146,7 @@ export default function AdminDashboard() {
 
   const NavButton = ({ id, icon: Icon, label }) => (
     <button 
-      onClick={() => { setActiveTab(id); if(id === 'form') { setEditId(null); setProduct({ name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L' }); } }} 
+      onClick={() => { setActiveTab(id); if(id === 'form') { setEditId(null); setProduct({ name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L' }); } setStatus(''); }} 
       className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 p-3 md:px-4 md:py-3 w-full md:rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${
         activeTab === id ? 'text-[#A0522D] md:bg-[#3E2F1C] md:text-white' : 'text-[#8B7D6B] hover:text-[#3E2F1C] md:hover:bg-[#E8DFD3]'
       }`}
@@ -122,7 +160,6 @@ export default function AdminDashboard() {
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
       
-      {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-[#E8DFD3] z-20 shrink-0">
         <div className="p-6 border-b border-[#E8DFD3]">
           <h1 className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -133,13 +170,12 @@ export default function AdminDashboard() {
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
+          <NavButton id="settings" icon={SettingsIcon} label="Store Settings" />
         </nav>
       </aside>
 
-      {/* MAIN CONTENT AREA - Locked min-w-0 prevents flexbox blowout */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0">
         
-        {/* Top Header Bar */}
         <header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
           <h2 className="text-lg font-bold md:hidden" style={{ fontFamily: 'Playfair Display, serif' }}>Hello, Iyesha ✨</h2>
           <h2 className="hidden md:flex items-center text-xl" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -148,6 +184,7 @@ export default function AdminDashboard() {
               {activeTab === 'overview' && 'Business Overview'}
               {activeTab === 'inventory' && 'Catalog Management'}
               {activeTab === 'form' && (editId ? 'Edit Details' : 'Create New Product')}
+              {activeTab === 'settings' && 'Global Store Settings'}
             </span>
           </h2>
           
@@ -160,16 +197,10 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* THE FIXED CANVAS WRAPPER 
-          This forces the background to be scrollable, while the white card inside stays a perfectly locked width.
-          The [&::-webkit-scrollbar]:hidden removes the visual scrollbar block entirely.
-        */}
         <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 flex justify-center items-start">
           
-          {/* THE LOCKED WHITE WINDOW - Size will never change horizontally */}
           <div className="w-full max-w-5xl bg-white border border-[#E8DFD3] rounded-2xl shadow-sm min-h-[75vh] flex flex-col relative overflow-hidden">
             
-            {/* Real-Time Connection Banner (Always at the top of the canvas) */}
             <div className={`w-full px-6 py-3 flex items-center justify-between border-b text-sm font-medium transition-colors ${serverStatus === 'online' ? 'bg-green-50 border-green-100 text-green-800' : serverStatus === 'checking' ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
               <div className="flex items-center gap-2">
                 {serverStatus === 'online' ? <Wifi className="w-4 h-4" /> : serverStatus === 'checking' ? <TrendingUp className="w-4 h-4 animate-pulse" /> : <WifiOff className="w-4 h-4" />}
@@ -180,7 +211,6 @@ export default function AdminDashboard() {
               <div className="hidden sm:block text-xs opacity-70">Auto-pings every 15s</div>
             </div>
 
-            {/* TAB CONTENT AREA */}
             <div className="p-6 sm:p-8 flex-1 w-full">
               
               {/* --- OVERVIEW TAB --- */}
@@ -224,7 +254,6 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <>
-                      {/* Desktop Table View */}
                       <div className="hidden md:block overflow-x-auto border border-[#E8DFD3] rounded-xl">
                         <table className="w-full text-left border-collapse min-w-full">
                           <thead className="bg-[#FAF6F1]">
@@ -242,7 +271,7 @@ export default function AdminDashboard() {
                                   <img src={p.img} alt={p.name} className="w-12 h-12 rounded-lg object-cover border border-[#E8DFD3] bg-white shadow-sm" />
                                   <span className="font-medium text-sm">{p.name}</span>
                                 </td>
-                                <td className="p-4 text-sm">${p.price}</td>
+                                <td className="p-4 text-sm">₱{p.price}</td>
                                 <td className="p-4 text-sm text-[#8B7D6B]"><span className="bg-white px-2 py-1 rounded-md border border-[#E8DFD3]">{p.cat}</span></td>
                                 <td className="p-4 text-right">
                                   <button onClick={() => handleEditClick(p)} className="p-2 text-[#8B7D6B] hover:text-[#A0522D] hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-[#E8DFD3]" title="Edit"><Edit2 className="w-4 h-4 inline" /></button>
@@ -254,14 +283,13 @@ export default function AdminDashboard() {
                         </table>
                       </div>
 
-                      {/* Mobile Card View */}
                       <div className="md:hidden divide-y divide-[#E8DFD3] border border-[#E8DFD3] rounded-xl">
                         {products.map(p => (
                           <div key={p._id} className="p-4 flex gap-4 items-center">
                             <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover border border-[#E8DFD3] shrink-0" />
                             <div className="flex-1 min-w-0">
                               <h3 className="font-bold text-sm truncate">{p.name}</h3>
-                              <p className="text-xs text-[#8B7D6B] mt-1">${p.price} • {p.cat}</p>
+                              <p className="text-xs text-[#8B7D6B] mt-1">₱{p.price} • {p.cat}</p>
                             </div>
                             <div className="flex flex-col gap-2 shrink-0">
                               <button onClick={() => handleEditClick(p)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] rounded-lg"><Edit2 className="w-4 h-4" /></button>
@@ -294,7 +322,7 @@ export default function AdminDashboard() {
                         <input required value={product.name} onChange={(e) => setProduct({...product, name: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 transition-all text-sm" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Price</label>
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Price (₱)</label>
                         <input type="number" required value={product.price} onChange={(e) => setProduct({...product, price: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 transition-all text-sm" />
                       </div>
                     </div>
@@ -351,15 +379,49 @@ export default function AdminDashboard() {
                 </div>
               )}
 
+              {/* --- NEW SETTINGS TAB --- */}
+              {activeTab === 'settings' && (
+                <div className="animate-in fade-in duration-300 relative w-full max-w-2xl">
+                  <h3 className="text-2xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Storefront Controls</h3>
+                  <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">
+                    Update the text that appears across your main customer-facing website. Changes made here will be instantly live on the storefront.
+                  </p>
+
+                  <form onSubmit={handleSettingsSubmit} className="space-y-6">
+                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl">
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Top Announcement Banner</label>
+                      <input 
+                        required 
+                        value={bannerText} 
+                        onChange={(e) => setBannerText(e.target.value)} 
+                        placeholder="e.g. FREE SHIPPING ON ORDERS OVER ₱1000"
+                        className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 transition-all text-sm" 
+                      />
+                      <p className="text-xs text-[#8B7D6B] mt-3">This is the thin, dark brown bar at the very top of your website.</p>
+                    </div>
+
+                    {status && (
+                      <div className={`p-4 rounded-xl text-sm font-bold text-center ${status.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        {status}
+                      </div>
+                    )}
+
+                    <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-sm">
+                      Update Website
+                    </button>
+                  </form>
+                </div>
+              )}
+
             </div>
           </div>
         </main>
 
-        {/* MOBILE BOTTOM NAVIGATION */}
         <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex justify-around p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
           <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
           <NavButton id="inventory" icon={Package} label="Inventory" />
           <NavButton id="form" icon={Plus} label="Add" />
+          <NavButton id="settings" icon={SettingsIcon} label="Settings" />
         </nav>
 
       </div>
