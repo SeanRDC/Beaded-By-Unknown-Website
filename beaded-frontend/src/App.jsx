@@ -1,20 +1,9 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
+import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, Eye, Crown, Layers, Sparkles, Lock, Check, Package, Palette, Gem, Home, Menu } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
-
-/* DEFAULT VALUES AND ITEMS
-const P = [
-  { id: 1, name: 'Sunstone Serenity', price: 38, img: 'https://images.unsplash.com/photo-1766560359154-c28794703384?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBjcnlzdGFsJTIwYmVhZCUyMGJyYWNlbGV0JTIwaGFuZG1hZGV8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHdlYXJpbmclMjBiZWFkJTIwYnJhY2VsZXQlMjBjbG9zZXVwfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#A0522D', '#E8DFD3'], cat: 'Gemstone', rating: 4.8, reviews: 124, mat: 'Natural Sunstone', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
-  { id: 2, name: 'Moonlit Whisper', price: 42, img: 'https://images.unsplash.com/photo-1774096399392-e89c66ed8512?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHBlYXJsJTIwYnJhY2VsZXQlMjBlbGVnYW50fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763739906638-5b50dbef6005?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxkZWxpY2F0ZSUyMHdoaXRlJTIwYnJhY2VsZXQlMjBqZXdlbHJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#FFFFFF', '#E8DFD3', '#C9A96E'], cat: 'Pearl', rating: 4.9, reviews: 89, mat: 'Freshwater Pearl', sizes: ['S', 'M', 'L'], tag: 'New' },
-  { id: 3, name: 'Earth Root', price: 34, img: 'https://images.unsplash.com/photo-1634833132196-fcbb1594e665?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxicm93biUyMHdvb2RlbiUyMGJlYWQlMjBicmFjZWxldHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1773666030429-d36d2a684d07?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b29kZW4lMjBiZWFkcyUyMG9uJTIwbGluZW4lMjBjbG90aHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#3E2F1C', '#8B7D6B', '#A0522D'], cat: 'Wood', rating: 4.7, reviews: 156, mat: 'Sandalwood', sizes: ['S', 'M', 'L', 'XL'], tag: '' },
-  { id: 4, name: 'Ocean Drift', price: 45, img: 'https://images.unsplash.com/photo-1645412665918-fa13253d06c6?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibHVlJTIwdHVycXVvaXNlJTIwc3RvbmUlMjBicmFjZWxldHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1771003230302-7251df0f9d97?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx0dXJxdW9pc2UlMjBicmFjZWxldCUyMGRyaWZ0d29vZHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#5B8FA8', '#7A8B6F', '#E8DFD3'], cat: 'Gemstone', rating: 4.6, reviews: 98, mat: 'Turquoise', sizes: ['S', 'M', 'L'], tag: '' },
-  { id: 5, name: 'Golden Hour', price: 52, img: 'https://images.unsplash.com/photo-1758995116383-f51775896add?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxnb2xkJTIwYmVhZCUyMGJyYWNlbGV0JTIwbHV4dXJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1705326452395-1d35e6add570?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxnb2xkJTIwYnJhY2VsZXQlMjBzdGFjayUyMHdyaXN0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#3E2F1C', '#A0522D'], cat: 'Metal', rating: 4.9, reviews: 201, mat: '14K Gold Filled', sizes: ['S', 'M', 'L'], tag: 'Popular' },
-  { id: 6, name: 'Forest Floor', price: 36, img: 'https://images.unsplash.com/photo-1642477216634-3e290a057efa?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGphZGUlMjBzdG9uZSUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1704617767820-46fa501698eb?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGJyYWNlbGV0JTIwb24lMjBtb3NzfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#7A8B6F', '#3E2F1C', '#C9A96E'], cat: 'Gemstone', rating: 4.5, reviews: 67, mat: 'Green Jade', sizes: ['S', 'M', 'L'], tag: '' },
-  { id: 7, name: 'Blush Dream', price: 40, img: 'https://images.unsplash.com/photo-1652500965593-58e2b71d3cdc?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxwaW5rJTIwcm9zZSUyMHF1YXJ0eiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1762762938024-6d69c11d8c0a?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxyb3NlJTIwcXVhcnR6JTIwamV3ZWxyeSUyMGZlbWluaW5lfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#D4A0A0', '#E8DFD3', '#C9A96E'], cat: 'Gemstone', rating: 4.8, reviews: 143, mat: 'Rose Quartz', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
-  { id: 8, name: 'Midnight Stone', price: 48, img: 'https://images.unsplash.com/photo-1559555698-cc683c339bdb?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMG9ueXglMjBiZWFkJTIwYnJhY2VsZXR8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1767049603596-79204ada5273?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMHN0b25lJTIwYnJhY2VsZXQlMjBkYXJrfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#2C2C2C', '#3E2F1C', '#C9A96E'], cat: 'Gemstone', rating: 4.7, reviews: 112, mat: 'Black Onyx', sizes: ['S', 'M', 'L', 'XL'], tag: '' },
-];
-*/
+import SizeGuide from './SizeGuide';
+import Shipping from './Shipping';
 
 const blogs = [
   { id: 1, title: 'The Art of Intentional Adornment', ex: 'How choosing your daily bracelet can become a mindful ritual.', cat: 'Style Guide', date: 'Dec 15, 2024', time: '5 min', img: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGhhbmRzJTIwbWVkaXRhdGlvbiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
@@ -47,10 +36,9 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [qvId, setQvId] = useState(null);
   const [sgOpen, setSgOpen] = useState(false);
-  const [selProd, setSelProd] = useState(P[0]);
+  const [selProd, setSelProd] = useState(null);
   const [cart, setCart] = useState([]);
   const [wish, setWish] = useState([]);
   const [scrolled, setScrolled] = useState(false);
@@ -71,57 +59,52 @@ function App() {
   const [qty, setQty] = useState(1);
   const [acc, setAcc] = useState('description');
   const [logged, setLogged] = useState(false);
-  const [email, setEmail] = useState('');
-  const [chatIn, setChatIn] = useState('');
-  const [chatMsgs, setChatMsgs] = useState([{ from: 'bot', text: 'Hi! Welcome to beadedbyunknown 👋' }]);
-  const [gAmt, setGAmt] = useState(50);
-  const r = useRef(null);
+  
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authFirstName, setAuthFirstName] = useState('');
   const [authLastName, setAuthLastName] = useState('');
+
+  // Dynamic Backend States
   const [reviews, setReviews] = useState([]);
+  const [bestsellers, setBestsellers] = useState([]);
+  const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN');
   const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
-  const [bestsellers, setBestsellers] = useState([]);
-const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
 
-useEffect(() => {
-  // Fetch the calculated bestsellers from our new algorithm
-  fetch('http://localhost:4242/api/bestsellers')
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) setBestsellers(data);
-    })
-    .catch(err => console.error("Failed to load bestsellers:", err));
-}, []);
+  // Fetch Bestsellers
+  useEffect(() => {
+    fetch('http://localhost:4242/api/bestsellers')
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setBestsellers(data); })
+      .catch(err => console.error("Failed to load bestsellers:", err));
+  }, []);
 
-useEffect(() => {
-  fetch('http://localhost:4242/api/reviews')
-    .then(res => res.json())
-    .then(data => {
-      if (Array.isArray(data)) setReviews(data);
-    })
-    .catch(err => console.error("Failed to load reviews:", err));
-}, []);
+  // Fetch Reviews
+  useEffect(() => {
+    fetch('http://localhost:4242/api/reviews')
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setReviews(data); })
+      .catch(err => console.error("Failed to load reviews:", err));
+  }, []);
 
-useEffect(() => {
-  fetch('http://localhost:4242/api/settings')
-    .then(res => res.json())
-    .then(data => {
-      if (data) {
-        if (data.topBannerText) setTopBannerText(data.topBannerText);
-        if (data.featureOne) setFeatureOne(data.featureOne);
-        if (data.featureTwo) setFeatureTwo(data.featureTwo);
-        if (data.featureThree) setFeatureThree(data.featureThree);
-      }
-    })
-    .catch(err => console.error("Failed to load settings:", err));
-}, []);
-  
+  // Fetch Store Settings
+  useEffect(() => {
+    fetch('http://localhost:4242/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          if (data.topBannerText) setTopBannerText(data.topBannerText);
+          if (data.featureOne) setFeatureOne(data.featureOne);
+          if (data.featureTwo) setFeatureTwo(data.featureTwo);
+          if (data.featureThree) setFeatureThree(data.featureThree);
+        }
+      })
+      .catch(err => console.error("Failed to load settings:", err));
+  }, []);
+
   // Auto-login check
-  // 1. Auto-login & Fetch Data on Refresh
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (token && !logged) {
@@ -141,10 +124,9 @@ useEffect(() => {
     }
   }, []);
 
-  // 2. Auto-Sync to Database (Only runs when you actually change the cart/wishlist)
+  // Auto-Sync to Database
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
-    // Prevent syncing empty arrays immediately on first load before the database responds
     if (logged && token && (cart.length > 0 || wish.length > 0)) {
       fetch('http://localhost:4242/api/user/sync', {
         method: 'POST',
@@ -152,29 +134,27 @@ useEffect(() => {
         body: JSON.stringify({ cart, wishlist: wish })
       }).catch(err => console.error("Sync error:", err));
     }
-  }, [cart, wish]); // Only triggers when cart or wishlist states change
+  }, [cart, wish]);
 
-  // 3. Fetch Products from MongoDB
+  // Fetch Products from MongoDB
   useEffect(() => {
-  fetch('http://localhost:4242/api/products')
-    .then(res => res.json())
-    .then(data => {
-       // Only set P if data is actually an array
-       if (Array.isArray(data)) {
-         setP(data);
-         if (data.length > 0 && !selProd) setSelProd(data[0]);
-       } else {
-         console.error("Backend sent an error:", data);
-         setP([]); // Keep it as an empty array so .slice() doesn't crash
-       }
-    })
-    .catch(err => {
-      console.error("Failed to load catalog:", err);
-      setP([]); // Keep it as an empty array on network failure
-    });
-}, []);
+    fetch('http://localhost:4242/api/products')
+      .then(res => res.json())
+      .then(data => {
+         if (Array.isArray(data)) {
+           setP(data);
+           if (data.length > 0 && !selProd) setSelProd(data[0]);
+         } else {
+           setP([]);
+         }
+      })
+      .catch(err => {
+        console.error("Failed to load catalog:", err);
+        setP([]);
+      });
+  }, []);
 
-   // Scroll handler for desktop transparent 
+  // Scroll handler for transparent header
   useEffect(() => {
     const handleS = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleS);
@@ -195,7 +175,7 @@ useEffect(() => {
 
   const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
   const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
-  const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [cat, sort]);
+  const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [P, cat, sort]);
   const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
 
   const handleCheckout = async () => {
@@ -206,14 +186,12 @@ useEffect(() => {
         body: JSON.stringify({ cart }),
       });
       const data = await response.json();
-
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
       } else {
         flash('Failed to generate payment link', 'error');
       }
     } catch (err) {
-      console.error(err);
       flash('Payment failed to initialize.', 'error');
     }
   };
@@ -296,7 +274,6 @@ useEffect(() => {
         <div className="relative aspect-square overflow-hidden rounded-xl bg-[#F0EBE4] mb-2 md:mb-3">
           <img src={h ? p.img2 : p.img} alt={p.name} className="w-full h-full object-cover transition-all duration-500" />
           {p.tag && <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-[#3E2F1C] text-[#FAF6F1] text-[9px] md:text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 md:px-3 md:py-1">{p.tag}</span>}
-          {/* Desktop Hover Actions */}
           <div className={`hidden md:flex absolute inset-0 bg-[#3E2F1C]/10 items-end justify-center pb-4 gap-2 transition-opacity duration-300 ${h ? 'opacity-100' : 'opacity-0'}`}>
             <button onClick={(e) => { e.stopPropagation(); addCart(p); }} className="bg-[#FAF6F1] text-[#3E2F1C] text-xs tracking-wider uppercase px-5 py-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200 font-medium">Add</button>
             <button onClick={(e) => { e.stopPropagation(); setQvId(p.id); }} className="bg-[#FAF6F1] text-[#3E2F1C] p-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200"><Eye className="w-4 h-4" /></button>
@@ -318,36 +295,30 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF6F1] relative">
-      {/* HEADER - Responsive */}
+      
+      {/* HEADER */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
           <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">
-          {topBannerText}
+            {topBannerText}
           </div>
           <nav className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between">
-            {/* Mobile Menu Icon */}
             <button onClick={() => setMenuOpen(true)} className="md:hidden p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
             
-            {/* Desktop Left Nav */}
             <div className="hidden md:flex items-center gap-8 flex-1">
               <button onClick={() => go('collection')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Shop</button>
               <button onClick={() => go('customizer')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Customize</button>
               <button onClick={() => go('about')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Our Story</button>
             </div>
 
-            {/* Center Logo */}
             <button onClick={() => go('home')} className="absolute left-1/2 -translate-x-1/2 text-[16px] md:text-[22px] tracking-[0.15em] md:tracking-[0.2em] text-[#3E2F1C] uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>beadedbyunknown</button>
 
-            {/* Desktop Right Nav & Mobile Cart */}
             <div className="flex items-center justify-end gap-5 flex-1">
               <button onClick={() => go('blog')} className="hidden md:block text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
               <button onClick={() => setSearchOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><Search className="w-[18px] h-[18px]" /></button>
-              <button 
-              onClick={() => logged ? go('account') : setLoginOpen(true)} 
-              className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"
-            >
-              <User className="w-[18px] h-[18px]" />
-            </button>
+              <button onClick={() => logged ? go('account') : setLoginOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors">
+                <User className="w-[18px] h-[18px]" />
+              </button>
               <button onClick={() => go('wishlist')} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors relative">
                 <Heart className={`w-[18px] h-[18px] ${wish.length > 0 ? 'fill-[#A0522D] text-[#A0522D]' : ''}`} />
                 {wish.length > 0 && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#A0522D] text-white text-[10px] rounded-full flex items-center justify-center">{wish.length}</span>}
@@ -368,7 +339,7 @@ useEffect(() => {
         {pg === 'home' && (
           <div>
             <section className="relative h-[420px] md:h-[85vh] flex items-end md:items-center bg-[#EDE7DF]">
-              <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1766560361397-9d1eeb446d26?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGJlYWQlMjBicmFjZWxldHMlMjBsaW5lbiUyMGNsb3RofGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=1440&h=900&fit=crop" alt="Hero" className="w-full h-full object-cover opacity-30" /></div>
+              <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1766560361397-9d1eeb446d26?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxoYW5kcyUyMG1ha2luZyUyMGJlYWQlMjBqZXdlbHJ5JTIwY3JhZnR8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=1440&h=900&fit=crop" alt="Hero" className="w-full h-full object-cover opacity-30" /></div>
               <div className="relative z-10 p-6 md:p-8 md:max-w-[1200px] md:mx-auto w-full pb-10 md:pb-8">
                 <p className="text-[10px] md:text-[13px] tracking-[0.25em] md:tracking-[0.3em] text-[#A0522D] uppercase mb-2 md:mb-4 font-medium">Handcrafted with intention</p>
                 <h2 className="text-[32px] md:text-[64px] leading-[1.1] text-[#3E2F1C] max-w-[580px] mb-3 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Every bead tells a story</h2>
@@ -408,25 +379,11 @@ useEffect(() => {
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                     {bestsellers.map(product => (
-                      <div key={product._id} className="group cursor-pointer">
+                      <div key={product._id} className="group cursor-pointer" onClick={() => go('product', product)}>
                         <div className="relative overflow-hidden bg-[#FAF6F1] aspect-[3/4] mb-4">
-                          <img 
-                            src={product.img} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          />
-                          {/* Optional Hover Image Logic */}
-                          {product.img2 && (
-                            <img 
-                              src={product.img2} 
-                              alt={`${product.name} alternate`} 
-                              className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                            />
-                          )}
-                          {/* Automatic Bestseller Badge */}
-                          <div className="absolute top-3 left-3 bg-[#3E2F1C] text-white text-[9px] uppercase tracking-widest px-2.5 py-1">
-                            Top Rated
-                          </div>
+                          <img src={product.img} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          {product.img2 && <img src={product.img2} alt={`${product.name} alternate`} className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
+                          <div className="absolute top-3 left-3 bg-[#3E2F1C] text-white text-[9px] uppercase tracking-widest px-2.5 py-1">Top Rated</div>
                         </div>
                         <div className="text-center">
                           <h3 className="text-[#3E2F1C] text-sm md:text-base mb-1">{product.name}</h3>
@@ -469,7 +426,6 @@ useEffect(() => {
               </div>
             </section>
 
-            {/* OUR STORY SECTION */}
             <section className="py-16 md:py-24 bg-[#FAF6F1]">
               <div className="max-w-[1200px] mx-auto px-5 md:px-8">
                 <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
@@ -480,9 +436,6 @@ useEffect(() => {
                     <div className="w-12 h-1 bg-[#A0522D]"></div>
                     <p className="text-[#8B7D6B] leading-relaxed">
                       Beaded by Unknown began as a simple spark of imagination a late-night hobby fueled by a love for color and form. I believed that jewelry shouldn't just be an accessory, but a wearable piece of a dream that keeps you grounded throughout your day.
-                    </p>
-                    <p className="text-[#8B7D6B] leading-relaxed">
-                      What started with a single strand has grown into a dedicated practice of hand-stringing every bead with care. Using durable materials and a meticulous eye for detail, we craft more than just jewelry; we create small, handmade companions for your daily journey.
                     </p>
                     <button onClick={() => go('collection')} className="inline-block mt-4 text-[#A0522D] font-semibold tracking-widest uppercase text-sm border-b border-[#A0522D] pb-1 hover:text-[#8B4526] transition-colors">
                       Discover Our Process
@@ -500,60 +453,28 @@ useEffect(() => {
               </div>
             </section>
 
-            {/* THE JOURNAL SECTION */}
             <section className="py-16 md:py-24 bg-white">
               <div className="max-w-[1200px] mx-auto px-5 md:px-8">
                 <div className="text-center mb-12">
                   <h2 className="text-3xl md:text-4xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>The Journal</h2>
-                  <p className="text-[#8B7D6B] max-w-xl mx-auto">Stories, styling tips, and the meaning behind the stones.</p>
+                  <p className="text-[#8B7D6B] max-w-xl mx-auto md:text-lg">Stories, styling tips, and the meaning behind the stones.</p>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    { title: 'How to Clean and Care for Your Stone Beads', category: 'Care Guide', date: 'Oct 12' },
-                    { title: 'The Meaning Behind Tiger\'s Eye', category: 'Stone Focus', date: 'Oct 05' },
-                    { title: 'Stacking 101: Building Your Signature Look', category: 'Style', date: 'Sep 28' }
-                  ].map((post, i) => (
-                    <div key={i} className="group cursor-pointer">
-                      <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-4 overflow-hidden">
-                        <div className="w-full h-full bg-[#E8DFD3] group-hover:scale-105 transition-transform duration-500"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+                  {blogs.map((post) => (
+                    <div key={post.id} className="group cursor-pointer">
+                      <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
+                        <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
-                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-2">
-                        <span>{post.category}</span>
-                        <span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span>
-                        <span className="text-[#8B7D6B]">{post.date}</span>
+                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-3">
+                        <span>{post.cat}</span><span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span><span className="text-[#8B7D6B]">{post.date}</span>
                       </div>
-                      <h3 className="text-lg text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors">
-                        {post.title}
-                      </h3>
+                      <h3 className="text-xl text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors mb-2">{post.title}</h3>
+                      <p className="text-sm text-[#8B7D6B] line-clamp-2">{post.ex}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </section>
-
-            {/* FOOTER */}
-            <footer className="bg-[#3E2F1C] text-[#B0A395]">
-              <div className="max-w-[1200px] mx-auto px-5 md:px-8 py-10 md:py-16">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 text-center md:text-left">
-                  <div>
-                    <h3 className="text-[#FAF6F1] text-sm md:text-lg tracking-[0.15em] uppercase mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>beadedbyunknown</h3>
-                    <p className="text-xs md:text-sm leading-relaxed mb-4 md:mb-0">Handcrafted bead bracelets made with intention in Portland.</p>
-                    <div className="flex justify-center md:justify-start gap-4 mt-6"><Heart className="w-5 h-5 hover:text-[#C9A96E] cursor-pointer transition-colors" /></div>
-                  </div>
-                  <div className="grid grid-cols-3 md:grid-cols-3 col-span-1 md:col-span-3 gap-4 md:gap-12">
-                    <div className="space-y-2 md:space-y-3"><span className="text-[#FAF6F1] text-[11px] md:text-xs tracking-[0.2em] font-semibold block uppercase mb-2 md:mb-4">Shop</span>{['All', 'Custom', 'Gift Cards'].map(l => <p key={l} className="text-xs md:text-sm hover:text-[#C9A96E] cursor-pointer">{l}</p>)}</div>
-                    <div className="space-y-2 md:space-y-3"><span className="text-[#FAF6F1] text-[11px] md:text-xs tracking-[0.2em] font-semibold block uppercase mb-2 md:mb-4">Help</span>{['Size Guide', 'Shipping', 'FAQ'].map(l => <p key={l} className="text-xs md:text-sm hover:text-[#C9A96E] cursor-pointer">{l}</p>)}</div>
-                    <div className="space-y-2 md:space-y-3"><span className="text-[#FAF6F1] text-[11px] md:text-xs tracking-[0.2em] font-semibold block uppercase mb-2 md:mb-4">About</span>{['Our Story', 'Journal', 'Tribe'].map(l => <p key={l} className="text-xs md:text-sm hover:text-[#C9A96E] cursor-pointer">{l}</p>)}</div>
-                  </div>
-                </div>
-                <div className="border-t border-[#5A4A3A] mt-8 md:mt-12 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <p className="text-[10px] md:text-xs text-[#8B7D6B]">© 2024 beadedbyunknown</p>
-                  <div className="flex gap-2">{['VISA','MC','AMEX','PP'].map(c => <div key={c} className="w-8 h-5 bg-[#5A4A3A] rounded text-[8px] flex items-center justify-center text-[#B0A395]">{c}</div>)}</div>
-                </div>
-              </div>
-            </footer>
-
           </div>
         )}
 
@@ -563,23 +484,13 @@ useEffect(() => {
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Our Story</span></div>
             <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
               <div className="flex-1 space-y-6">
-                <h2 className="text-3xl md:text-5xl text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Crafted with Intention
-                </h2>
+                <h2 className="text-3xl md:text-5xl text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Crafted with Intention</h2>
                 <div className="w-12 h-1 bg-[#A0522D]"></div>
-                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
-                  Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.
-                </p>
-                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
-                  Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.
-                </p>
+                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.</p>
+                <p className="text-[#8B7D6B] leading-relaxed md:text-lg">Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.</p>
               </div>
               <div className="flex-1 w-full relative">
-                <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10">
-                  <div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">
-                    [Studio Image Placeholder]
-                  </div>
-                </div>
+                <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10"><div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">[Studio Image Placeholder]</div></div>
                 <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
               </div>
             </div>
@@ -590,27 +501,16 @@ useEffect(() => {
         {pg === 'blog' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-12 pb-16 md:pb-24">
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Journal</span></div>
-            
             <div className="text-center mb-12 md:mb-16">
               <h2 className="text-3xl md:text-5xl text-[#3E2F1C] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>The Journal</h2>
               <p className="text-[#8B7D6B] max-w-xl mx-auto md:text-lg">Stories, styling tips, and the meaning behind the stones.</p>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-              {/* This automatically loops through the "blogs" array at the top of your file! */}
               {blogs.map((post) => (
                 <div key={post.id} className="group cursor-pointer">
-                  <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
-                    <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  </div>
-                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-3">
-                    <span>{post.cat}</span>
-                    <span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span>
-                    <span className="text-[#8B7D6B]">{post.date}</span>
-                  </div>
-                  <h3 className="text-xl text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors mb-2">
-                    {post.title}
-                  </h3>
+                  <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden"><img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
+                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#A0522D] font-bold mb-3"><span>{post.cat}</span><span className="w-1 h-1 rounded-full bg-[#D1C7B7]"></span><span className="text-[#8B7D6B]">{post.date}</span></div>
+                  <h3 className="text-xl text-[#3E2F1C] font-medium leading-snug group-hover:text-[#A0522D] transition-colors mb-2">{post.title}</h3>
                   <p className="text-sm text-[#8B7D6B] line-clamp-2">{post.ex}</p>
                 </div>
               ))}
@@ -624,7 +524,6 @@ useEffect(() => {
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-6"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Shop All</span></div>
             <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Our Collection</h2>
             <p className="text-xs md:text-sm text-[#8B7D6B] mb-5 md:mb-10">{filtered.length} pieces</p>
-            
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-8 pb-4 border-b border-[#E8DFD3] gap-4">
               <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                 {['All', 'Gemstone', 'Pearl', 'Wood', 'Metal'].map(c => (
@@ -633,50 +532,42 @@ useEffect(() => {
               </div>
               <div className="hidden md:flex items-center gap-2"><span className="text-xs text-[#8B7D6B]">Sort:</span><select value={sort} onChange={(e)=>setSort(e.target.value)} className="text-xs font-medium bg-transparent outline-none cursor-pointer"><option>Featured</option><option>Price: Low</option><option>Price: High</option></select></div>
             </div>
-
             {filtered.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">{filtered.map(p => <Card key={p.id} p={p} />)}</div>
             ) : (
-              <div className="py-16 md:py-24 text-center">
-                <Search className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" />
-                <h3 className="text-sm md:text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>No matches found</h3>
-                <button onClick={() => setCat('All')} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Clear filters</button>
-              </div>
+              <div className="py-16 md:py-24 text-center"><Search className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><h3 className="text-sm md:text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>No matches found</h3><button onClick={() => setCat('All')} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Clear filters</button></div>
             )}
           </div>
         )}
 
         {/* PRODUCT DETAIL */}
-        {pg === 'product' && (() => {
+        {pg === 'product' && selProd && (() => {
           const p = selProd;
           return (
             <div className="max-w-[1200px] mx-auto px-0 md:px-8 pt-0 md:pt-8 pb-8 md:pb-20">
               <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><button onClick={() => go('collection')} className="hover:text-[#A0522D]">Shop</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">{p.name}</span></div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-16">
                 <div>
                   <div className="aspect-square md:rounded-xl overflow-hidden bg-[#F0EBE4]"><img src={p.img} alt={p.name} className="w-full h-full object-cover" /></div>
-                  <div className="hidden md:grid grid-cols-4 gap-3 mt-4">{[p.img, p.img2, p.img, p.img2].map((im, i) => <div key={i} className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#A0522D] cursor-pointer"><img src={im} alt="" className="w-full h-full object-cover" /></div>)}</div>
+                  <div className="hidden md:grid grid-cols-4 gap-3 mt-4">{[p.img, p.img2, p.img, p.img2].map((im, i) => <div key={i} className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#A0522D] cursor-pointer"><img src={im || p.img} alt="" className="w-full h-full object-cover" /></div>)}</div>
                 </div>
-                
                 <div className="px-5 py-5 md:px-0 md:py-4">
                   {p.tag && <span className="text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] text-[#A0522D] uppercase font-medium">{p.tag}</span>}
                   <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
-                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4"><div className="flex gap-0.5">{stars(p.rating)}</div><span className="text-xs md:text-sm text-[#8B7D6B]">({p.reviews} reviews)</span></div>
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4"><div className="flex gap-0.5">{stars(p.rating || 5)}</div><span className="text-xs md:text-sm text-[#8B7D6B]">({p.reviews || 0} reviews)</span></div>
                   <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C]">₱{p.price}</span>
-                  <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 md:mb-8 mt-1">or 4 payments of ₱{(p.price / 4).toFixed(2)}</p>
-
-                  <div className="mb-5 md:mb-6">
+                  
+                  <div className="mb-5 md:mb-6 mt-6">
                     <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase mb-2 md:mb-3 font-semibold">Color</p>
-                    <div className="flex gap-3">{p.colors.map((c, i) => <button key={i} onClick={() => setSelColor(i)} className={`w-8 h-8 rounded-full border-2 transition-all ${selColor === i ? 'border-[#A0522D] scale-110' : 'border-[#E8DFD3]'}`} style={{ backgroundColor: c }} />)}</div>
+                    <div className="flex gap-3">{p.colors?.map((c, i) => <button key={i} onClick={() => setSelColor(i)} className={`w-8 h-8 rounded-full border-2 transition-all ${selColor === i ? 'border-[#A0522D] scale-110' : 'border-[#E8DFD3]'}`} style={{ backgroundColor: c }} />)}</div>
                   </div>
 
                   <div className="mb-5 md:mb-6">
                     <div className="flex items-center justify-between mb-2 md:mb-3">
                       <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase font-semibold">Size</p>
-                      <button onClick={() => setSgOpen(true)} className="text-[10px] md:text-xs text-[#A0522D] underline">Size Guide</button>
+                      <button onClick={() => go('sizeguide')} className="text-[10px] md:text-xs text-[#A0522D] underline">Size Guide</button>
                     </div>
-                    <div className="flex gap-2 md:gap-3">{p.sizes.map(s => <button key={s} onClick={() => setSelSz(s)} className={`w-11 h-11 md:w-12 md:h-12 text-sm font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] hover:bg-[#E8DFD3]'}`}>{s}</button>)}</div>
+                    <div className="flex gap-2 md:gap-3">{p.sizes?.map(s => <button key={s} onClick={() => setSelSz(s)} className={`w-11 h-11 md:w-12 md:h-12 text-sm font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] hover:bg-[#E8DFD3]'}`}>{s}</button>)}</div>
                   </div>
 
                   <div className="mb-6 md:mb-8">
@@ -688,27 +579,13 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Desktop Add to Cart */}
                   <button onClick={() => addCart(p)} className="hidden md:block w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] transition-colors font-semibold mb-3">Add to Cart — ₱{p.price * qty}</button>
-
                   <div className="flex gap-3 mb-6 md:mb-8">
                     <button onClick={() => togWish(p.id)} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Heart className={`w-4 h-4 md:w-5 md:h-5 ${wish.includes(p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} /> <span className="hidden md:inline">{wish.includes(p.id) ? 'Saved' : 'Wishlist'}</span></button>
                     <button onClick={() => go('customizer')} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Palette className="w-4 h-4 md:w-5 md:h-5 text-[#3E2F1C]" /> <span className="hidden md:inline">Customize</span></button>
                   </div>
-
-                  {[{ k: 'description', t: 'Description', c: `Handcrafted ${p.mat} beads. Each bead selected for natural beauty.` }, { k: 'care', t: 'Materials & Care', c: `${p.mat}. Remove before swimming. Store in pouch.` }, { k: 'shipping', t: 'Shipping', c: 'Free over ₱50. Standard 5-7 days. 30-day returns.' }].map(s => (
-                    <div key={s.k} className="border-t border-[#E8DFD3]">
-                      <button onClick={() => setAcc(prev => prev === s.k ? '' : s.k)} className="w-full flex items-center justify-between py-3.5 md:py-4">
-                        <span className="text-xs md:text-sm font-semibold tracking-wider uppercase">{s.t}</span>
-                        <ChevronDown className={`w-4 h-4 text-[#8B7D6B] transition-transform ${acc === s.k ? 'rotate-180' : ''}`} />
-                      </button>
-                      {acc === s.k && <p className="text-sm text-[#5A4A3A] leading-relaxed pb-4">{s.c}</p>}
-                    </div>
-                  ))}
                 </div>
               </div>
-
-              {/* Mobile Sticky Add to Cart */}
               <div className="md:hidden sticky bottom-0 bg-white border-t border-[#E8DFD3] p-4 flex items-center gap-3 z-30">
                 <span className="text-lg font-bold text-[#3E2F1C]">₱{p.price * qty}</span>
                 <button onClick={() => addCart(p)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-xs tracking-[0.1em] uppercase py-3.5 font-semibold">Add to Cart</button>
@@ -720,18 +597,12 @@ useEffect(() => {
         {/* CUSTOMIZER */}
         {pg === 'customizer' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
-            {/* Desktop Progress Bar */}
             <div className="hidden md:flex items-center gap-0 mb-10">{['Choose Beads','Pick String','Add Charms','Review'].map((s, i) => (
               <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[#A0522D]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 3 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />}</div>
             ))}</div>
-            
-            {/* Mobile Progress Bar */}
             <div className="md:hidden flex gap-1 mb-6">
               {['Beads', 'String', 'Charms', 'Review'].map((s, i) => (
-                <div key={i} className="flex-1">
-                  <div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />
-                  <p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[#A0522D] font-medium' : 'text-[#B0A395]'}`}>{s}</p>
-                </div>
+                <div key={i} className="flex-1"><div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} /><p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[#A0522D] font-medium' : 'text-[#B0A395]'}`}>{s}</p></div>
               ))}
             </div>
 
@@ -783,7 +654,7 @@ useEffect(() => {
                   <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Review</h2>
                   <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6"><div className="hidden md:flex flex-wrap gap-1.5 mb-4">{sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full" style={{ backgroundColor: b.color }} />)}</div><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">Charms</span><span className="font-medium">{sCharms.length > 0 ? sCharms.map(c => c.name).join(', ') : 'None'}</span></div></div><div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{custT}</span></div></div>
                   <div className="mb-4 md:mb-6"><label className="hidden md:block text-xs tracking-[0.15em] uppercase mb-2 font-semibold">Name Your Bracelet</label><input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="Name your bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" /></div>
-                  <button onClick={() => addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0].img, mat:'Custom' })} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold">Add to Cart — ₱{custT}</button>
+                  <button onClick={() => addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:(P[0]?.img || ''), mat:'Custom' })} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold">Add to Cart — ₱{custT}</button>
                 </div>}
                 
                 <div className="flex justify-between mt-6 md:mt-10 pt-0 md:pt-6 md:border-t border-[#E8DFD3]">
@@ -795,7 +666,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* ACCOUNT, WISHLIST, ETC (Simplified unified views) */}
+        {/* WISHLIST */}
         {pg === 'wishlist' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
             <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Wishlist</h2>
@@ -844,7 +715,7 @@ useEffect(() => {
                   <div>
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Method</h2>
                     <div className="space-y-3 mb-8">
-                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '₱4.99' }, { n: 'Express (2-3 days)', p: '₱9.99' }].map((m, i) => (
+                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '₱150.00' }, { n: 'Express (2-3 days)', p: '₱300.00' }].map((m, i) => (
                         <div key={i} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${i === 0 ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}>
                           <div className="flex items-center gap-3">
                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${i === 0 ? 'border-[#A0522D]' : 'border-[#B0A395]'}`}>{i === 0 && <div className="w-2 h-2 rounded-full bg-[#A0522D]" />}</div>
@@ -900,11 +771,10 @@ useEffect(() => {
           </div>
         )}
 
-        {/* ACCOUNT / PROFILE */}
+        {/* ACCOUNT */}
         {pg === 'account' && logged && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
             <div className="flex flex-col md:flex-row gap-8 md:gap-12">
-              {/* Sidebar Navigation */}
               <div className="w-full md:w-64 space-y-1">
                 <h2 className="text-2xl mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>My Account</h2>
                 {['Overview', 'Orders', 'Wishlist', 'Settings'].map(tab => (
@@ -917,17 +787,13 @@ useEffect(() => {
                   </button>
                 ))}
                 <button 
-                  onClick={() => { setLogged(false); 
-                    setCart([]);
-                    setWish([]);
-                    localStorage.removeItem('beaded_token'); go('home'); }} 
+                  onClick={() => { setLogged(false); setCart([]); setWish([]); localStorage.removeItem('beaded_token'); go('home'); }} 
                   className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-[#B85C5C] hover:bg-[#FDECEC] mt-4 flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" /> Logout
                 </button>
               </div>
 
-              {/* Main Content Area */}
               <div className="flex-1 bg-white rounded-2xl p-6 md:p-10 border border-[#E8DFD3]">
                 {acctTab === 'overview' && (
                   <div>
@@ -942,15 +808,6 @@ useEffect(() => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
-                        <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
-                          <Crown className="w-5 h-5" />
-                          <span className="text-xs font-bold uppercase tracking-widest">The Bead Tribe</span>
-                        </div>
-                        <p className="text-3xl font-bold text-[#3E2F1C]">{logged.points || 0}</p>
-                        <p className="text-xs text-[#8B7D6B] mt-1">Available reward points</p>
-                      </div>
-                      
                       <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
                         <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
                           <Package className="w-5 h-5" />
@@ -974,59 +831,80 @@ useEffect(() => {
           </div>
         )}
 
-        {/* LOGIN MODAL */}
-        {loginOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setLoginOpen(false)} />
-            <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-8 shadow-2xl">
-              <button onClick={() => setLoginOpen(false)} className="absolute top-4 right-4 p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
-              
-              <div className="text-center mb-6">
-                <h3 className="text-2xl" style={{ fontFamily: 'Playfair Display, serif' }}>{loginTab === 'signin' ? 'Welcome Back' : 'Join Us'}</h3>
-              </div>
-              
-              <div className="flex mb-6 border-b border-[#E8DFD3]">
-                <button onClick={() => setLoginTab('signin')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'signin' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Sign In</button>
-                <button onClick={() => setLoginTab('register')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'register' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Create Account</button>
-
-                <div className="flex items-center gap-4 mt-6 pt-4">
-                  <div className="flex-1 h-px bg-[#E8DFD3]" />
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#B0A395]">Or continue with</span>
-                  <div className="flex-1 h-px bg-[#E8DFD3]" />
-                </div>
-                
-                <div className="flex gap-3 mt-4">
-                  <button onClick={handleGoogleLogin} className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
-                    Google
-                  </button>
-                  <button className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">
-                    Facebook
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {loginTab === 'register' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="First name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                    <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Last name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                  </div>
-                )}
-                
-                <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                
-                {loginTab === 'signin' && <button className="text-xs text-[#A0522D] text-right w-full">Forgot password?</button>}
-                
-                <button onClick={() => handleAuth(loginTab)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-3.5 hover:bg-[#8B4526] font-semibold">
-                  {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* NEW FOOTER PAGES */}
+        {pg === 'sizeguide' && <SizeGuide />}
+        {pg === 'shipping' && <Shipping />}
+        {pg === 'faq' && <div className="py-32 text-center text-2xl text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>FAQ Coming Soon</div>}
 
       </main>
+
+      {/* GLOBAL FOOTER (Hidden on Checkout) */}
+      {pg !== 'checkout' && pg !== 'confirmation' && (
+        <footer className="bg-[#3E2F1C] text-[#FAF6F1] py-16 mt-auto">
+          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-[#5A4A38] pb-12 mb-8">
+            
+            {/* Column 1: Brand & Socials */}
+            <div className="space-y-6">
+              <h2 className="text-lg md:text-xl tracking-[0.2em] uppercase font-serif">BEADEDBYUNKNOWN</h2>
+              <p className="text-[#D1CBC3] text-sm leading-relaxed max-w-xs">
+                Handcrafted bead bracelets made with intention in Portland.
+              </p>
+              
+              <div className="flex gap-5 pt-2">
+                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Follow us on Instagram">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+
+                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer: Sean Rhani Dela Cruz">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                    <rect x="2" y="9" width="4" height="12"></rect>
+                    <circle cx="4" cy="4" r="2"></circle>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Column 2: Shop */}
+            <div>
+              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Shop</h3>
+              <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                <li><button onClick={() => go('collection')} className="hover:text-white transition-colors">All</button></li>
+                <li><button onClick={() => go('customizer')} className="hover:text-white transition-colors">Custom</button></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Help */}
+            <div>
+              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Help</h3>
+              <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                <li><button onClick={() => go('sizeguide')} className="hover:text-white transition-colors">Size Guide</button></li>
+                <li><button onClick={() => go('shipping')} className="hover:text-white transition-colors">Shipping</button></li>
+                <li><button onClick={() => go('faq')} className="hover:text-white transition-colors">FAQ</button></li>
+              </ul>
+            </div>
+
+            {/* Column 4: About */}
+            <div>
+              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">About</h3>
+              <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                <li><button onClick={() => go('about')} className="hover:text-white transition-colors">Our Story</button></li>
+                <li><button onClick={() => go('blog')} className="hover:text-white transition-colors">Journal</button></li>
+              </ul>
+            </div>
+
+          </div>
+
+          <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-[#D1CBC3] text-xs gap-4">
+            <p>© 2026 beadedbyunknown</p>
+            <p>Developed by Sean Rhani Dela Cruz</p>
+          </div>
+        </footer>
+      )}
 
       {/* MOBILE BOTTOM NAV */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
@@ -1049,7 +927,7 @@ useEffect(() => {
         </nav>
       )}
 
-      {/* MOBILE HAMBURGER MENU */}
+      {/* MODALS */}
       {menuOpen && (
         <div className="md:hidden fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} />
@@ -1067,11 +945,47 @@ useEffect(() => {
         </div>
       )}
 
-      {/* RESPONSIVE CART DRAWER */}
       {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">₱{it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">₱{cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
 
-      {/* SEARCH OVERLAY */}
       {searchOpen && <div className="fixed inset-0 z-[60] bg-[#FAF6F1] md:bg-black/30"><div className="md:absolute top-0 left-0 right-0 bg-white md:shadow-xl"><div className="md:max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-10"><div className="flex items-center gap-3 md:gap-4 border-b md:border-b-2 border-[#E8DFD3] md:border-[#3E2F1C] pb-3 md:mb-6"><Search className="w-5 h-5 text-[#8B7D6B]" /><input value={searchQ} onChange={(e)=>setSearchQ(e.target.value)} placeholder="Search bracelets..." className="flex-1 text-sm md:text-lg outline-none bg-transparent placeholder:text-[#B0A395]" autoFocus /><button onClick={() => { setSearchOpen(false); setSearchQ(''); }}><X className="w-5 h-5 text-[#8B7D6B]" /></button></div></div></div></div>}
+
+      {loginOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setLoginOpen(false)} />
+          <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-8 shadow-2xl">
+            <button onClick={() => setLoginOpen(false)} className="absolute top-4 right-4 p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
+            <div className="text-center mb-6">
+              <h3 className="text-2xl" style={{ fontFamily: 'Playfair Display, serif' }}>{loginTab === 'signin' ? 'Welcome Back' : 'Join Us'}</h3>
+            </div>
+            <div className="flex mb-6 border-b border-[#E8DFD3]">
+              <button onClick={() => setLoginTab('signin')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'signin' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Sign In</button>
+              <button onClick={() => setLoginTab('register')} className={`flex-1 pb-3 text-sm font-medium ${loginTab === 'register' ? 'text-[#A0522D] border-b-2 border-[#A0522D]' : 'text-[#8B7D6B]'}`}>Create Account</button>
+            </div>
+            <div className="space-y-4">
+              {loginTab === 'register' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="First name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                  <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Last name" className="px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                </div>
+              )}
+              <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+              <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+              {loginTab === 'signin' && <button className="text-xs text-[#A0522D] text-right w-full">Forgot password?</button>}
+              <button onClick={() => handleAuth(loginTab)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-3.5 hover:bg-[#8B4526] font-semibold">
+                {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+              </button>
+              <div className="flex items-center gap-4 mt-6 pt-4">
+                <div className="flex-1 h-px bg-[#E8DFD3]" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#B0A395]">Or continue with</span>
+                <div className="flex-1 h-px bg-[#E8DFD3]" />
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={handleGoogleLogin} className="flex-1 py-2.5 border border-[#E8DFD3] text-sm hover:bg-[#F0EBE4] rounded-lg font-medium transition-colors">Google</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
