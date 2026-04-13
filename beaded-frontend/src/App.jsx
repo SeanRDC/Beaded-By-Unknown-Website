@@ -3,7 +3,7 @@ import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, P
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 
-/*
+/* DEFAULT VALUES AND ITEMS
 const P = [
   { id: 1, name: 'Sunstone Serenity', price: 38, img: 'https://images.unsplash.com/photo-1766560359154-c28794703384?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBjcnlzdGFsJTIwYmVhZCUyMGJyYWNlbGV0JTIwaGFuZG1hZGV8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHdlYXJpbmclMjBiZWFkJTIwYnJhY2VsZXQlMjBjbG9zZXVwfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#A0522D', '#E8DFD3'], cat: 'Gemstone', rating: 4.8, reviews: 124, mat: 'Natural Sunstone', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
   { id: 2, name: 'Moonlit Whisper', price: 42, img: 'https://images.unsplash.com/photo-1774096399392-e89c66ed8512?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHBlYXJsJTIwYnJhY2VsZXQlMjBlbGVnYW50fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763739906638-5b50dbef6005?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxkZWxpY2F0ZSUyMHdoaXRlJTIwYnJhY2VsZXQlMjBqZXdlbHJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#FFFFFF', '#E8DFD3', '#C9A96E'], cat: 'Pearl', rating: 4.9, reviews: 89, mat: 'Freshwater Pearl', sizes: ['S', 'M', 'L'], tag: 'New' },
@@ -372,7 +372,7 @@ useEffect(() => {
               <div className="relative z-10 p-6 md:p-8 md:max-w-[1200px] md:mx-auto w-full pb-10 md:pb-8">
                 <p className="text-[10px] md:text-[13px] tracking-[0.25em] md:tracking-[0.3em] text-[#A0522D] uppercase mb-2 md:mb-4 font-medium">Handcrafted with intention</p>
                 <h2 className="text-[32px] md:text-[64px] leading-[1.1] text-[#3E2F1C] max-w-[580px] mb-3 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Every bead tells a story</h2>
-                <p className="text-sm md:text-lg text-[#5A4A3A] md:max-w-[420px] mb-6 md:mb-8 leading-relaxed max-w-[280px]">Artisan bracelets from ethically sourced stones, crafted by hand, designed to carry your intention.</p>
+                <p className="text-sm md:text-lg text-[#5A4A3A] md:max-w-[420px] mb-6 md:mb-8 leading-relaxed max-w-[280px]">We transform raw materials into hand-finished treasures, ensuring every bead you string carries its own story and weight.</p>
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                   <button onClick={() => go('collection')} className="bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.15em] uppercase px-6 py-3.5 md:py-4 font-medium md:font-semibold hover:bg-[#8B4526] transition-colors">Shop Collection</button>
                   <button onClick={() => go('customizer')} className="border-2 border-[#3E2F1C] text-[#3E2F1C] text-xs md:text-sm tracking-[0.15em] uppercase px-6 py-3.5 md:py-4 font-medium md:font-semibold hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors">Build Your Own</button>
@@ -479,10 +479,10 @@ useEffect(() => {
                     </h2>
                     <div className="w-12 h-1 bg-[#A0522D]"></div>
                     <p className="text-[#8B7D6B] leading-relaxed">
-                      Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.
+                      Beaded by Unknown began as a simple spark of imagination a late-night hobby fueled by a love for color and form. I believed that jewelry shouldn't just be an accessory, but a wearable piece of a dream that keeps you grounded throughout your day.
                     </p>
                     <p className="text-[#8B7D6B] leading-relaxed">
-                      Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.
+                      What started with a single strand has grown into a dedicated practice of hand-stringing every bead with care. Using durable materials and a meticulous eye for detail, we craft more than just jewelry; we create small, handmade companions for your daily journey.
                     </p>
                     <button onClick={() => go('collection')} className="inline-block mt-4 text-[#A0522D] font-semibold tracking-widest uppercase text-sm border-b border-[#A0522D] pb-1 hover:text-[#8B4526] transition-colors">
                       Discover Our Process
