@@ -300,7 +300,7 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-// PUT: Admin route to update the banner
+// PUT: Admin route to update the banner and features
 app.put('/api/admin/settings', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
@@ -308,9 +308,17 @@ app.put('/api/admin/settings', async (req, res) => {
   try {
     let settings = await Settings.findOne();
     if (!settings) {
-      settings = new Settings({ topBannerText: req.body.topBannerText });
+      settings = new Settings({ 
+        topBannerText: req.body.topBannerText,
+        featureOne: req.body.featureOne,
+        featureTwo: req.body.featureTwo,
+        featureThree: req.body.featureThree
+      });
     } else {
       settings.topBannerText = req.body.topBannerText;
+      settings.featureOne = req.body.featureOne;
+      settings.featureTwo = req.body.featureTwo;
+      settings.featureThree = req.body.featureThree;
     }
     await settings.save();
     res.json(settings);

@@ -10,9 +10,14 @@ export default function AdminDashboard() {
   const [editId, setEditId] = useState(null);
   
   const [serverStatus, setServerStatus] = useState('checking'); 
-  const [bannerText, setBannerText] = useState('WELCOME');
   
-  // NEW: Community Reviews State
+  // Settings State
+  const [bannerText, setBannerText] = useState('WELCOME');
+  const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
+  const [featureTwo, setFeatureTwo] = useState('Handmade');
+  const [featureThree, setFeatureThree] = useState('Ethically sourced');
+  
+  // Community Reviews State
   const [reviews, setReviews] = useState([]);
   const [reviewForm, setReviewForm] = useState({ author: '', text: '', rating: 5 });
 
@@ -22,7 +27,6 @@ export default function AdminDashboard() {
 
   const fetchAllData = async () => {
     try {
-      // Fetch Products
       const prodRes = await fetch('http://localhost:4242/api/products');
       if (prodRes.ok) {
         const prodData = await prodRes.json();
@@ -32,7 +36,6 @@ export default function AdminDashboard() {
         setServerStatus('offline');
       }
 
-      // Fetch Reviews
       const revRes = await fetch('http://localhost:4242/api/reviews');
       if (revRes.ok) {
         const revData = await revRes.json();
@@ -56,7 +59,12 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('http://localhost:4242/api/settings');
       const data = await res.json();
-      if (data && data.topBannerText) setBannerText(data.topBannerText);
+      if (data) {
+        if (data.topBannerText) setBannerText(data.topBannerText);
+        if (data.featureOne) setFeatureOne(data.featureOne);
+        if (data.featureTwo) setFeatureTwo(data.featureTwo);
+        if (data.featureThree) setFeatureThree(data.featureThree);
+      }
     } catch (err) {}
   };
 
@@ -104,21 +112,25 @@ export default function AdminDashboard() {
   const handleSettingsSubmit = async (e) => {
     e.preventDefault();
     if (!secretKey) return setStatus('❌ Admin Key Required.');
-    setStatus('Updating...');
+    setStatus('Updating Storefront...');
     try {
       const res = await fetch('http://localhost:4242/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
-        body: JSON.stringify({ topBannerText: bannerText })
+        body: JSON.stringify({ 
+          topBannerText: bannerText,
+          featureOne: featureOne,
+          featureTwo: featureTwo,
+          featureThree: featureThree
+        })
       });
       if (res.ok) {
-        setStatus(`✅ Banner Updated!`);
+        setStatus(`✅ Settings Updated!`);
         setTimeout(() => { setStatus(''); }, 2000);
       } else { setStatus(`❌ Error updating.`); }
     } catch (err) { setStatus('❌ Server error.'); }
   };
 
-  // NEW: Submit Review
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!secretKey) return setStatus('❌ Admin Key Required.');
@@ -318,7 +330,6 @@ export default function AdminDashboard() {
                         <input type="number" required value={product.price} onChange={(e) => setProduct({...product, price: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 text-sm" />
                       </div>
                     </div>
-                    {/* ... (Other inputs kept minimal for brevity, assume full fields here like previous versions) ... */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image URL</label>
@@ -342,8 +353,6 @@ export default function AdminDashboard() {
               {activeTab === 'community' && (
                 <div className="animate-in fade-in duration-300 relative w-full">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* Add Review Form */}
                     <div className="lg:col-span-1">
                       <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Review</h3>
                       <form onSubmit={handleReviewSubmit} className="space-y-4 bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
@@ -363,10 +372,7 @@ export default function AdminDashboard() {
                           Publish Review
                         </button>
                       </form>
-                      {status && status.includes('Review') && <div className="mt-4 text-sm text-center text-[#A0522D] font-bold">{status}</div>}
                     </div>
-
-                    {/* Active Reviews List */}
                     <div className="lg:col-span-2">
                       <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Live Reviews</h3>
                       {reviews.length === 0 ? (
@@ -390,7 +396,6 @@ export default function AdminDashboard() {
                         </div>
                       )}
                     </div>
-
                   </div>
                 </div>
               )}
@@ -399,12 +404,24 @@ export default function AdminDashboard() {
               {activeTab === 'settings' && (
                 <div className="animate-in fade-in duration-300 relative w-full max-w-2xl">
                   <h3 className="text-2xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Storefront Controls</h3>
+                  <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">Update the text across your customer-facing website.</p>
+                  
                   <form onSubmit={handleSettingsSubmit} className="space-y-6 mt-6">
                     <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl">
                       <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Top Announcement Banner</label>
                       <input required value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
                     </div>
-                    {status && status.includes('Banner') && <div className="text-sm text-center text-[#A0522D] font-bold">{status}</div>}
+
+                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl space-y-4">
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B]">Store Highlights / Features</label>
+                      <p className="text-xs text-[#8B7D6B] mb-3">These are the three main selling points shown on your site.</p>
+                      <input required value={featureOne} onChange={(e) => setFeatureOne(e.target.value)} placeholder="Highlight 1" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                      <input required value={featureTwo} onChange={(e) => setFeatureTwo(e.target.value)} placeholder="Highlight 2" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                      <input required value={featureThree} onChange={(e) => setFeatureThree(e.target.value)} placeholder="Highlight 3" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                    </div>
+
+                    {status && status.includes('Settings') && <div className="text-sm text-center text-[#A0522D] font-bold">{status}</div>}
+                    
                     <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-sm">
                       Update Website
                     </button>

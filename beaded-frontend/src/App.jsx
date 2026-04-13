@@ -80,16 +80,32 @@ function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [authFirstName, setAuthFirstName] = useState('');
   const [authLastName, setAuthLastName] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
+  const [featureTwo, setFeatureTwo] = useState('Handmade');
+  const [featureThree, setFeatureThree] = useState('Ethically sourced');
 
 // Inside your main function component:
 const [topBannerText, setTopBannerText] = useState('WELCOME'); // Default fallback
 
 useEffect(() => {
+  fetch('http://localhost:4242/api/reviews')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) setReviews(data);
+    })
+    .catch(err => console.error("Failed to load reviews:", err));
+}, []);
+
+useEffect(() => {
   fetch('http://localhost:4242/api/settings')
     .then(res => res.json())
     .then(data => {
-      if (data && data.topBannerText) {
-        setTopBannerText(data.topBannerText);
+      if (data) {
+        if (data.topBannerText) setTopBannerText(data.topBannerText);
+        if (data.featureOne) setFeatureOne(data.featureOne);
+        if (data.featureTwo) setFeatureTwo(data.featureTwo);
+        if (data.featureThree) setFeatureThree(data.featureThree);
       }
     })
     .catch(err => console.error("Failed to load settings:", err));
@@ -356,9 +372,15 @@ useEffect(() => {
             </section>
 
             <div className="bg-[#3E2F1C] py-2.5 md:py-3 flex justify-center gap-6 md:gap-12 overflow-hidden px-4">
-              {['Free shipping over ₱50', 'Handmade', 'Ethically sourced'].map((t, i) => (
-                <span key={i} className="text-[#C9A96E] text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap flex items-center gap-1.5"><Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> {t}</span>
-              ))}
+              <span className="text-[#C9A96E] text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap flex items-center gap-1.5">
+                <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> {featureOne}
+              </span>
+              <span className="text-[#C9A96E] text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap flex items-center gap-1.5">
+                <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> {featureTwo}
+              </span>
+              <span className="text-[#C9A96E] text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap flex items-center gap-1.5">
+                <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> {featureThree}
+              </span>
             </div>
 
             <section className="px-5 md:px-8 py-8 md:py-20 max-w-[1200px] mx-auto">
@@ -391,39 +413,16 @@ useEffect(() => {
               </div>
             </section>
 
-            <section className="px-5 md:px-8 py-8 md:py-20 max-w-[1200px] mx-auto text-center">
-              <p className="text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em] text-[#A0522D] uppercase mb-1 md:mb-2 font-medium">10,000+ bead lovers</p>
-              <h2 className="text-[24px] md:text-[36px] text-[#3E2F1C] mb-5 md:mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>Community Love</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 text-left">
-                {[
-                  { n: 'Sarah M.', t: 'The most beautiful bracelet I own. Magical.', p: 'Sunstone Serenity' },
-                  { n: 'Emma R.', t: 'Custom bracelet turned out PERFECT! Incredible quality.', p: 'Custom Design' },
-                  { n: 'James K.', t: "Got this for my partner. Gorgeous packaging too.", p: 'Moonlit Whisper' }
-                ].map((rv, i) => (
-                  <div key={i} className="bg-white p-5 md:p-8 rounded-xl border border-[#F0EBE4]">
-                    <div className="flex gap-0.5 mb-2 md:mb-3">{stars(5)}</div>
-                    <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed mb-3 md:mb-4">&ldquo;{rv.t}&rdquo;</p>
-                    <div className="flex justify-between items-end">
-                      <div><p className="text-sm font-semibold text-[#3E2F1C]">{rv.n}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Verified Buyer</p></div>
-                      <span className="text-[10px] md:text-xs text-[#A0522D]">{rv.p}</span>
-                    </div>
+            <section className="community-love py-12">
+              <h2 className="text-center text-3xl font-serif mb-8">Community Love</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4">
+                {reviews.map(review => (
+                  <div key={review._id} className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3] text-center">
+                    <p className="text-[#C9A96E] text-lg mb-4">{'★'.repeat(review.rating)}</p>
+                    <p className="text-sm italic text-[#8B7D6B] mb-4">"{review.text}"</p>
+                    <p className="text-xs uppercase tracking-widest font-bold">- {review.author}</p>
                   </div>
                 ))}
-              </div>
-            </section>
-
-            {/* THE BEAD TRIBE SECTION */}
-            <section className="px-5 md:px-8 pb-8 md:pb-20 max-w-[1200px] mx-auto">
-              <div className="bg-[#3E2F1C] rounded-xl md:rounded-2xl p-6 md:p-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
-                <div className="mb-4 md:mb-0">
-                  <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 mb-2 md:mb-3">
-                    <Crown className="w-6 h-6 text-[#C9A96E]" />
-                    <p className="hidden md:block text-[12px] tracking-[0.25em] text-[#C9A96E] uppercase font-medium">The Bead Tribe</p>
-                  </div>
-                  <h2 className="text-[20px] md:text-[32px] text-[#FAF6F1] mb-2 md:mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>Earn Points. Get Rewarded.</h2>
-                  <p className="text-sm text-[#B0A395] md:max-w-[400px]">Join our loyalty program — earn points with every purchase.</p>
-                </div>
-                <button onClick={() => go('loyalty')} className="w-full md:w-auto bg-[#C9A96E] text-[#3E2F1C] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase px-6 md:px-8 py-3.5 md:py-4 font-semibold hover:bg-[#B89A5E] transition-colors">Join the Tribe</button>
               </div>
             </section>
 
