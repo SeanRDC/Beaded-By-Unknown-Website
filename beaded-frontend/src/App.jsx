@@ -271,7 +271,7 @@ function App() {
             <h3 className="text-[13px] md:text-[15px] text-[#3E2F1C] font-medium" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h3>
             <p className="text-[11px] md:text-xs text-[#8B7D6B] mt-0.5">{p.mat}</p>
           </div>
-          <span className="text-[13px] md:text-[15px] font-semibold text-[#3E2F1C]">${p.price}</span>
+          <span className="text-[13px] md:text-[15px] font-semibold text-[#3E2F1C]">₱{p.price}</span>
         </div>
       </div>
     );
@@ -282,7 +282,7 @@ function App() {
       {/* HEADER - Responsive */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
-          <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">Free shipping over $50 — Handmade</div>
+          <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">WELCOME</div>
           <nav className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between">
             {/* Mobile Menu Icon */}
             <button onClick={() => setMenuOpen(true)} className="md:hidden p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
@@ -340,7 +340,7 @@ function App() {
             </section>
 
             <div className="bg-[#3E2F1C] py-2.5 md:py-3 flex justify-center gap-6 md:gap-12 overflow-hidden px-4">
-              {['Free shipping over $50', 'Handmade', 'Ethically sourced'].map((t, i) => (
+              {['Free shipping over ₱50', 'Handmade', 'Ethically sourced'].map((t, i) => (
                 <span key={i} className="text-[#C9A96E] text-[9px] md:text-xs tracking-[0.15em] md:tracking-[0.2em] uppercase whitespace-nowrap flex items-center gap-1.5"><Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> {t}</span>
               ))}
             </div>
@@ -605,8 +605,8 @@ function App() {
                   {p.tag && <span className="text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] text-[#A0522D] uppercase font-medium">{p.tag}</span>}
                   <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
                   <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4"><div className="flex gap-0.5">{stars(p.rating)}</div><span className="text-xs md:text-sm text-[#8B7D6B]">({p.reviews} reviews)</span></div>
-                  <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C]">${p.price}</span>
-                  <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 md:mb-8 mt-1">or 4 payments of ${(p.price / 4).toFixed(2)}</p>
+                  <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C]">₱{p.price}</span>
+                  <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 md:mb-8 mt-1">or 4 payments of ₱{(p.price / 4).toFixed(2)}</p>
 
                   <div className="mb-5 md:mb-6">
                     <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase mb-2 md:mb-3 font-semibold">Color</p>
@@ -631,14 +631,14 @@ function App() {
                   </div>
 
                   {/* Desktop Add to Cart */}
-                  <button onClick={() => addCart(p)} className="hidden md:block w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] transition-colors font-semibold mb-3">Add to Cart — ${p.price * qty}</button>
+                  <button onClick={() => addCart(p)} className="hidden md:block w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] transition-colors font-semibold mb-3">Add to Cart — ₱{p.price * qty}</button>
 
                   <div className="flex gap-3 mb-6 md:mb-8">
                     <button onClick={() => togWish(p.id)} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Heart className={`w-4 h-4 md:w-5 md:h-5 ${wish.includes(p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} /> <span className="hidden md:inline">{wish.includes(p.id) ? 'Saved' : 'Wishlist'}</span></button>
                     <button onClick={() => go('customizer')} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Palette className="w-4 h-4 md:w-5 md:h-5 text-[#3E2F1C]" /> <span className="hidden md:inline">Customize</span></button>
                   </div>
 
-                  {[{ k: 'description', t: 'Description', c: `Handcrafted ${p.mat} beads. Each bead selected for natural beauty.` }, { k: 'care', t: 'Materials & Care', c: `${p.mat}. Remove before swimming. Store in pouch.` }, { k: 'shipping', t: 'Shipping', c: 'Free over $50. Standard 5-7 days. 30-day returns.' }].map(s => (
+                  {[{ k: 'description', t: 'Description', c: `Handcrafted ${p.mat} beads. Each bead selected for natural beauty.` }, { k: 'care', t: 'Materials & Care', c: `${p.mat}. Remove before swimming. Store in pouch.` }, { k: 'shipping', t: 'Shipping', c: 'Free over ₱50. Standard 5-7 days. 30-day returns.' }].map(s => (
                     <div key={s.k} className="border-t border-[#E8DFD3]">
                       <button onClick={() => setAcc(prev => prev === s.k ? '' : s.k)} className="w-full flex items-center justify-between py-3.5 md:py-4">
                         <span className="text-xs md:text-sm font-semibold tracking-wider uppercase">{s.t}</span>
@@ -652,7 +652,7 @@ function App() {
 
               {/* Mobile Sticky Add to Cart */}
               <div className="md:hidden sticky bottom-0 bg-white border-t border-[#E8DFD3] p-4 flex items-center gap-3 z-30">
-                <span className="text-lg font-bold text-[#3E2F1C]">${p.price * qty}</span>
+                <span className="text-lg font-bold text-[#3E2F1C]">₱{p.price * qty}</span>
                 <button onClick={() => addCart(p)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-xs tracking-[0.1em] uppercase py-3.5 font-semibold">Add to Cart</button>
               </div>
             </div>
@@ -694,7 +694,7 @@ function App() {
                     </div>
                   </div>
                   <div className="mt-4 md:mt-6 p-3 md:p-5 bg-white rounded-lg md:rounded-xl border border-[#E8DFD3]">
-                    <div className="flex justify-between items-center"><span className="text-xs md:text-sm text-[#8B7D6B]">Total</span><span className="text-lg md:text-xl font-bold text-[#3E2F1C]">${custT}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-xs md:text-sm text-[#8B7D6B]">Total</span><span className="text-lg md:text-xl font-bold text-[#3E2F1C]">₱{custT}</span></div>
                     <p className="hidden md:block text-xs text-[#B0A395] mt-1">Base + {sBeads.length} beads + string + {sCharms.length} charms</p>
                   </div>
                 </div>
@@ -705,27 +705,27 @@ function App() {
                   <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Beads</h2>
                   <p className="text-xs md:text-sm text-[#8B7D6B] mb-4 md:mb-6">{sBeads.length}/12 selected</p>
                   <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    {beadOpts.map(b => <button key={b.id} onClick={() => { if (sBeads.length < 12) setSBeads(prev => [...prev, b]); }} className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border border-[#E8DFD3] hover:border-[#A0522D] transition-colors text-left"><div className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm" style={{ backgroundColor: b.color }} /><div className="flex-1"><p className="text-xs md:text-sm font-medium">{b.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+${b.price}</p></div><Plus className="hidden md:block w-4 h-4 text-[#A0522D]" /></button>)}
+                    {beadOpts.map(b => <button key={b.id} onClick={() => { if (sBeads.length < 12) setSBeads(prev => [...prev, b]); }} className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border border-[#E8DFD3] hover:border-[#A0522D] transition-colors text-left"><div className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm" style={{ backgroundColor: b.color }} /><div className="flex-1"><p className="text-xs md:text-sm font-medium">{b.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{b.price}</p></div><Plus className="hidden md:block w-4 h-4 text-[#A0522D]" /></button>)}
                   </div>
                   {sBeads.length > 0 && <div className="mt-4 md:mt-6 flex flex-wrap gap-1.5 md:gap-2 p-0 md:p-4 md:bg-[#F0EBE4] rounded-lg">{sBeads.map((b, i) => <button key={i} onClick={() => setSBeads(prev => prev.filter((_, idx) => idx !== i))} className="flex items-center gap-1 md:gap-1.5 px-0 md:px-3 py-0 md:py-1.5 rounded-full text-xs group hover:bg-[#B85C5C] md:hover:text-white transition-colors"><div className="w-6 h-6 md:w-3 md:h-3 rounded-full border-2 border-white md:border-0" style={{ backgroundColor: b.color }} /><span className="hidden md:inline">{b.name}</span><X className="hidden md:inline w-3 h-3 opacity-50 group-hover:opacity-100" /></button>)}</div>}
                 </div>}
                 
                 {cStep === 2 && <div>
                   <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Pick String</h2>
-                  <div className="flex flex-col gap-2 md:gap-3">{strOpts.map(s => <button key={s.id} onClick={() => setSStr(s)} className={`flex items-center gap-3 md:gap-4 p-4 md:p-5 rounded-lg border-2 transition-all text-left ${sStr?.id === s.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: s.color }} /><div className="flex-1"><p className="text-sm font-medium">{s.name}</p><p className="text-xs text-[#8B7D6B]">{s.price === 0 ? 'Included' : `+$${s.price}`}</p></div>{sStr?.id === s.id && <Check className="w-5 h-5 text-[#A0522D]" />}</button>)}</div>
+                  <div className="flex flex-col gap-2 md:gap-3">{strOpts.map(s => <button key={s.id} onClick={() => setSStr(s)} className={`flex items-center gap-3 md:gap-4 p-4 md:p-5 rounded-lg border-2 transition-all text-left ${sStr?.id === s.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: s.color }} /><div className="flex-1"><p className="text-sm font-medium">{s.name}</p><p className="text-xs text-[#8B7D6B]">{s.price === 0 ? 'Included' : `+₱${s.price}`}</p></div>{sStr?.id === s.id && <Check className="w-5 h-5 text-[#A0522D]" />}</button>)}</div>
                 </div>}
                 
                 {cStep === 3 && <div>
                   <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Add Charms</h2>
                   <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Optional — up to 3</p>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3">{charmOpts.map(c => <button key={c.id} onClick={() => setSCharms(prev => prev.find(x => x.id === c.id) ? prev.filter(x => x.id !== c.id) : prev.length < 3 ? [...prev, c] : prev)} className={`flex flex-col items-center gap-1 md:gap-2 p-3 md:p-5 rounded-lg border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><span className="text-xl md:text-2xl">{c.em}</span><p className="text-[10px] md:text-sm font-medium">{c.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+${c.price}</p></button>)}</div>
+                  <div className="grid grid-cols-3 gap-2 md:gap-3">{charmOpts.map(c => <button key={c.id} onClick={() => setSCharms(prev => prev.find(x => x.id === c.id) ? prev.filter(x => x.id !== c.id) : prev.length < 3 ? [...prev, c] : prev)} className={`flex flex-col items-center gap-1 md:gap-2 p-3 md:p-5 rounded-lg border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><span className="text-xl md:text-2xl">{c.em}</span><p className="text-[10px] md:text-sm font-medium">{c.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{c.price}</p></button>)}</div>
                 </div>}
                 
                 {cStep === 4 && <div>
                   <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Review</h2>
-                  <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6"><div className="hidden md:flex flex-wrap gap-1.5 mb-4">{sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full" style={{ backgroundColor: b.color }} />)}</div><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">${sBeads.reduce((s, b) => s + b.price, 0)}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">Charms</span><span className="font-medium">{sCharms.length > 0 ? sCharms.map(c => c.name).join(', ') : 'None'}</span></div></div><div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">${custT}</span></div></div>
+                  <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6"><div className="hidden md:flex flex-wrap gap-1.5 mb-4">{sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full" style={{ backgroundColor: b.color }} />)}</div><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">Charms</span><span className="font-medium">{sCharms.length > 0 ? sCharms.map(c => c.name).join(', ') : 'None'}</span></div></div><div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{custT}</span></div></div>
                   <div className="mb-4 md:mb-6"><label className="hidden md:block text-xs tracking-[0.15em] uppercase mb-2 font-semibold">Name Your Bracelet</label><input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="Name your bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" /></div>
-                  <button onClick={() => addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0].img, mat:'Custom' })} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold">Add to Cart — ${custT}</button>
+                  <button onClick={() => addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0].img, mat:'Custom' })} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold">Add to Cart — ₱{custT}</button>
                 </div>}
                 
                 <div className="flex justify-between mt-6 md:mt-10 pt-0 md:pt-6 md:border-t border-[#E8DFD3]">
@@ -786,7 +786,7 @@ function App() {
                   <div>
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Method</h2>
                     <div className="space-y-3 mb-8">
-                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '$4.99' }, { n: 'Express (2-3 days)', p: '$9.99' }].map((m, i) => (
+                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '₱4.99' }, { n: 'Express (2-3 days)', p: '₱9.99' }].map((m, i) => (
                         <div key={i} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${i === 0 ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}>
                           <div className="flex items-center gap-3">
                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${i === 0 ? 'border-[#A0522D]' : 'border-[#B0A395]'}`}>{i === 0 && <div className="w-2 h-2 rounded-full bg-[#A0522D]" />}</div>
@@ -813,7 +813,7 @@ function App() {
                     <div className="flex gap-4">
                       <button onClick={() => setChkStep(2)} className="flex items-center gap-2 text-sm"><ChevronLeft className="w-4 h-4" /> Back</button>
                       <button onClick={handleCheckout} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2">
-                        <Lock className="w-4 h-4" /> Pay ${cTotal} Securely
+                        <Lock className="w-4 h-4" /> Pay ₱{cTotal} Securely
                       </button>
                     </div>
                   </div>
@@ -829,12 +829,12 @@ function App() {
                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#3E2F1C] text-white text-[10px] rounded-full flex items-center justify-center">{it.qty}</span>
                       </div>
                       <div className="flex-1"><p className="text-sm font-medium">{it.name}</p></div>
-                      <span className="text-sm font-medium">${it.price * it.qty}</span>
+                      <span className="text-sm font-medium">₱{it.price * it.qty}</span>
                     </div>
                   ))}
                   <div className="border-t border-[#E8DFD3] pt-4 mt-4 flex justify-between">
                     <span className="font-semibold">Total</span>
-                    <span className="text-lg font-bold">${cTotal}</span>
+                    <span className="text-lg font-bold">₱{cTotal}</span>
                   </div>
                 </div>
               </div>
@@ -1010,7 +1010,7 @@ function App() {
       )}
 
       {/* RESPONSIVE CART DRAWER */}
-      {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">${it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">${50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">${cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
+      {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">₱{it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">₱{cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
 
       {/* SEARCH OVERLAY */}
       {searchOpen && <div className="fixed inset-0 z-[60] bg-[#FAF6F1] md:bg-black/30"><div className="md:absolute top-0 left-0 right-0 bg-white md:shadow-xl"><div className="md:max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-10"><div className="flex items-center gap-3 md:gap-4 border-b md:border-b-2 border-[#E8DFD3] md:border-[#3E2F1C] pb-3 md:mb-6"><Search className="w-5 h-5 text-[#8B7D6B]" /><input value={searchQ} onChange={(e)=>setSearchQ(e.target.value)} placeholder="Search bracelets..." className="flex-1 text-sm md:text-lg outline-none bg-transparent placeholder:text-[#B0A395]" autoFocus /><button onClick={() => { setSearchOpen(false); setSearchQ(''); }}><X className="w-5 h-5 text-[#8B7D6B]" /></button></div></div></div></div>}
