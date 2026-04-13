@@ -1,3 +1,4 @@
+const Review = require('./models/Review');
 const Settings = require('./models/Settings');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
@@ -315,5 +316,46 @@ app.put('/api/admin/settings', async (req, res) => {
     res.json(settings);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
+// =====================================================================
+// COMMUNITY LOVE (Reviews)
+// =====================================================================
+
+// GET: Storefront reads all reviews
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 }); // Newest first
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// POST: Admin adds a new review
+app.post('/api/admin/reviews', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  try {
+    const newReview = new Review(req.body);
+    await newReview.save();
+    res.json(newReview);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add review' });
+  }
+});
+
+// DELETE: Admin removes a review
+app.delete('/api/admin/reviews/:id', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  try {
+    await Review.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete review' });
   }
 });
