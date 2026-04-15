@@ -213,6 +213,17 @@ function App() {
   const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
   const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
   const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [cat, sort]);
+  // Live Search Filtering
+  const searchResults = useMemo(() => {
+    if (!searchQ.trim()) return [];
+    const q = searchQ.toLowerCase();
+    // Searches by product name, category, or material
+    return P.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      p.cat.toLowerCase().includes(q) || 
+      (p.mat && p.mat.toLowerCase().includes(q))
+    );
+  }, [searchQ, P]);
   const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
 
   const handleCheckout = async () => {
@@ -958,24 +969,87 @@ function App() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-12">
+              {/* LEFT COLUMN: Visual Preview Card */}
               <div className="md:col-span-2 order-1 md:order-none">
                 <div className="md:sticky md:top-32">
-                  <div className="aspect-[3/2] md:aspect-square rounded-xl md:rounded-2xl bg-[#F0EBE4] flex items-center justify-center p-4 md:p-8">
-                    <div className="w-36 h-36 md:w-52 md:h-52 rounded-full border-4 border-dashed border-[#D4C4A8] flex items-center justify-center relative">
-                      {sBeads.length === 0 && <p className="text-[11px] md:text-sm text-[#B0A395] text-center">Select beads</p>}
+                  <div className="aspect-square rounded-2xl bg-white border border-[#E8DFD3] flex items-center justify-center p-6 md:p-8 shadow-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[#FAF6F1] opacity-50 pointer-events-none"></div>
+                    
+                    {/* 1. THE STRING */}
+                    <div 
+                      className="w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center relative shadow-inner bg-[#FDFBF9] transition-colors duration-500"
+                      style={{ 
+                        borderWidth: sBeads.length > 0 ? '4px' : '3px',
+                        borderStyle: sBeads.length > 0 ? 'solid' : 'dashed',
+                        borderColor: sBeads.length > 0 ? (sStr?.color || '#E8DFD3') : '#D4C4A8' 
+                      }}
+                    >
+                      {sBeads.length === 0 && (
+                        <div className="text-center p-4">
+                          <Gem className="w-6 h-6 text-[#D4C4A8] mx-auto mb-2" />
+                          <p className="text-[11px] md:text-sm text-[#B0A395] tracking-wide uppercase font-medium">Empty Canvas</p>
+                        </div>
+                      )}
+                      
+                      {/* 2. THE BEADS */}
                       {sBeads.map((b, i) => { 
                         const isMobile = window.innerWidth < 768;
-                        const radius = isMobile ? 58 : 85;
-                        const offset = isMobile ? 10 : 14;
-                        const size = isMobile ? 'w-5 h-5' : 'w-7 h-7';
-                        const a = (i / Math.max(sBeads.length, 1)) * Math.PI * 2 - Math.PI / 2; 
-                        return <div key={i} className={`absolute ${size} rounded-full shadow-md border-2 border-white/50 transition-all duration-300`} style={{ backgroundColor: b.color, left: `calc(50% + ${Math.cos(a)*radius}px - ${offset}px)`, top: `calc(50% + ${Math.sin(a)*radius}px - ${offset}px)` }} />; 
+                        const radius = isMobile ? 96 : 128; 
+                        const offset = isMobile ? 12 : 14;  
+                        const size = isMobile ? 'w-6 h-6' : 'w-7 h-7';
+                        const angle = (i / Math.max(sBeads.length, 1)) * Math.PI * 2 - Math.PI / 2; 
+                        
+                        return (
+                          <div 
+                            key={i} 
+                            className={`absolute ${size} rounded-full shadow-md border border-white/60 transition-all duration-500 hover:scale-125 z-10`} 
+                            style={{ 
+                              backgroundColor: b.color, 
+                              left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
+                              top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` 
+                            }} 
+                          />
+                        ); 
+                      })}
+
+                      {/* 3. THE CHARMS */}
+                      {sCharms.map((c, i) => {
+                        const isMobile = window.innerWidth < 768;
+                        const radius = isMobile ? 96 : 128;
+                        const offset = isMobile ? 16 : 20;
+                        
+                        let angle = Math.PI / 2; 
+                        if (sCharms.length === 2) angle = i === 0 ? Math.PI / 3 : (2 * Math.PI) / 3;
+                        if (sCharms.length === 3) angle = i === 0 ? Math.PI / 4 : i === 1 ? Math.PI / 2 : (3 * Math.PI) / 4;
+
+                        return (
+                          <div 
+                            key={`charm-${c.id}`}
+                            className="absolute text-2xl md:text-3xl filter drop-shadow-md z-20 transition-all duration-500 hover:scale-125 hover:rotate-12"
+                            style={{
+                              left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
+                              top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px + 15px)` 
+                            }}
+                          >
+                            {c.em}
+                          </div>
+                        );
                       })}
                     </div>
                   </div>
-                  <div className="mt-4 md:mt-6 p-3 md:p-5 bg-white rounded-lg md:rounded-xl border border-[#E8DFD3]">
-                    <div className="flex justify-between items-center"><span className="text-xs md:text-sm text-[#8B7D6B]">Total</span><span className="text-lg md:text-xl font-bold text-[#3E2F1C]">₱{custT}</span></div>
-                    <p className="hidden md:block text-xs text-[#B0A395] mt-1">Base + {sBeads.length} beads + string + {sCharms.length} charms</p>
+                  
+                  {/* Real Time Receipt */}
+                  <div className="mt-4 md:mt-6 p-4 md:p-6 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm tracking-widest uppercase font-bold text-[#8B7D6B]">Live Total</span>
+                      <span className="text-2xl font-bold text-[#3E2F1C]">₱{custT}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3">
+                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Base Setting</span><span>₱600</span></div>
+                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sBeads.length} Beads</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
+                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>String ({sStr?.name || 'None'})</span><span>₱{sStr?.price || 0}</span></div>
+                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sCharms.length} Charms</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1406,7 +1480,65 @@ function App() {
       {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">₱{it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">₱{cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
 
       {/* SEARCH OVERLAY */}
-      {searchOpen && <div className="fixed inset-0 z-[60] bg-[#FAF6F1] md:bg-black/30"><div className="md:absolute top-0 left-0 right-0 bg-white md:shadow-xl"><div className="md:max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-10"><div className="flex items-center gap-3 md:gap-4 border-b md:border-b-2 border-[#E8DFD3] md:border-[#3E2F1C] pb-3 md:mb-6"><Search className="w-5 h-5 text-[#8B7D6B]" /><input value={searchQ} onChange={(e)=>setSearchQ(e.target.value)} placeholder="Search bracelets..." className="flex-1 text-sm md:text-lg outline-none bg-transparent placeholder:text-[#B0A395]" autoFocus /><button onClick={() => { setSearchOpen(false); setSearchQ(''); }}><X className="w-5 h-5 text-[#8B7D6B]" /></button></div></div></div></div>}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[80] bg-[#FAF6F1] md:bg-[#3E2F1C]/40 md:backdrop-blur-sm flex flex-col">
+          {/* Close background area for desktop */}
+          <div className="hidden md:block absolute inset-0" onClick={() => { setSearchOpen(false); setSearchQ(''); }} />
+          
+          <div className="relative w-full bg-white md:rounded-b-3xl shadow-2xl flex-shrink-0 animate-in slide-in-from-top-4 duration-300">
+            <div className="max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-8">
+              
+              {/* Search Input */}
+              <div className="flex items-center gap-3 md:gap-4 border-b-2 border-[#3E2F1C] pb-3 mb-2 md:mb-6 transition-colors">
+                <Search className="w-5 h-5 md:w-6 md:h-6 text-[#3E2F1C]" />
+                <input 
+                  value={searchQ} 
+                  onChange={(e) => setSearchQ(e.target.value)} 
+                  placeholder="Search stones, styles, or materials..." 
+                  className="flex-1 text-base md:text-xl outline-none bg-transparent placeholder:text-[#B0A395] text-[#3E2F1C]" 
+                  autoFocus 
+                />
+                <button onClick={() => { setSearchOpen(false); setSearchQ(''); }} className="p-1 rounded-full hover:bg-[#F0EBE4] transition-colors">
+                  <X className="w-6 h-6 text-[#3E2F1C]" />
+                </button>
+              </div>
+
+              {/* Search Results Area */}
+              {searchQ.trim() && (
+                <div className="max-h-[65vh] overflow-y-auto pt-2 pb-6 md:pb-2">
+                  {searchResults.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+                      {searchResults.map(p => (
+                        <div 
+                          key={p._id || p.id} 
+                          onClick={() => { go('product', p); setSearchOpen(false); setSearchQ(''); }}
+                          className="flex items-center gap-4 p-3 bg-white hover:bg-[#FAF6F1] rounded-xl cursor-pointer transition-all border border-transparent hover:border-[#E8DFD3] group"
+                        >
+                          <img src={p.img} alt={p.name} className="w-14 h-14 md:w-16 md:h-16 rounded-lg object-cover bg-[#F0EBE4]" />
+                          <div className="flex-1">
+                            <h4 className="text-sm font-bold text-[#3E2F1C] group-hover:text-[#A0522D] transition-colors">{p.name}</h4>
+                            <p className="text-xs text-[#8B7D6B] mt-0.5">₱{p.price} • {p.mat || p.cat}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#B0A395] mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 md:py-16 text-[#8B7D6B]">
+                      <Search className="w-10 h-10 mx-auto mb-4 text-[#E8DFD3]" />
+                      <p className="text-base md:text-lg" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        No results found for "{searchQ}"
+                      </p>
+                      <p className="text-sm mt-2">Try searching for "Rose Quartz", "Wood", or "Gold".</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
