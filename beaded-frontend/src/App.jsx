@@ -91,6 +91,8 @@ function App() {
   const [blogs, setBlogs] = useState([]);
   const [selBlog, setSelBlog] = useState(null);
 
+
+
   useEffect(() => {
   fetch('http://localhost:4242/api/blogs')
     .then(res => res.json())
@@ -211,6 +213,18 @@ function App() {
   const togWish = useCallback((id) => { setWish(prev => { if (prev.includes(id)) { flash('Removed from wishlist', 'info'); return prev.filter(i => i !== id); } flash('Saved!', 'success'); return [...prev, id]; }); }, [flash]);
 
   const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
+    // Your new J&T Express Shipping States
+  const [shippingRegion, setShippingRegion] = useState('Metro Manila');
+  const shippingRates = {
+    'Metro Manila': 85,
+    'Luzon': 100,
+    'Visayas': 120,
+    'Mindanao': 130
+  };
+  const currentShippingFee = shippingRates[shippingRegion];
+  
+  // Ensure cTotal exists in your code before this line!
+  const finalTotal = (cTotal || 0) + currentShippingFee;
   const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
   const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [cat, sort]);
   // Live Search Filtering
@@ -895,8 +909,7 @@ function App() {
                   <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
                   <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4"><div className="flex gap-0.5">{stars(p.rating)}</div><span className="text-xs md:text-sm text-[#8B7D6B]">({p.reviews} reviews)</span></div>
                   <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C]">₱{p.price}</span>
-                  <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 md:mb-8 mt-1">or 4 payments of ₱{(p.price / 4).toFixed(2)}</p>
-
+                  
                   <div className="mb-5 md:mb-6">
                     <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase mb-2 md:mb-3 font-semibold">Color</p>
                     <div className="flex gap-3">{p.colors.map((c, i) => <button key={i} onClick={() => setSelColor(i)} className={`w-8 h-8 rounded-full border-2 transition-all ${selColor === i ? 'border-[#A0522D] scale-110' : 'border-[#E8DFD3]'}`} style={{ backgroundColor: c }} />)}</div>
@@ -905,7 +918,7 @@ function App() {
                   <div className="mb-5 md:mb-6">
                     <div className="flex items-center justify-between mb-2 md:mb-3">
                       <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase font-semibold">Size</p>
-                      <button onClick={() => setSgOpen(true)} className="text-[10px] md:text-xs text-[#A0522D] underline">Size Guide</button>
+                      <button onClick={() => go('sizeguide')} className="text-[10px] md:text-xs text-[#A0522D] underline">Size Guide</button>
                     </div>
                     <div className="flex gap-2 md:gap-3">{p.sizes.map(s => <button key={s} onClick={() => setSelSz(s)} className={`w-11 h-11 md:w-12 md:h-12 text-sm font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] hover:bg-[#E8DFD3]'}`}>{s}</button>)}</div>
                   </div>
@@ -1102,7 +1115,7 @@ function App() {
 
         {/* CHECKOUT */}
         {pg === 'checkout' && (
-          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E8DFD3]">
               <h2 className="text-[24px] md:text-[32px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Checkout</h2>
               <div className="hidden md:flex gap-4">
@@ -1117,47 +1130,97 @@ function App() {
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-16">
               <div className="md:col-span-3 order-2 md:order-1">
+                
+                {/* STEP 1: INFORMATION */}
                 {chkStep === 1 && (
-                  <div>
+                  <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Contact & Shipping</h2>
-                    <div className="space-y-4">
-                      <input placeholder="Email" className="w-full px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <input placeholder="First name" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                        <input placeholder="Last name" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                    
+                    {/* Wrapping the inputs in a form enables native "required" validation */}
+                    <form onSubmit={(e) => { e.preventDefault(); setChkStep(2); }}>
+                      <div className="space-y-4">
+                        
+                        {/* Contact Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <input type="email" required placeholder="Email Address" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input type="tel" required placeholder="Mobile Number (e.g. 0917...)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        </div>
+                        
+                        {/* Name */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <input required placeholder="First name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required placeholder="Last name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        </div>
+                        
+                        {/* Address */}
+                        <input required placeholder="Complete Address (House No., Street, Barangay)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <input required placeholder="City/Municipality" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required placeholder="Postal Code" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        </div>
+                        
+                        {/* Region Dropdown */}
+                        <div className="relative">
+                          <select 
+                            value={shippingRegion} 
+                            onChange={(e) => setShippingRegion(e.target.value)} 
+                            className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm appearance-none cursor-pointer"
+                          >
+                            <option value="Metro Manila">Metro Manila</option>
+                            <option value="Luzon">Luzon (Provincial)</option>
+                            <option value="Visayas">Visayas</option>
+                            <option value="Mindanao">Mindanao</option>
+                          </select>
+                          <ChevronRight className="w-4 h-4 text-[#8B7D6B] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                        </div>
+                        
                       </div>
-                      <input placeholder="Address" className="w-full px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                      <div className="grid grid-cols-3 gap-4">
-                        <input placeholder="City" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                        <input placeholder="Province" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                        <input placeholder="ZIP" className="px-4 py-3.5 border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                      </div>
-                    </div>
-                    <button onClick={() => setChkStep(2)} className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 mt-8 hover:bg-[#8B4526] font-semibold">Continue to Shipping</button>
+                      
+                      {/* Changed from type="button" to type="submit" to trigger the validation */}
+                      <button type="submit" className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 mt-8 hover:bg-[#8B4526] font-semibold transition-colors">
+                        Continue to Shipping
+                      </button>
+                    </form>
+
                   </div>
                 )}
+
+                {/* STEP 2: SHIPPING */}
                 {chkStep === 2 && (
-                  <div>
+                  <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Method</h2>
-                    <div className="space-y-3 mb-8">
-                      {[{ n: 'Standard (5-7 days)', p: cTotal >= 50 ? 'Free' : '₱4.99' }, { n: 'Express (2-3 days)', p: '₱9.99' }].map((m, i) => (
-                        <div key={i} className={`flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer ${i === 0 ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}>
-                          <div className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${i === 0 ? 'border-[#A0522D]' : 'border-[#B0A395]'}`}>{i === 0 && <div className="w-2 h-2 rounded-full bg-[#A0522D]" />}</div>
-                            <span className="text-sm font-medium">{m.n}</span>
+                    <div className="mb-8">
+                      <div className="relative flex items-center justify-between p-5 bg-[#FAF6F1] border-2 border-[#A0522D] rounded-xl overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#A0522D]"></div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#A0522D] shrink-0 shadow-sm border border-[#E8DFD3]">
+                            <Package className="w-5 h-5" />
                           </div>
-                          <span className={`text-sm font-medium ${m.p === 'Free' ? 'text-[#7A8B6F]' : ''}`}>{m.p}</span>
+                          <div>
+                            <h4 className="font-bold text-[#3E2F1C] text-sm md:text-base">J&T Express</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="px-2 py-0.5 bg-[#A0522D]/10 text-[#A0522D] text-[10px] uppercase tracking-widest font-bold rounded">Pre-Order</span>
+                              <span className="text-xs text-[#8B7D6B]">Ships in 7-14 days</span>
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                        <div className="text-right">
+                          <span className="block font-bold text-[#3E2F1C] text-lg">₱{currentShippingFee}</span>
+                          <span className="block text-[10px] text-[#8B7D6B] uppercase tracking-wider mt-0.5">{shippingRegion}</span>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex gap-4">
-                      <button onClick={() => setChkStep(1)} className="flex items-center gap-2 text-sm"><ChevronLeft className="w-4 h-4" /> Back</button>
-                      <button onClick={() => setChkStep(3)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold">Continue to Payment</button>
+                      <button onClick={() => setChkStep(1)} className="flex items-center gap-2 text-sm text-[#8B7D6B] hover:text-[#A0522D] transition-colors"><ChevronLeft className="w-4 h-4" /> Back</button>
+                      <button onClick={() => setChkStep(3)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold transition-colors">Continue to Payment</button>
                     </div>
                   </div>
                 )}
+
+                {/* STEP 3: PAYMENT */}
                 {chkStep === 3 && (
-                  <div>
+                  <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Payment</h2>
                     <div className="bg-[#F0EBE4] rounded-xl p-8 mb-8 text-center">
                       <Lock className="w-8 h-8 text-[#A0522D] mx-auto mb-3" />
@@ -1165,37 +1228,58 @@ function App() {
                       <p className="text-sm text-[#8B7D6B] max-w-[300px] mx-auto">You will be redirected to PayMongo to securely complete your purchase using GCash, Maya, QR Ph, or Card.</p>
                     </div>
                     <div className="flex gap-4">
-                      <button onClick={() => setChkStep(2)} className="flex items-center gap-2 text-sm"><ChevronLeft className="w-4 h-4" /> Back</button>
-                      <button onClick={handleCheckout} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2">
-                        <Lock className="w-4 h-4" /> Pay ₱{cTotal} Securely
+                      <button onClick={() => setChkStep(2)} className="flex items-center gap-2 text-sm text-[#8B7D6B] hover:text-[#A0522D] transition-colors"><ChevronLeft className="w-4 h-4" /> Back</button>
+                      <button onClick={() => alert("Connecting to PayMongo...")} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2 transition-colors">
+                        <Lock className="w-4 h-4" /> Pay ₱{finalTotal} Securely
                       </button>
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* RIGHT COLUMN: ORDER SUMMARY */}
               <div className="md:col-span-2 order-1 md:order-2">
                 <div className="bg-[#FAF6F1] p-6 rounded-xl md:sticky md:top-32 border border-[#E8DFD3] md:border-none">
-                  <h3 className="text-sm font-semibold tracking-wider uppercase mb-4">Order Summary</h3>
-                  {cart.map(it => (
-                    <div key={it.id} className="flex items-center gap-3 mb-4">
-                      <div className="w-14 h-14 rounded-lg bg-[#E8DFD3] overflow-hidden relative">
-                        <img src={it.img} alt="" className="w-full h-full object-cover" />
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#3E2F1C] text-white text-[10px] rounded-full flex items-center justify-center">{it.qty}</span>
+                  <h3 className="text-sm font-semibold tracking-wider uppercase mb-4 text-[#3E2F1C]">Order Summary</h3>
+                  
+                  {/* Safe map check just in case cart is undefined */}
+                  {(!cart || cart.length === 0) ? (
+                    <p className="text-sm text-[#8B7D6B] italic mb-4">Your cart is empty.</p>
+                  ) : (
+                    cart.map((it, idx) => (
+                      <div key={it.id || idx} className="flex items-center gap-3 mb-4">
+                        <div className="w-14 h-14 rounded-lg bg-[#E8DFD3] overflow-hidden relative shrink-0 border border-[#E8DFD3]">
+                          <img src={it.img} alt="" className="w-full h-full object-cover" />
+                          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#3E2F1C] text-white text-[10px] rounded-full flex items-center justify-center">{it.qty || 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate text-[#3E2F1C]">{it.name}</p>
+                        </div>
+                        <span className="text-sm font-medium shrink-0 text-[#3E2F1C]">₱{(it.price * (it.qty || 1))}</span>
                       </div>
-                      <div className="flex-1"><p className="text-sm font-medium">{it.name}</p></div>
-                      <span className="text-sm font-medium">₱{it.price * it.qty}</span>
+                    ))
+                  )}
+
+                  <div className="border-t border-[#E8DFD3] pt-4 mt-4 space-y-2">
+                    <div className="flex justify-between text-sm text-[#8B7D6B]">
+                      <span>Subtotal</span>
+                      <span>₱{cTotal || 0}</span>
                     </div>
-                  ))}
-                  <div className="border-t border-[#E8DFD3] pt-4 mt-4 flex justify-between">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-lg font-bold">₱{cTotal}</span>
+                    <div className="flex justify-between text-sm text-[#8B7D6B]">
+                      <span>Shipping ({shippingRegion})</span>
+                      <span>₱{currentShippingFee || 0}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 mt-2 border-t border-[#E8DFD3] items-center">
+                      <span className="font-semibold text-[#3E2F1C]">Total</span>
+                      <span className="text-xl font-bold text-[#3E2F1C]">₱{finalTotal || 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         )}
-
         {/* ACCOUNT / PROFILE */}
         {pg === 'account' && logged && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
