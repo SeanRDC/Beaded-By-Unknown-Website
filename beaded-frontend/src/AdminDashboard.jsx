@@ -385,7 +385,7 @@ export default function AdminDashboard() {
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
                         <select value={product.cat} onChange={(e) => setProduct({...product, cat: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none text-sm appearance-none">
-                          <option>Gemstone</option><option>Pearl</option><option>Wood</option><option>Metal</option>
+                          <option>Plastic</option><option>Gemstone</option><option>Glass</option>
                         </select>
                       </div>
                     </div>

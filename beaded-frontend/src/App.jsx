@@ -99,6 +99,26 @@ function App() {
   const [activeStudioImg, setActiveStudioImg] = useState(0);
   const studioImages = [studio1, studio2, studio3, studio4];
   const [selectedCat, setSelectedCat] = useState('All');
+  
+  // This effect runs every time the 'pg' (page) state changes
+  useEffect(() => {
+    // 1. Find the favicon link tag in the head
+    const favicon = document.querySelector("link[rel~='icon']");
+
+    if (pg === 'admin') {
+      // SETTINGS FOR ADMIN PAGE
+      document.title = "BBU | Admin Dashboard";
+      if (favicon) {
+        favicon.href = "/admin-icon.png";
+      }
+    } else {
+      // SETTINGS FOR THE MAIN STORE
+      document.title = "Beaded by Unknown";
+      if (favicon) {
+        favicon.href = "/Beaded-logo.png";
+      }
+    }
+  }, [pg]); // The [pg] tells React: "Run this only when the page changes"
 
   useEffect(() => {
     // Automatically switch images every 3.5 seconds
@@ -954,7 +974,7 @@ function App() {
             
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-8 pb-4 border-b border-[#E8DFD3] gap-4">
               <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                {['All', 'Gemstone', 'Pearl', 'Wood', 'Metal'].map(c => (
+                {['All', 'Plastic', 'Gemstone', 'Glass'].map(c => (
                   <button key={c} onClick={() => setCat(c)} className={`text-[10px] md:text-xs tracking-[0.1em] md:tracking-[0.15em] uppercase px-3 md:px-4 py-1.5 md:py-2 whitespace-nowrap font-medium shrink-0 transition-colors ${cat === c ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] text-[#5A4A3A] hover:bg-[#E8DFD3]'}`}>{c}</button>
                 ))}
               </div>
@@ -1369,7 +1389,7 @@ function App() {
               {/* Sidebar Navigation */}
               <div className="w-full md:w-64 space-y-1">
                 <h2 className="text-2xl mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>My Account</h2>
-                {['Overview', 'Orders', 'Wishlist', 'Settings'].map(tab => (
+                {['Overview', 'Orders', 'Settings'].map(tab => (
                   <button 
                     key={tab} 
                     onClick={() => tab === 'Wishlist' ? go('wishlist') : setAcctTab(tab.toLowerCase())}
@@ -1404,14 +1424,6 @@ function App() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
-                        <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
-                          <Crown className="w-5 h-5" />
-                          <span className="text-xs font-bold uppercase tracking-widest">The Bead Tribe</span>
-                        </div>
-                        <p className="text-3xl font-bold text-[#3E2F1C]">{logged.points || 0}</p>
-                        <p className="text-xs text-[#8B7D6B] mt-1">Available reward points</p>
-                      </div>
                       
                       <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
                         <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
@@ -1580,7 +1592,11 @@ function App() {
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">3. Shipping & Orders</h2>
                 <p className="leading-relaxed text-sm md:text-base">
-                  Orders are processed within 2-4 business days. Once a custom bracelet has been started, we cannot accept cancellations. Please ensure your wrist measurement is accurate according to our Size Guide before placing an order.
+                  Each piece is carefully handcrafted. Items are currently available for 
+                  <span className="font-semibold"> Pre-order (7-14 days)</span> and will be 
+                  shipped via <span className="font-semibold">J&T Express</span>. 
+                  Once a custom bracelet has been started, we cannot accept cancellations. 
+                  Please ensure your wrist measurement is accurate according to our Size Guide.
                 </p>
               </section>
 
@@ -1588,7 +1604,7 @@ function App() {
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">4. Intellectual Property</h2>
                 <p className="leading-relaxed text-sm md:text-base">
-                  All designs, photography, and journal content on this website are the property of Beaded by Unknown and Sean Rhani Dela Cruz. Unauthorized use or reproduction is prohibited.
+                  All designs, photography, and journal content on this website are the property of Beaded by Unknown. Unauthorized use or reproduction is prohibited.
                 </p>
               </section>
 
