@@ -2,6 +2,12 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
+import heroImage from './assets/HeroImage.png';
+import studio1 from './assets/studio-1.png';
+import studio2 from './assets/studio-2.png';
+import studio3 from './assets/studio-3.png';
+import studio4 from './assets/studio-4.png';
+import customPromoImg from './assets/custom-1.png';
 
 /* DEFAULT VALUES AND ITEMS
 const P = [
@@ -90,8 +96,17 @@ function App() {
   const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
   const [blogs, setBlogs] = useState([]);
   const [selBlog, setSelBlog] = useState(null);
+  const [activeStudioImg, setActiveStudioImg] = useState(0);
+  const studioImages = [studio1, studio2, studio3, studio4];
+  const [selectedCat, setSelectedCat] = useState('All');
 
-
+  useEffect(() => {
+    // Automatically switch images every 3.5 seconds
+    const interval = setInterval(() => {
+      setActiveStudioImg((prev) => (prev + 1) % 4);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
   fetch('http://localhost:4242/api/blogs')
@@ -226,7 +241,24 @@ function App() {
   // Ensure cTotal exists in your code before this line!
   const finalTotal = (cTotal || 0) + currentShippingFee;
   const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
-  const filtered = useMemo(() => { let f = P; if (cat !== 'All') f = f.filter(p => p.cat === cat); if (sort === 'Price: Low') f = [...f].sort((a, b) => a.price - b.price); if (sort === 'Price: High') f = [...f].sort((a, b) => b.price - a.price); return f; }, [cat, sort]);
+  const filtered = useMemo(() => { 
+    if (!P || P.length === 0) return [];
+
+    let f = [...P]; 
+    
+    if (cat !== 'All') {
+      f = f.filter(p => p.cat === cat); 
+    }
+    
+    if (sort === 'Price: Low') {
+      f.sort((a, b) => a.price - b.price); 
+    }
+    if (sort === 'Price: High') {
+      f.sort((a, b) => b.price - a.price); 
+    }
+    
+    return f; 
+  }, [cat, sort, P]); // <-- Notice P is now right here!
   // Live Search Filtering
   const searchResults = useMemo(() => {
     if (!searchQ.trim()) return [];
@@ -410,7 +442,7 @@ function App() {
         {pg === 'home' && (
           <div>
             <section className="relative h-[420px] md:h-[85vh] flex items-end md:items-center bg-[#EDE7DF]">
-              <div className="absolute inset-0"><img src="https://images.unsplash.com/photo-1766560361397-9d1eeb446d26?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGJlYWQlMjBicmFjZWxldHMlMjBsaW5lbiUyMGNsb3RofGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=1440&h=900&fit=crop" alt="Hero" className="w-full h-full object-cover opacity-30" /></div>
+              <div className="absolute inset-0"><img src={heroImage} alt="Beaded by Unknown Hero" className="w-full h-full object-cover opacity-30" /></div>
               <div className="relative z-10 p-6 md:p-8 md:max-w-[1200px] md:mx-auto w-full pb-10 md:pb-8">
                 <p className="text-[10px] md:text-[13px] tracking-[0.25em] md:tracking-[0.3em] text-[#A0522D] uppercase mb-2 md:mb-4 font-medium">Handcrafted with intention</p>
                 <h2 className="text-[32px] md:text-[64px] leading-[1.1] text-[#3E2F1C] max-w-[580px] mb-3 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Every bead tells a story</h2>
@@ -483,7 +515,7 @@ function App() {
 
             <section className="px-5 md:px-8 py-4 md:py-8 max-w-[1200px] mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 rounded-xl md:rounded-2xl overflow-hidden bg-[#EDE7DF]">
-                <div className="h-48 md:h-auto md:aspect-[4/3]"><img src="https://images.unsplash.com/photo-1766560360164-6be5d9c4de99?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxoYW5kcyUyMG1ha2luZyUyMGJlYWQlMjBqZXdlbHJ5JTIwY3JhZnR8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=700&h=525&fit=crop" alt="Customize" className="w-full h-full object-cover" /></div>
+                <div className="h-48 md:h-auto md:aspect-[4/3]"><img src={customPromoImg} alt="Customize" className="w-full h-full object-cover" /></div>
                 <div className="p-6 md:p-16 flex flex-col justify-center">
                   <p className="text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em] text-[#A0522D] uppercase mb-2 md:mb-3 font-medium">Make it yours</p>
                   <h2 className="text-[22px] md:text-[36px] text-[#3E2F1C] mb-2 md:mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Design Your Own</h2>
@@ -530,12 +562,37 @@ function App() {
                       Discover Our Process
                     </button>
                   </div>
+                  {/* Image Carousel Column */}
                   <div className="flex-1 w-full relative">
-                    <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10">
-                      <div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">
-                        [Studio Image Placeholder]
+                    {/* STACKED AUTO-CAROUSEL */}
+                    <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
+                      
+                      {/* The 4 Images Stacked */}
+                      {studioImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`Studio ${idx + 1}`}
+                          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                            activeStudioImg === idx ? 'opacity-100' : 'opacity-0'
+                          }`}
+                        />
+                      ))}
+
+                      {/* Elegant Dot Indicators */}
+                      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
+                        {studioImages.map((_, idx) => (
+                          <button 
+                            key={idx}
+                            onClick={() => setActiveStudioImg(idx)}
+                            className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${
+                              activeStudioImg === idx ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/80'
+                            }`} 
+                          />
+                        ))}
                       </div>
                     </div>
+                    {/* Decorative Background Square */}
                     <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
                   </div>
                 </div>
@@ -594,7 +651,7 @@ function App() {
                   {/* SOCIAL ICONS (Raw SVG) */}
                   <div className="flex gap-5 pt-2">
                     {/* Instagram SVG */}
-                    <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Follow us on Instagram">
+                    <a href="https://www.instagram.com/beeeaded_/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Follow us on Instagram">
                       <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -603,7 +660,7 @@ function App() {
                     </a>
 
                     {/* LinkedIn SVG */}
-                    <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer: Sean Rhani Dela Cruz">
+                    <a href="https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer: Sean Rhani Dela Cruz">
                       <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                         <rect x="2" y="9" width="4" height="12"></rect>
@@ -750,20 +807,45 @@ function App() {
                 </h2>
                 <div className="w-12 h-1 bg-[#A0522D]"></div>
                 <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
-                  Beaded by Unknown started with a simple belief: jewelry should be more than just an accessory. It should be a grounding presence, a reminder of intention, and a piece of wearable art.
+                  Beaded by Unknown began as a simple spark of imagination a late-night hobby fueled by a love for color and form. I believed that jewelry shouldn't just be an accessory, but a wearable piece of a dream that keeps you grounded throughout your day.
                 </p>
                 <p className="text-[#8B7D6B] leading-relaxed md:text-lg">
-                  Every bracelet is hand-strung in our studio using ethically sourced stones, durable materials, and a meticulous attention to detail. We don't just make jewelry; we craft companions for your daily journey.
+                  What started with a single strand has grown into a dedicated practice of hand-stringing every bead with care. Using durable materials and a meticulous eye for detail, we craft more than just jewelry; we create small, handmade companions for your daily journey.
                 </p>
               </div>
-              <div className="flex-1 w-full relative">
-                <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10">
-                  <div className="w-full h-full bg-[#D1C7B7] flex items-center justify-center text-[#8B7D6B]">
-                    [Studio Image Placeholder]
+              {/* Image Carousel Column */}
+                  <div className="flex-1 w-full relative">
+                    {/* STACKED AUTO-CAROUSEL */}
+                    <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
+                      
+                      {/* The 4 Images Stacked */}
+                      {studioImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`Studio ${idx + 1}`}
+                          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                            activeStudioImg === idx ? 'opacity-100' : 'opacity-0'
+                          }`}
+                        />
+                      ))}
+
+                      {/* Elegant Dot Indicators */}
+                      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
+                        {studioImages.map((_, idx) => (
+                          <button 
+                            key={idx}
+                            onClick={() => setActiveStudioImg(idx)}
+                            className={`h-1.5 rounded-full transition-all duration-500 shadow-sm ${
+                              activeStudioImg === idx ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/80'
+                            }`} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {/* Decorative Background Square */}
+                    <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
                   </div>
-                </div>
-                <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
-              </div>
             </div>
           </div>
         )}
