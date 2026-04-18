@@ -1,15 +1,17 @@
+require('dotenv').config();
+const util = require('util');
 const Blog = require('./models/Blog');
 const Review = require('./models/Review');
 const Settings = require('./models/Settings');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const { upload } = require('./cloudinary');
 
 const app = express();
 
@@ -278,6 +280,89 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
+const uploadFields = upload.fields([
+  { name: 'primaryImage', maxCount: 1 },
+  { name: 'secondaryImage', maxCount: 1 }
+]);
+
+// =====================================================================
+// CLOUDINARY IMAGE UPLOAD ROUTES
+// =====================================================================
+app.post('/api/products', uploadFields, async (req, res) => {
+  try {
+    const primaryUrl = req.files['primaryImage'] ? req.files['primaryImage'][0].path : null;
+    const secondaryUrl = req.files['secondaryImage'] ? req.files['secondaryImage'][0].path : null;
+
+    if (!primaryUrl) {
+      return res.status(400).json({ error: "Primary image is required and failed to upload." });
+    }
+
+    const newProduct = new Product({
+      name: req.body.name,
+      price: req.body.price,
+      cat: req.body.cat,
+      img: primaryUrl,
+      img2: secondaryUrl,
+      rating: 5,
+      reviews: 0
+    });
+
+    await newProduct.save();
+    res.status(201).json({ message: "Success!", product: newProduct });
+    
+  } catch (err) {
+    console.log("❌--- CRITICAL ERROR START ---❌");
+    // This line is the magic fix for [object Object]
+    console.log(util.inspect(err, { showHidden: false, depth: null, colors: true }));
+    console.log("❌--- CRITICAL ERROR END ---❌");
+    
+    res.status(500).json({ error: err.message || "Internal Server Error" });
+  }
+});
+
+app.put('/api/products/:id', uploadFields, async (req, res) => {
+  try {
+    const primaryUrl = req.files['primaryImage'] 
+      ? req.files['primaryImage'][0].path 
+      : req.body.existingPrimaryImage;
+
+    const secondaryUrl = req.files['secondaryImage'] 
+      ? req.files['secondaryImage'][0].path 
+      : req.body.existingSecondaryImage;
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id, 
+      {
+        name: req.body.name,
+        price: req.body.price,
+        cat: req.body.cat,
+        img: primaryUrl,
+        secondaryImg: secondaryUrl
+      }, 
+      { new: true } 
+    );
+
+    res.status(200).json(updatedProduct);
+    
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+// Special error handler for Multer/Cloudinary errors
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError || error.name === 'MulterError') {
+    console.log("MULTER ERROR:", error);
+    return res.status(500).json({ error: error.message });
+  }
+  console.log("GENERIC ERROR:", error);
+  next(error);
+});
+
+// =====================================================================
+// SERVER STARTUP
+// =====================================================================
 const PORT = process.env.PORT || 4242;
 app.listen(PORT, () => {
   console.log(`🚀 Master Backend running on http://localhost:${PORT}`);
@@ -447,3 +532,4 @@ app.delete('/api/admin/blogs/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete post' });
   }
 });
+

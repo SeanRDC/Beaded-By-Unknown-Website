@@ -91,36 +91,38 @@ export default function AdminDashboard() {
   useEffect(() => { if (secretKey) fetchStats(); }, [secretKey]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!secretKey) return setStatus('❌ Admin Key Required.');
-    setStatus('Saving...');
+  e.preventDefault();
+  const formData = new FormData();
 
-    const formattedProduct = {
-      ...product, price: Number(product.price),
-      colors: product.colors.split(',').map(c => c.trim()).filter(Boolean),
-      sizes: product.sizes.split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
-    };
+  formData.append('name', product.name);
+  formData.append('price', product.price);
+  formData.append('cat', product.cat);
 
-    const url = editId ? `http://localhost:4242/api/admin/products/${editId}` : 'http://localhost:4242/api/admin/products';
-    const method = editId ? 'PUT' : 'POST';
+  // Append Primary Image
+  if (product.imgFile) {
+    formData.append('primaryImage', product.imgFile);
+  }
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
-        body: JSON.stringify(formattedProduct)
-      });
-      if (res.ok) {
-        setStatus(`✅ Product saved!`);
-        setProduct({ name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L' });
-        setEditId(null);
-        fetchAllData();
-        setTimeout(() => { setStatus(''); setActiveTab('inventory'); }, 1500);
-      } else {
-        setStatus(`❌ Error saving product.`);
-      }
-    } catch (err) { setStatus('❌ Server error.'); }
-  };
+  // Append Secondary Image (Ensure this exactly matches the backend field name!)
+  if (product.secondaryImgFile) {
+    formData.append('secondaryImage', product.secondaryImgFile);
+  }
+
+  try {
+    const res = await fetch(`http://localhost:4242/api/products`, {
+      method: editId ? 'PUT' : 'POST',
+      body: formData, 
+    });
+
+    if (res.ok) {
+      // Clear the form, including the secondary image
+      setProduct({ name: '', price: '', cat: 'Plastic', imgFile: null, secondaryImgFile: null });
+      setActiveTab('catalogue');
+    }
+  } catch (error) {
+    console.error("Upload error:", error);
+  }
+};
 
   const handleSettingsSubmit = async (e) => {
     e.preventDefault();
@@ -364,9 +366,12 @@ export default function AdminDashboard() {
               )}
 
               {/* --- FORM TAB (Products) --- */}
+              {/* --- FORM TAB (Products) --- */}
               {activeTab === 'form' && (
                 <div className="animate-in fade-in duration-300 relative w-full">
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    
+                    {/* Row 1: Name & Price */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Product Name</label>
@@ -377,19 +382,29 @@ export default function AdminDashboard() {
                         <input type="number" required value={product.price} onChange={(e) => setProduct({...product, price: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 text-sm" />
                       </div>
                     </div>
+
+                    {/* Row 2: Category & Primary Image */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image URL</label>
-                        <input required value={product.img} onChange={(e) => setProduct({...product, img: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none text-sm" />
-                      </div>
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
                         <select value={product.cat} onChange={(e) => setProduct({...product, cat: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none text-sm appearance-none">
                           <option>Plastic</option><option>Gemstone</option><option>Glass</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image</label>
+                        {/* Notice we use e.target.files[0] instead of e.target.value for files! */}
+                        <input type="file" accept="image/*" onChange={(e) => setProduct({...product, imgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
+                      </div>
                     </div>
-                    <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] mt-2 text-sm">
+
+                    {/* Row 3: Secondary Image (Full Width) */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Secondary Image (Hover/Detail)</label>
+                      <input type="file" accept="image/*" onChange={(e) => setProduct({...product, secondaryImgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
+                    </div>
+
+                    <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] mt-2 text-sm transition-colors">
                       {editId ? 'Save Changes' : 'Add to Catalog'}
                     </button>
                   </form>
@@ -559,6 +574,17 @@ export default function AdminDashboard() {
               )}
 
             </div>
+          {/* FLOATING ACTION BUTTON (Mobile Only) */}
+          {/* It ONLY shows up when the user is explicitly viewing the product list */}
+          {activeTab === 'inventory' && (
+            <button 
+              onClick={() => setActiveTab('form')} 
+              className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#3E2F1C] text-[#FAF6F1] rounded-full flex items-center justify-center shadow-xl z-50 hover:bg-[#A0522D] transition-all active:scale-95 border-2 border-[#5A4A38]"
+              aria-label="Add new product"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+          )}
           </div>
         </main>
 
@@ -572,7 +598,9 @@ export default function AdminDashboard() {
           <NavButton id="settings" icon={SettingsIcon} label="Settings" />
         </nav>
 
+
       </div>
+
     </div>
   );
 }

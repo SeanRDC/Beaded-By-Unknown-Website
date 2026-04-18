@@ -2,12 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Adding a subtle background to the body so the mobile frame stands out */
+html {
+  scrollbar-gutter: stable;
+  overflow-x: hidden;
+}
+
 body {
-  background-color: #e5e5e5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  background-color: #FAF6F1;
+  color: #3E2F1C;
+  overflow-x: hidden;
+  width: 100%;
   margin: 0;
 }

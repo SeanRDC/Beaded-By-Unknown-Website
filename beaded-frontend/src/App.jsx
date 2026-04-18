@@ -411,7 +411,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF6F1] relative">
+    <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
       {/* HEADER - Responsive */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
@@ -465,7 +465,7 @@ function App() {
               <div className="absolute inset-0"><img src={heroImage} alt="Beaded by Unknown Hero" className="w-full h-full object-cover opacity-30" /></div>
               <div className="relative z-10 p-6 md:p-8 md:max-w-[1200px] md:mx-auto w-full pb-10 md:pb-8">
                 <p className="text-[10px] md:text-[13px] tracking-[0.25em] md:tracking-[0.3em] text-[#A0522D] uppercase mb-2 md:mb-4 font-medium">Handcrafted with intention</p>
-                <h2 className="text-[32px] md:text-[64px] leading-[1.1] text-[#3E2F1C] max-w-[580px] mb-3 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Every bead tells a story</h2>
+                <h2 className="text-[32px] md:text-[64px] leading-[1.1] text-[#3E2F1C] max-w-[580px] mb-3 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>a gift for your friends, family, and yourself</h2>
                 <p className="text-sm md:text-lg text-[#5A4A3A] md:max-w-[420px] mb-6 md:mb-8 leading-relaxed max-w-[280px]">We transform raw materials into hand-finished treasures, ensuring every bead you string carries its own story and weight.</p>
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                   <button onClick={() => go('collection')} className="bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.15em] uppercase px-6 py-3.5 md:py-4 font-medium md:font-semibold hover:bg-[#8B4526] transition-colors">Shop Collection</button>
@@ -658,12 +658,17 @@ function App() {
             </section>
 
             {/* FOOTER */}
-            <footer className="bg-[#3E2F1C] text-[#FAF6F1] py-16">
-              <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-[#5A4A38] pb-12 mb-8">
+            <footer className="bg-[#3E2F1C] text-[#FAF6F1] py-16 mt-auto">
+              {/* FIX: Changed to [2fr_1fr_1fr_1fr] to give the brand column more room */}
+              <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 border-b border-[#5A4A38] pb-12 mb-8">
                 
                 {/* Column 1: Brand & Socials */}
                 <div className="space-y-6">
-                  <h2 className="text-lg md:text-xl tracking-[0.2em] uppercase font-serif">BEADEDBYUNKNOWN</h2>
+                  {/* FIX: Flex container aligns logo and brand name side-by-side */}
+                  <div className="flex items-center gap-3">
+                    <img src="/Beaded-logo.png" alt="Beaded by Unknown Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                    <h2 className="text-lg md:text-xl tracking-[0.2em] uppercase font-serif">BEADEDBYUNKNOWN</h2>
+                  </div>
                   <p className="text-[#D1CBC3] text-sm leading-relaxed max-w-xs">
                     Handcrafted bead bracelets made with intention in Portland.
                   </p>
@@ -680,7 +685,7 @@ function App() {
                     </a>
 
                     {/* LinkedIn SVG */}
-                    <a href="https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer: Sean Rhani Dela Cruz">
+                    <a href="https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer">
                       <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                         <rect x="2" y="9" width="4" height="12"></rect>
@@ -691,33 +696,33 @@ function App() {
                 </div>
 
                 {/* Column 2: Shop */}
-            <div>
-              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Shop</h3>
-              <ul className="space-y-4 text-sm text-[#D1CBC3]">
-                <li><button onClick={() => go('collection')} className="hover:text-white transition-colors">All</button></li>
-                <li><button onClick={() => go('customizer')} className="hover:text-white transition-colors">Custom</button></li>
-              </ul>
-            </div>
+                <div>
+                  <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Shop</h3>
+                  <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                    <li><button onClick={() => go('collection')} className="hover:text-white transition-colors">All</button></li>
+                    <li><button onClick={() => go('customizer')} className="hover:text-white transition-colors">Custom</button></li>
+                  </ul>
+                </div>
 
-            {/* Column 3: Help */}
-            <div>
-              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Help</h3>
-              <ul className="space-y-4 text-sm text-[#D1CBC3]">
-                <li><button onClick={() => go('sizeguide')} className="hover:text-white transition-colors">Size Guide</button></li>
-                <li><button onClick={() => go('shipping')} className="hover:text-white transition-colors">Shipping</button></li>
-                <li><button onClick={() => go('terms')} className="hover:text-white transition-colors">Terms & Privacy</button></li>
-                <li><button onClick={() => go('faq')} className="hover:text-white transition-colors">FAQ</button></li>
-              </ul>
-            </div>
+                {/* Column 3: Help */}
+                <div>
+                  <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Help</h3>
+                  <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                    <li><button onClick={() => go('sizeguide')} className="hover:text-white transition-colors">Size Guide</button></li>
+                    <li><button onClick={() => go('shipping')} className="hover:text-white transition-colors">Shipping</button></li>
+                    <li><button onClick={() => go('terms')} className="hover:text-white transition-colors">Terms & Privacy</button></li>
+                    <li><button onClick={() => go('faq')} className="hover:text-white transition-colors">FAQ</button></li>
+                  </ul>
+                </div>
 
-            {/* Column 4: About */}
-            <div>
-              <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">About</h3>
-              <ul className="space-y-4 text-sm text-[#D1CBC3]">
-                <li><button onClick={() => go('about')} className="hover:text-white transition-colors">Our Story</button></li>
-                <li><button onClick={() => go('blog')} className="hover:text-white transition-colors">Journal</button></li>
-              </ul>
-            </div>
+                {/* Column 4: About */}
+                <div>
+                  <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">About</h3>
+                  <ul className="space-y-4 text-sm text-[#D1CBC3]">
+                    <li><button onClick={() => go('about')} className="hover:text-white transition-colors">Our Story</button></li>
+                    <li><button onClick={() => go('blog')} className="hover:text-white transition-colors">Journal</button></li>
+                  </ul>
+                </div>
 
               </div>
 
@@ -727,7 +732,6 @@ function App() {
                 <p>Developed by Sean Rhani Dela Cruz</p>
               </div>
             </footer>
-
           </div>
         )}
 
@@ -774,31 +778,30 @@ function App() {
           <div className="max-w-3xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
             <h1 className="text-3xl md:text-5xl mb-10 md:mb-16 text-center text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping & Returns</h1>
             <div className="space-y-10 md:space-y-12">
+              
               <section>
-                <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Processing Time</h2>
-                <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed">
-                  Every beaded bracelet is handcrafted to order. Please allow 2-4 business days for us to create, inspect, and package your items before they are shipped. Custom orders may require an additional 2 days of processing.
+                <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Processing & Shipping</h2>
+                <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed mb-6">
+                  Every beaded bracelet is carefully handcrafted to order. We operate strictly on a <span className="font-semibold">Pre-order basis</span>. Please allow 7 to 14 days for us to create, inspect, and package your items before they are shipped.
                 </p>
-              </section>
-              <section>
-                <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Domestic Shipping</h2>
                 <ul className="space-y-4 border-l-2 border-[#E8DFD3] pl-5 md:pl-6">
                   <li>
-                    <strong className="block mb-1 text-sm md:text-base text-[#3E2F1C]">Standard Delivery (5-7 Business Days)</strong>
-                    <span className="text-sm text-[#8B7D6B]">₱150 flat rate. Free on orders over ₱50.</span>
-                  </li>
-                  <li>
-                    <strong className="block mb-1 text-sm md:text-base text-[#3E2F1C]">Express Delivery (2-3 Business Days)</strong>
-                    <span className="text-sm text-[#8B7D6B]">₱300 flat rate.</span>
+                    <strong className="block mb-1 text-sm md:text-base text-[#3E2F1C]">J&T Express Delivery</strong>
+                    <span className="text-sm text-[#8B7D6B]">₱150 flat rate nationwide.</span>
                   </li>
                 </ul>
               </section>
+
               <section>
-                <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Returns & Exchanges</h2>
+                <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Returns & Cancellations</h2>
+                <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed mb-4">
+                  We want you to love your piece, but because each bracelet is meticulously custom-made to your specific preferences, <span className="font-semibold">all sales are final</span>.
+                </p>
                 <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed">
-                  We want you to love your piece. If you are not completely satisfied, we accept returns within 14 days of delivery. Items must be unworn and in their original packaging. Please note that customized items are final sale and cannot be returned or exchanged.
+                  Once a custom bracelet has been started in our studio, we cannot accept cancellations, returns, or exchanges. Please ensure your wrist measurement is completely accurate according to our Size Guide before placing your order.
                 </p>
               </section>
+
             </div>
           </div>
         )}
