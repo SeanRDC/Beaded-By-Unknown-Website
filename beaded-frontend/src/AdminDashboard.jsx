@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, DollarSign, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
@@ -32,21 +32,36 @@ export default function AdminDashboard() {
     title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' 
   });
 
+  // Pop up state
+const [popup, setPopup] = useState({
+  isOpen: false,
+  title: '',
+  message: '',
+  isConfirm: false,
+  onConfirm: null
+});
+
+  // Orders State
+  const [orders, setOrders] = useState([]);
+
+const closePopup = () => setPopup({ ...popup, isOpen: false });
+
+// 1. PUBLIC DATA: Fetches products, blogs, and reviews (No key needed)
   const fetchAllData = async () => {
     try {
       const prodRes = await fetch('http://localhost:4242/api/products');
-      // blog logic
-      const blogRes = await fetch('http://localhost:4242/api/blogs');
-      if (blogRes.ok) {
-        const blogData = await blogRes.json();
-        if (Array.isArray(blogData)) setBlogs(blogData);
-      }
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) setProducts(prodData);
         setServerStatus('online'); 
       } else {
         setServerStatus('offline');
+      }
+
+      const blogRes = await fetch('http://localhost:4242/api/blogs');
+      if (blogRes.ok) {
+        const blogData = await blogRes.json();
+        if (Array.isArray(blogData)) setBlogs(blogData);
       }
 
       const revRes = await fetch('http://localhost:4242/api/reviews');
@@ -59,15 +74,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchStats = async () => {
-    if (!secretKey) return;
-    try {
-      const res = await fetch('http://localhost:4242/api/admin/stats', { headers: { 'admin_secret': secretKey } });
-      const data = await res.json();
-      if (res.ok) setStats(data);
-    } catch (err) {}
-  };
-
+  // 2. PUBLIC DATA: Fetches your top banner and features
   const fetchSettings = async () => {
     try {
       const res = await fetch('http://localhost:4242/api/settings');
@@ -81,14 +88,57 @@ export default function AdminDashboard() {
     } catch (err) {}
   };
 
-  useEffect(() => { 
-    fetchAllData(); 
+  // 3. SECURE DATA: Fetches dashboard stats (REQUIRES KEY)
+  const fetchStats = async () => { 
+    // STRICT GUARD: If the key is empty, stop right here so we don't get a 403!
+    if (!secretKey) return; 
+
+    try {
+      const res = await fetch(`http://localhost:4242/api/admin/stats`, {
+        headers: {
+          'admin_secret': secretKey // Pulls directly from your component's state
+        }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data); // Make sure you actually save the data!
+      }
+    } catch (err) {
+      console.error("Stats fetch error:", err);
+    }
+  };
+
+  const fetchOrders = async () => {
+    if (!secretKey) return; 
+    
+    try {
+      const res = await fetch(`http://localhost:4242/api/admin/orders`, {
+        headers: { 'admin_secret': secretKey }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (err) {
+      console.error("Orders fetch error:", err);
+    }
+  };
+
+  // --- THE TRIGGERS (useEffect) ---
+
+  // Trigger 1: Load public data the exact moment the dashboard opens
+  useEffect(() => {
+    fetchAllData();
     fetchSettings();
-    const interval = setInterval(fetchAllData, 15000);
-    return () => clearInterval(interval);
-  }, []);
-  
-  useEffect(() => { if (secretKey) fetchStats(); }, [secretKey]);
+  }, []); // Empty brackets mean this runs ONCE when the page loads
+
+  // Trigger 2: Load the secure stats ONLY when the secretKey is available
+  useEffect(() => {
+    fetchStats();
+    fetchOrders();
+  }, [secretKey]); // This tells React: "Run this whenever the secretKey changes"
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -114,11 +164,32 @@ export default function AdminDashboard() {
       body: formData, 
     });
 
-    if (res.ok) {
-      // Clear the form, including the secondary image
-      setProduct({ name: '', price: '', cat: 'Plastic', imgFile: null, secondaryImgFile: null });
-      setActiveTab('catalogue');
+if (res.ok) {
+      // 1. Use your existing status state for a clean, silent message
+      setStatus('Product added successfully!');
+      
+      // 2. Reset every possible image and array field so the form doesn't panic
+      setProduct({ 
+        name: '', 
+        price: '', 
+        cat: 'Gemstone', 
+        img: '', 
+        img2: '',
+        imgFile: null, 
+        secondaryImgFile: null,
+        colors: [], 
+        sizes: ['S', 'M', 'L'],
+        mat: '',
+        tag: ''
+      });
+
+      // 3. TEMPORARILY DISABLED: Do not switch to the catalogue yet!
+      // setActiveTab('catalogue'); 
+
+      // 4. Make the success message disappear after 3 seconds
+      setTimeout(() => setStatus(''), 3000);
     }
+
   } catch (error) {
     console.error("Upload error:", error);
   }
@@ -195,29 +266,91 @@ export default function AdminDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id, type = 'product') => {
-    if (!secretKey) return alert("Admin Secret Key required.");
-    if (!window.confirm(`Delete this ${type} permanently?`)) return;
-    try {
-      let url = `http://localhost:4242/api/admin/products/${id}`;
-      if (type === 'review') url = `http://localhost:4242/api/admin/reviews/${id}`;
-      if (type === 'blog') url = `http://localhost:4242/api/admin/blogs/${id}`;
+const handleDelete = (id, type = 'product') => {
+    // 1. Missing Secret Key Alert
+    if (!secretKey) {
+      return setPopup({
+        isOpen: true,
+        title: 'Access Denied',
+        message: 'Admin Secret Key required.',
+        isConfirm: false,
+        onConfirm: null
+      });
+    }
 
-      const res = await fetch(url, { method: 'DELETE', headers: { 'admin_secret': secretKey } });
-      if (res.ok) fetchAllData();
-    } catch (err) { alert("Server error."); }
+    // 2. The Confirmation Dialog
+    setPopup({
+      isOpen: true,
+      // Capitalize the first letter for a clean title (e.g., "Delete Product")
+      title: `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`, 
+      message: `Are you sure you want to delete this ${type} permanently? This action cannot be undone.`,
+      isConfirm: true,
+      
+      // 3. The Actual Delete Logic (Runs ONLY if they click Confirm)
+      onConfirm: async () => {
+        try {
+          let url = `http://localhost:4242/api/admin/products/${id}`;
+          if (type === 'review') url = `http://localhost:4242/api/admin/reviews/${id}`;
+          if (type === 'blog') url = `http://localhost:4242/api/admin/blogs/${id}`;
+
+          const res = await fetch(url, { 
+            method: 'DELETE', 
+            headers: { 'admin_secret': secretKey } 
+          });
+          
+          if (res.ok) {
+            fetchAllData(); // Refresh the list so the item disappears
+          } else {
+            // Optional: Show an error if the backend rejected it
+            setPopup({
+              isOpen: true,
+              title: 'Error',
+              message: 'Failed to delete. Check your admin key.',
+              isConfirm: false,
+              onConfirm: null
+            });
+          }
+        } catch (err) { 
+          // 4. Server Error Alert
+          setPopup({
+            isOpen: true,
+            title: 'Server Error',
+            message: 'Could not connect to the backend server.',
+            isConfirm: false,
+            onConfirm: null
+          });
+        }
+      }
+    });
   };
 
   const NavButton = ({ id, icon: Icon, label }) => (
     <button 
-      onClick={() => { setActiveTab(id); if(id === 'form') { setEditId(null); setProduct({ name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L' }); } setStatus(''); }} 
+      onClick={() => { 
+        setActiveTab(id); 
+        if(id === 'form') { 
+          setEditId(null); 
+          // THE FIX: colors is now an empty array [], sizes is an array of strings
+          setProduct({ 
+            name: '', 
+            price: '', 
+            img: '', 
+            img2: '', 
+            cat: 'Gemstone', 
+            mat: '', 
+            tag: '', 
+            colors: [], 
+            sizes: ['S', 'M', 'L'] 
+          }); 
+        } 
+        setStatus(''); 
+      }} 
       className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 p-3 md:px-4 md:py-3 w-full md:rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${
         activeTab === id ? 'text-[#A0522D] md:bg-[#3E2F1C] md:text-white' : 'text-[#8B7D6B] hover:text-[#3E2F1C] md:hover:bg-[#E8DFD3]'
       }`}
     >
-      <Icon className={`w-5 h-5 md:w-4 md:h-4 ${activeTab === id && 'md:text-[#C9A96E]'}`} />
+      <Icon className="w-5 h-5 md:w-4 md:h-4" />
       <span className="hidden md:inline">{label}</span>
-      <span className="md:hidden">{label.split(' ')[0]}</span>
     </button>
   );
 
@@ -232,6 +365,7 @@ export default function AdminDashboard() {
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
+          <NavButton id="orders" icon={ShoppingBag} label="Orders" />
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
           <NavButton id="journal" icon={BookOpen} label="Journal Editor" /> 
@@ -295,7 +429,11 @@ export default function AdminDashboard() {
                     <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
                       <div className="flex justify-between items-start mb-4">
                         <p className="text-xs sm:text-sm text-[#8B7D6B] font-medium uppercase tracking-wider">Gross Revenue</p>
-                        <div className="p-2 bg-white rounded-lg shadow-sm"><DollarSign className="w-5 h-5 text-[#A0522D]" /></div>
+                        <div className="p-2 bg-white rounded-lg shadow-sm">
+                          <span className="flex items-center justify-center w-5 h-5 text-[#A0522D] text-lg">
+                            ₱
+                          </span>
+                        </div>
                       </div>
                       <h3 className="text-3xl sm:text-4xl font-light">₱{stats.revenue.toLocaleString()}</h3>
                     </div>
@@ -366,7 +504,6 @@ export default function AdminDashboard() {
               )}
 
               {/* --- FORM TAB (Products) --- */}
-              {/* --- FORM TAB (Products) --- */}
               {activeTab === 'form' && (
                 <div className="animate-in fade-in duration-300 relative w-full">
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -393,7 +530,6 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image</label>
-                        {/* Notice we use e.target.files[0] instead of e.target.value for files! */}
                         <input type="file" accept="image/*" onChange={(e) => setProduct({...product, imgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
                       </div>
                     </div>
@@ -407,9 +543,18 @@ export default function AdminDashboard() {
                     <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] mt-2 text-sm transition-colors">
                       {editId ? 'Save Changes' : 'Add to Catalog'}
                     </button>
+
+                    {/* 🚨 SUCCESS MESSAGE MOVED BELOW THE BUTTON 🚨 */}
+                    {status && (
+                      <div className="mt-4 p-3 bg-[#E8DFD3] text-[#3E2F1C] rounded-xl text-sm font-bold tracking-wide text-center animate-in fade-in duration-300">
+                        {status}
+                      </div>
+                    )}
                   </form>
                 </div>
               )}
+
+              
 
               {/* --- COMMUNITY LOVE TAB --- */}
               {activeTab === 'community' && (
@@ -574,6 +719,64 @@ export default function AdminDashboard() {
               )}
 
             </div>
+
+            {/* --- ORDERS TAB --- */}
+              {activeTab === 'orders' && (
+                <div className="animate-in fade-in duration-300 w-full space-y-4">
+                  <h2 className="text-xl font-bold text-[#3E2F1C] mb-6">Customer Orders</h2>
+                  
+                  {orders.length === 0 ? (
+                    <div className="p-8 text-center text-[#8B7D6B] bg-white rounded-xl shadow-sm">
+                      No orders yet. They will appear here once someone checks out!
+                    </div>
+                  ) : (
+                    orders.map((order) => (
+                      <div key={order._id} className="bg-white p-5 rounded-xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4">
+                        
+                        {/* Order Header: Customer & Status */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E8DFD3] pb-4 gap-2">
+                          <div>
+                            <h3 className="font-bold text-[#3E2F1C]">{order.customerName}</h3>
+                            <p className="text-xs tracking-wide text-[#8B7D6B]">{order.customerEmail}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-[#A0522D]">₱{order.amountPaid}</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                              order.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-[#E8DFD3] text-[#3E2F1C]'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Order Items */}
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Items Ordered</h4>
+                          <div className="bg-[#FAF6F1] p-3 rounded-lg space-y-2">
+                            {order.items?.map((item, index) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <span className="text-[#3E2F1C] font-medium">
+                                  {item.quantity}x {item.name || 'Product'} 
+                                  {/* If you save colors/sizes in your items array, show them here! */}
+                                  <span className="text-[#8B7D6B] ml-2 text-xs">
+                                    {item.color && `(${item.color})`}
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Date Footer */}
+                        <div className="text-[10px] text-right text-[#8B7D6B] uppercase tracking-widest">
+                          Ordered: {new Date(order.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
           {/* FLOATING ACTION BUTTON (Mobile Only) */}
           {/* It ONLY shows up when the user is explicitly viewing the product list */}
           {activeTab === 'inventory' && (
@@ -597,7 +800,49 @@ export default function AdminDashboard() {
           <NavButton id="community" icon={MessageSquare} label="Reviews" />
           <NavButton id="settings" icon={SettingsIcon} label="Settings" />
         </nav>
+        
+        {/* --- UNIVERSAL CUSTOM POP-UP (MODAL) --- */}
+      {popup.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          
+          {/* Modal Box - Responsive for Mobile & PC */}
+          <div className="w-full max-w-sm bg-[#FAF6F1] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-[#3E2F1C] mb-2">
+              {popup.title}
+            </h3>
+            <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">
+              {popup.message}
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              {/* Only show Cancel button if it's a confirmation */}
+              {popup.isConfirm && (
+                <button 
+                  onClick={closePopup} 
+                  className="px-5 py-2.5 text-sm font-bold text-[#8B7D6B] bg-[#E8DFD3] rounded-xl hover:bg-[#D1CBC3] transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+              
+              <button 
+                onClick={() => {
+                  if (popup.onConfirm) popup.onConfirm();
+                  closePopup();
+                }} 
+                className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-colors ${
+                  popup.title.toLowerCase().includes('delete') 
+                    ? 'bg-red-600 hover:bg-red-700' // Make it red if it's a delete action
+                    : 'bg-[#3E2F1C] hover:bg-[#A0522D]' // Otherwise use your brand colors
+                }`}
+              >
+                {popup.isConfirm ? 'Confirm' : 'Okay'}
+              </button>
+            </div>
+          </div>
 
+        </div>
+      )}
 
       </div>
 
