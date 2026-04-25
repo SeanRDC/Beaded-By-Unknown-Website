@@ -188,7 +188,8 @@ app.delete('/api/admin/products/:id', async (req, res) => {
 // =====================================================================
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
-    const { cart } = req.body;
+    // We now receive the checkoutForm and shippingRegion from the frontend!
+    const { cart, checkoutForm, shippingRegion } = req.body;
     const lineItems = cart.map((item) => ({
       currency: 'PHP',
       amount: Math.round(item.price * 100),
@@ -214,7 +215,18 @@ app.post('/api/create-checkout-session', async (req, res) => {
             line_items: lineItems,
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
-            description: 'Beaded by Unknown Order'
+            description: 'Beaded by Unknown Order',
+            // THIS IS NEW: We hide the address in the metadata so PayMongo remembers it
+            metadata: {
+              customer_name: `${checkoutForm.firstName} ${checkoutForm.lastName}`,
+              customer_email: checkoutForm.email,
+              contact_number: checkoutForm.phone,
+              street: checkoutForm.street,
+              barangay: checkoutForm.barangay,
+              city: checkoutForm.city,
+              region: shippingRegion,
+              postal_code: checkoutForm.postalCode
+            }
           }
         }
       })
@@ -234,30 +246,36 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
   try {
     const event = req.body.data;
     
-    // PayMongo sends various events. We only care when a payment succeeds.
     if (event.attributes.type === 'checkout_session.payment.paid') {
       const session = event.attributes.data.attributes;
+      const metadata = session.metadata || {}; // Grab the metadata we hid earlier
       
       const newOrder = new Order({
         checkoutSessionId: event.attributes.data.id,
-        customerName: session.billing?.name || 'Guest',
-        customerEmail: session.billing?.email || 'No Email',
-        amountPaid: session.payment_intent.attributes.amount / 100, // Convert centavos back to PHP
+        // Use the metadata first, fallback to PayMongo billing info if needed
+        customerName: metadata.customer_name || session.billing?.name || 'Guest',
+        customerEmail: metadata.customer_email || session.billing?.email || 'No Email',
+        contactNumber: metadata.contact_number || 'No Number',
+        shippingAddress: {
+          street: metadata.street || '',
+          barangay: metadata.barangay || '',
+          city: metadata.city || '',
+          region: metadata.region || '',
+          postalCode: metadata.postal_code || ''
+        },
+        amountPaid: session.payment_intent.attributes.amount / 100,
         items: session.line_items
       });
 
       await newOrder.save();
       console.log(`💰 NEW SALE RECORDED: ₱${newOrder.amountPaid}`);
     }
-
-    // Always tell PayMongo "Message Received" so they stop pinging you
     res.status(200).send('Webhook received');
   } catch (error) {
     console.error('🔥 Webhook error:', error);
     res.status(500).send('Webhook failed');
   }
 });
-
 // =====================================================================
 // ADMIN STATS ROUTE (Sends real data to your dashboard)
 // =====================================================================
@@ -360,44 +378,64 @@ app.post('/api/products', uploadFields, async (req, res) => {
   }
 });
 
-app.put('/api/products/:id', uploadFields, async (req, res) => {
+app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'secondaryImage', maxCount: 1 }]), async (req, res) => {
   try {
-    const primaryUrl = req.files['primaryImage'] 
-      ? req.files['primaryImage'][0].path 
-      : req.body.existingPrimaryImage;
+    const productId = req.params.id;
 
-    const secondaryUrl = req.files['secondaryImage'] 
-      ? req.files['secondaryImage'][0].path 
-      : req.body.existingSecondaryImage;
+    // 1. First, fetch the existing product from the DB so we know what the old image URLs are.
+    const existingProduct = await Product.findById(productId);
+    if (!existingProduct) {
+      return res.status(404).json({ status: "Bad", message: "Product not found" });
+    }
 
+    // 2. Initialize our image URL variables with the EXISTING data.
+    let primaryImageUrl = existingProduct.img;
+    let secondaryImageUrl = existingProduct.img2;
+
+    // 3. Handle Primary Image (img): Check if a NEW file was uploaded.
+    if (req.files && req.files.image && req.files.image[0]) {
+      console.log("New primary image detected. Uploading to Cloudinary...");
+      const result = await cloudinary.uploader.upload(req.files.image[0].path, {
+        folder: 'beaded_by_unknown',
+      });
+      // Update our variable with the NEW url
+      primaryImageUrl = result.secure_url; 
+    } else {
+      console.log("No new primary image uploaded. Retaining existing image.");
+    }
+
+    // 4. Handle Secondary Image (img2): Check if a NEW file was uploaded.
+    if (req.files && req.files.secondaryImage && req.files.secondaryImage[0]) {
+      console.log("New secondary image detected. Uploading to Cloudinary...");
+      const result2 = await cloudinary.uploader.upload(req.files.secondaryImage[0].path, {
+        folder: 'beaded_by_unknown',
+      });
+      // Update our variable with the NEW url
+      secondaryImageUrl = result2.secure_url;
+    } else {
+      console.log("No new secondary image uploaded. Retaining existing image.");
+    }
+
+    // 5. Update the product in the database using the new text fields, 
+    //    and whichever image URLs we decided on above (new or retained old ones).
     const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id, 
+      productId,
       {
-        name: req.body.name,
-        price: req.body.price,
-        cat: req.body.cat,
-        img: primaryUrl,
-        secondaryImg: secondaryUrl
-      }, 
-      { new: true } 
+        ...req.body, // spread other fields (name, price, cat, mat, tag, colours)
+        img: primaryImageUrl,
+        img2: secondaryImageUrl,
+        colors: req.body.colors ? req.body.colors.split(',') : [], // Handle string-to-array if sent that way
+      },
+      { new: true } // Return the updated document
     );
 
-    res.status(200).json(updatedProduct);
+    res.json(updatedProduct);
+    console.log(`Product ${productId} updated successfully.`);
     
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update product" });
+    console.error("Error during product update:", err);
+    res.status(500).json({ status: "Bad", message: "Update failed", error: err.message });
   }
-});
-
-// Special error handler for Multer/Cloudinary errors
-app.use((error, req, res, next) => {
-  if (error instanceof multer.MulterError || error.name === 'MulterError') {
-    console.log("MULTER ERROR:", error);
-    return res.status(500).json({ error: error.message });
-  }
-  console.log("GENERIC ERROR:", error);
-  next(error);
 });
 
 // =====================================================================
