@@ -43,6 +43,7 @@ const [popup, setPopup] = useState({
 
   // Orders State
   const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
 const closePopup = () => setPopup({ ...popup, isOpen: false });
 
@@ -126,6 +127,28 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     }
   };
 
+  const updateOrderStatus = async (orderId, newStatus) => {
+    if (!secretKey) return;
+    try {
+      const res = await fetch(`http://localhost:4242/api/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'admin_secret': secretKey 
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (res.ok) {
+        fetchOrders(); // Refresh the list to show the new status
+      } else {
+        alert("Failed to update status");
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+    }
+  };
+
   // --- THE TRIGGERS (useEffect) ---
 
   // Trigger 1: Load public data the exact moment the dashboard opens
@@ -140,60 +163,75 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     fetchOrders();
   }, [secretKey]); // This tells React: "Run this whenever the secretKey changes"
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  const formData = new FormData();
+ const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
 
-  formData.append('name', product.name);
-  formData.append('price', product.price);
-  formData.append('cat', product.cat);
+    formData.append('name', product.name);
+    formData.append('price', product.price);
+    formData.append('cat', product.cat);
 
-  // Append Primary Image
-  if (product.imgFile) {
-    formData.append('primaryImage', product.imgFile);
-  }
-
-  // Append Secondary Image (Ensure this exactly matches the backend field name!)
-  if (product.secondaryImgFile) {
-    formData.append('secondaryImage', product.secondaryImgFile);
-  }
-
-  try {
-    const res = await fetch(`http://localhost:4242/api/products`, {
-      method: editId ? 'PUT' : 'POST',
-      body: formData, 
-    });
-
-if (res.ok) {
-      // 1. Use your existing status state for a clean, silent message
-      setStatus('Product added successfully!');
-      
-      // 2. Reset every possible image and array field so the form doesn't panic
-      setProduct({ 
-        name: '', 
-        price: '', 
-        cat: 'Gemstone', 
-        img: '', 
-        img2: '',
-        imgFile: null, 
-        secondaryImgFile: null,
-        colors: [], 
-        sizes: ['S', 'M', 'L'],
-        mat: '',
-        tag: ''
-      });
-
-      // 3. TEMPORARILY DISABLED: Do not switch to the catalogue yet!
-      // setActiveTab('catalogue'); 
-
-      // 4. Make the success message disappear after 3 seconds
-      setTimeout(() => setStatus(''), 3000);
+    // Append Primary Image OR pass the existing URL back to the server
+    if (product.imgFile) {
+      formData.append('primaryImage', product.imgFile);
+    } else if (editId) {
+      formData.append('existingPrimaryImage', product.img);
     }
 
-  } catch (error) {
-    console.error("Upload error:", error);
-  }
-};
+    // Append Secondary Image OR pass the existing URL back
+    if (product.secondaryImgFile) {
+      formData.append('secondaryImage', product.secondaryImgFile);
+    } else if (editId) {
+      formData.append('existingSecondaryImage', product.img2);
+    }
+
+    try {
+      // 1. Dynamically set the URL: Include the editId if we are editing!
+      const url = editId 
+        ? `http://localhost:4242/api/products/${editId}` 
+        : `http://localhost:4242/api/products`;
+
+      const res = await fetch(url, {
+        method: editId ? 'PUT' : 'POST',
+        // IMPORTANT: When testing locally/ngrok with admin routes, ensure your admin key is sent if your backend requires it
+        headers: { 'admin_secret': secretKey }, 
+        body: formData, 
+      });
+
+      if (res.ok) {
+        setStatus(editId ? 'Product updated successfully!' : 'Product added successfully!');
+        
+        setProduct({ 
+          name: '', 
+          price: '', 
+          cat: 'Gemstone', 
+          img: '', 
+          img2: '',
+          imgFile: null, 
+          secondaryImgFile: null,
+          colors: [], 
+          sizes: ['S', 'M', 'L'],
+          mat: '',
+          tag: ''
+        });
+        
+        setEditId(null); // Exit "edit mode"
+        
+        // Refresh your catalog immediately so the new/edited item shows up
+        fetchAllData(); 
+        
+        setTimeout(() => setStatus(''), 3000);
+      } else {
+        const errorData = await res.json();
+        console.error("Backend Error:", errorData);
+        setStatus(`Error: ${errorData.error || 'Failed to save'}`);
+      }
+
+    } catch (error) {
+      console.error("Upload error:", error);
+      setStatus('Server connection error.');
+    }
+  };
 
   const handleSettingsSubmit = async (e) => {
     e.preventDefault();
@@ -322,6 +360,32 @@ const handleDelete = (id, type = 'product') => {
         }
       }
     });
+  };
+
+  const handleEditClick = (p) => {
+    // 1. Tell the system we are in "Edit Mode" for this specific ID
+    setEditId(p._id);
+    
+    // 2. Populate the form with the existing product's data
+    setProduct({
+      name: p.name || '',
+      price: p.price || '',
+      img: p.img || '',
+      img2: p.img2 || '',
+      cat: p.cat || 'Gemstone',
+      mat: p.mat || '',
+      tag: p.tag || '',
+      colors: p.colors || [],
+      sizes: p.sizes || ['S', 'M', 'L'],
+      imgFile: null, // Ensure file inputs are empty
+      secondaryImgFile: null
+    });
+
+    // 3. Switch the view to the product form tab
+    setActiveTab('form');
+    
+    // 4. Smoothly scroll to the top so the user sees the form immediately
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const NavButton = ({ id, icon: Icon, label }) => (
@@ -720,9 +784,9 @@ const handleDelete = (id, type = 'product') => {
 
             </div>
 
-            {/* --- ORDERS TAB --- */}
+           {/* --- ORDERS TAB --- */}
               {activeTab === 'orders' && (
-                <div className="animate-in fade-in duration-300 w-full space-y-4">
+                <div className="animate-in fade-in duration-300 w-full space-y-4 relative">
                   <h2 className="text-xl font-bold text-[#3E2F1C] mb-6">Customer Orders</h2>
                   
                   {orders.length === 0 ? (
@@ -731,7 +795,11 @@ const handleDelete = (id, type = 'product') => {
                     </div>
                   ) : (
                     orders.map((order) => (
-                      <div key={order._id} className="bg-white p-5 rounded-xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4">
+                      <div 
+                        key={order._id} 
+                        onClick={() => setSelectedOrder(order)} // Makes the card clickable!
+                        className="bg-white p-5 rounded-xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4 cursor-pointer hover:border-[#A0522D] transition-colors"
+                      >
                         
                         {/* Order Header: Customer & Status */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E8DFD3] pb-4 gap-2">
@@ -742,29 +810,28 @@ const handleDelete = (id, type = 'product') => {
                           <div className="flex items-center gap-3">
                             <span className="text-lg font-bold text-[#A0522D]">₱{order.amountPaid}</span>
                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                              order.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-[#E8DFD3] text-[#3E2F1C]'
+                              order.status === 'Paid' ? 'bg-green-100 text-green-700' : 
+                              order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-[#E8DFD3] text-[#3E2F1C]'
                             }`}>
                               {order.status}
                             </span>
+                            
+                            {/* e.stopPropagation() prevents the click from opening the modal when hitting the button */}
+                            {order.status === 'Paid' && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, 'Shipped'); }}
+                                className="text-xs bg-[#3E2F1C] text-white px-3 py-1.5 rounded hover:bg-[#A0522D] transition-colors"
+                              >
+                                Mark Shipped
+                              </button>
+                            )}
                           </div>
                         </div>
 
-                        {/* Order Items */}
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Items Ordered</h4>
-                          <div className="bg-[#FAF6F1] p-3 rounded-lg space-y-2">
-                            {order.items?.map((item, index) => (
-                              <div key={index} className="flex justify-between text-sm">
-                                <span className="text-[#3E2F1C] font-medium">
-                                  {item.quantity}x {item.name || 'Product'} 
-                                  {/* If you save colors/sizes in your items array, show them here! */}
-                                  <span className="text-[#8B7D6B] ml-2 text-xs">
-                                    {item.color && `(${item.color})`}
-                                  </span>
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                        {/* Order Items Summary */}
+                        <div className="text-sm text-[#3E2F1C]">
+                          <span className="font-bold text-[#8B7D6B] mr-2">Items:</span> 
+                          {order.items?.map(i => `${i.quantity}x ${i.name}`).join(', ')}
                         </div>
                         
                         {/* Date Footer */}
@@ -774,6 +841,60 @@ const handleDelete = (id, type = 'product') => {
                       </div>
                     ))
                   )}
+
+                  {/* CUSTOMER DETAILS MODAL */}
+                  {selectedOrder && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedOrder(null)}>
+                      <div className="w-full max-w-lg bg-[#FAF6F1] rounded-2xl p-6 md:p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-[#8B7D6B] hover:text-[#3E2F1C]">
+                          <X className="w-5 h-5" />
+                        </button>
+                        
+                        <h3 className="text-2xl font-bold text-[#3E2F1C] mb-6 border-b border-[#E8DFD3] pb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          Order Details
+                        </h3>
+
+                        <div className="space-y-6">
+                          {/* Contact Section */}
+                          <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Info</h4>
+                            <p className="text-sm text-[#3E2F1C] font-medium">{selectedOrder.customerName}</p>
+                            <p className="text-sm text-[#3E2F1C]">{selectedOrder.customerEmail}</p>
+                            <p className="text-sm text-[#3E2F1C]">{selectedOrder.contactNumber || 'No Phone Provided'}</p>
+                          </div>
+
+                          {/* Shipping Section */}
+                          <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Shipping Address</h4>
+                            {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
+                              <div className="text-sm text-[#3E2F1C] bg-white p-4 rounded-lg border border-[#E8DFD3]">
+                                <p>{selectedOrder.shippingAddress.street}</p>
+                                <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}</p>
+                                <p>{selectedOrder.shippingAddress.region}, {selectedOrder.shippingAddress.postalCode}</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-[#8B7D6B] italic">No address recorded (Old Order)</p>
+                            )}
+                          </div>
+
+                          {/* Items Section */}
+                          <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Items Purchased</h4>
+                            <div className="bg-white rounded-lg border border-[#E8DFD3] divide-y divide-[#E8DFD3]">
+                              {selectedOrder.items?.map((item, idx) => (
+                                <div key={idx} className="p-3 flex justify-between text-sm">
+                                  <span>{item.quantity}x {item.name} {item.color && `(${item.color})`}</span>
+                                  <span className="font-medium text-[#8B7D6B]">₱{item.amount / 100}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
 

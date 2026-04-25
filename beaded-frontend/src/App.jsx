@@ -99,6 +99,10 @@ function App() {
   const [activeStudioImg, setActiveStudioImg] = useState(0);
   const studioImages = [studio1, studio2, studio3, studio4];
   const [selectedCat, setSelectedCat] = useState('All');
+  const [checkoutForm, setCheckoutForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '', 
+    street: '', barangay: '', city: '', postalCode: ''
+  });
   
   // This effect runs every time the 'pg' (page) state changes
   useEffect(() => {
@@ -297,7 +301,8 @@ function App() {
       const response = await fetch('http://localhost:4242/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart }),
+        // Add checkoutForm and shippingRegion to the payload!
+        body: JSON.stringify({ cart, checkoutForm, shippingRegion }),
       });
       const data = await response.json();
 
@@ -1247,22 +1252,23 @@ function App() {
                         
                         {/* Contact Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <input type="email" required placeholder="Email Address" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                          <input type="tel" required placeholder="Mobile Number (e.g. 0917...)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input type="email" required value={checkoutForm.email} onChange={(e) => setCheckoutForm({...checkoutForm, email: e.target.value})} placeholder="Email Address" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input type="tel" required value={checkoutForm.phone} onChange={(e) => setCheckoutForm({...checkoutForm, phone: e.target.value})} placeholder="Mobile Number (e.g. 0917...)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
                         {/* Name */}
                         <div className="grid grid-cols-2 gap-4">
-                          <input required placeholder="First name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                          <input required placeholder="Last name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required value={checkoutForm.firstName} onChange={(e) => setCheckoutForm({...checkoutForm, firstName: e.target.value})} placeholder="First name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required value={checkoutForm.lastName} onChange={(e) => setCheckoutForm({...checkoutForm, lastName: e.target.value})} placeholder="Last name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
-                        {/* Address */}
-                        <input required placeholder="Complete Address (House No., Street, Barangay)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        {/* Split Address Fields */}
+                        <input required value={checkoutForm.street} onChange={(e) => setCheckoutForm({...checkoutForm, street: e.target.value})} placeholder="House/Unit No., Building, Street Name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input required value={checkoutForm.barangay} onChange={(e) => setCheckoutForm({...checkoutForm, barangay: e.target.value})} placeholder="Barangay / Village" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         
                         <div className="grid grid-cols-2 gap-4">
-                          <input required placeholder="City/Municipality" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
-                          <input required placeholder="Postal Code" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required value={checkoutForm.city} onChange={(e) => setCheckoutForm({...checkoutForm, city: e.target.value})} placeholder="City/Municipality" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required value={checkoutForm.postalCode} onChange={(e) => setCheckoutForm({...checkoutForm, postalCode: e.target.value})} placeholder="Postal Code" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
                         {/* Region Dropdown */}
@@ -1277,12 +1283,9 @@ function App() {
                             <option value="Visayas">Visayas</option>
                             <option value="Mindanao">Mindanao</option>
                           </select>
-                          <ChevronRight className="w-4 h-4 text-[#8B7D6B] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                         </div>
-                        
                       </div>
                       
-                      {/* Changed from type="button" to type="submit" to trigger the validation */}
                       <button type="submit" className="w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 mt-8 hover:bg-[#8B4526] font-semibold transition-colors">
                         Continue to Shipping
                       </button>
@@ -1334,7 +1337,10 @@ function App() {
                     </div>
                     <div className="flex gap-4">
                       <button onClick={() => setChkStep(2)} className="flex items-center gap-2 text-sm text-[#8B7D6B] hover:text-[#A0522D] transition-colors"><ChevronLeft className="w-4 h-4" /> Back</button>
-                      <button onClick={() => alert("Connecting to PayMongo...")} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2 transition-colors">
+                      <button 
+                        onClick={handleCheckout} 
+                        className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold flex items-center justify-center gap-2 transition-colors"
+                      >
                         <Lock className="w-4 h-4" /> Pay ₱{finalTotal} Securely
                       </button>
                     </div>
