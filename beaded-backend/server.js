@@ -12,6 +12,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const { upload } = require('./cloudinary');
+const multer = require('multer');
 
 const app = express();
 
@@ -284,6 +285,45 @@ const uploadFields = upload.fields([
   { name: 'primaryImage', maxCount: 1 },
   { name: 'secondaryImage', maxCount: 1 }
 ]);
+
+// --- SECURE ROUTE: Fetch all orders for the Admin Dashboard ---
+app.get('/api/admin/orders', async (req, res) => {
+  // 1. Check the secret key
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+
+  try {
+    // 2. Fetch all orders from MongoDB, sorted by newest first
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error("Backend error fetching orders:", error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+// --- SECURE ROUTE: Update Order Status ---
+app.patch('/api/admin/orders/:id/status', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+
+  try {
+    const { status } = req.body;
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status }, // Updates the status (e.g., to "Shipped")
+      { new: true } // Returns the updated document
+    );
+    
+    if (!updatedOrder) return res.status(404).json({ error: 'Order not found' });
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Error updating order:", error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
 
 // =====================================================================
 // CLOUDINARY IMAGE UPLOAD ROUTES
