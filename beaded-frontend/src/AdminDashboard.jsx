@@ -416,6 +416,37 @@ const handleDelete = (id, type = 'product') => {
     </button>
   );
 
+// 📈 Refined Sparkline Logic with Labels
+  const getSparklineData = () => {
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toLocaleDateString();
+    }).reverse();
+
+    const revenueData = last7Days.map(date => {
+      return orders
+        .filter(o => new Date(o.createdAt).toLocaleDateString() === date)
+        .reduce((sum, o) => sum + (o.amountPaid || 0), 0);
+    });
+
+    const maxVal = Math.max(...revenueData, 1000);
+    
+    // Create points for the thin trend line
+    const graphPoints = revenueData.map((val, i) => ({
+      x: (i * (300 / 6)),
+      y: 60 - (val / maxVal * 45) - 10 // Added more padding
+    }));
+
+    return { 
+      points: graphPoints, 
+      max: maxVal, 
+      path: `M ${graphPoints.map(p => `${p.x},${p.y}`).join(' L ')}` 
+    };
+  };
+
+  const chart = getSparklineData();
+
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
       
@@ -485,34 +516,90 @@ const handleDelete = (id, type = 'product') => {
               
               {/* --- OVERVIEW TAB --- */}
               {activeTab === 'overview' && (
-                <div className="animate-in fade-in duration-300 w-full">
+                <div className="animate-in fade-in duration-300 w-full space-y-6">
+                  {/* Top Stats Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-xs sm:text-sm text-[#8B7D6B] font-medium uppercase tracking-wider">Total Inventory</p>
-                        <div className="p-2 bg-white rounded-lg shadow-sm"><Package className="w-5 h-5 text-[#A0522D]" /></div>
+                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Total Inventory</p>
+                        <Package className="w-5 h-5 text-[#A0522D]" />
                       </div>
-                      <h3 className="text-3xl sm:text-4xl font-light">{products.length} <span className="text-sm text-[#8B7D6B]">items</span></h3>
+                      <h3 className="text-3xl font-light">{products.length} <span className="text-sm text-[#8B7D6B]">items</span></h3>
                     </div>
                     
                     <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-xs sm:text-sm text-[#8B7D6B] font-medium uppercase tracking-wider">Gross Revenue</p>
-                        <div className="p-2 bg-white rounded-lg shadow-sm">
-                          <span className="flex items-center justify-center w-5 h-5 text-[#A0522D] text-lg">
-                            ₱
-                          </span>
-                        </div>
+                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Gross Revenue</p>
+                        <TrendingUp className="w-5 h-5 text-[#A0522D]" />
                       </div>
-                      <h3 className="text-3xl sm:text-4xl font-light">₱{stats.revenue.toLocaleString()}</h3>
+                      <h3 className="text-3xl font-light">₱{stats.revenue.toLocaleString()}</h3>
                     </div>
 
                     <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3] sm:col-span-2 lg:col-span-1">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-xs sm:text-sm text-[#8B7D6B] font-medium uppercase tracking-wider">Total Orders</p>
-                        <div className="p-2 bg-white rounded-lg shadow-sm"><ShoppingBag className="w-5 h-5 text-[#A0522D]" /></div>
+                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Total Orders</p>
+                        <ShoppingBag className="w-5 h-5 text-[#A0522D]" />
                       </div>
-                      <h3 className="text-3xl sm:text-4xl font-light">{stats.totalOrders}</h3>
+                      <h3 className="text-3xl font-light">{stats.totalOrders}</h3>
+                    </div>
+                  </div>
+
+                  {/* 📊 ELEGANT SALES TREND GRAPH */}
+                  <div className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+                      <div>
+                        <h4 className="text-lg font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Sales Trend</h4>
+                        <p className="text-xs text-[#8B7D6B]">Revenue performance over the last 7 days</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#A0522D] bg-[#FAF6F1] px-3 py-1.5 rounded-full border border-[#E8DFD3]">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#A0522D] animate-pulse" /> Live Sync
+                      </div>
+                    </div>
+
+                    <div className="relative w-full h-40 md:h-60 flex gap-4">
+                      {/* Y-Axis Labels */}
+                      <div className="flex flex-col justify-between text-[9px] font-bold text-[#B0A395] uppercase h-full py-1">
+                        <span>₱{chart.max.toLocaleString()}</span>
+                        <span>₱{(chart.max / 2).toLocaleString()}</span>
+                        <span>₱0</span>
+                      </div>
+
+                      {/* The Graph Area */}
+                      <div className="flex-1 relative border-l border-b border-[#F0EBE4] bg-[#FAF6F1]/30 rounded-br-lg">
+                        <svg viewBox="0 0 300 60" className="w-full h-full" preserveAspectRatio="none">
+                          {/* Horizontal Grid Lines */}
+                          <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" />
+                          <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" />
+                          
+                          {/* The Main Line (Thinner & Smoother) */}
+                          <path
+                            d={chart.path}
+                            fill="none"
+                            stroke="#A0522D"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+
+                          {/* Data Points (Smaller & Clean) */}
+                          {chart.points.map((p, i) => (
+                            <circle 
+                              key={i} 
+                              cx={p.x} 
+                              cy={p.y} 
+                              r="2" 
+                              fill="white" 
+                              stroke="#A0522D" 
+                              strokeWidth="1.5" 
+                            />
+                          ))}
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between mt-4 ml-12 pr-2">
+                      <span className="text-[9px] text-[#B0A395] font-bold uppercase tracking-tighter">7 Days Ago</span>
+                      <span className="text-[9px] text-[#A0522D] font-black uppercase tracking-tighter">Today</span>
                     </div>
                   </div>
                 </div>
