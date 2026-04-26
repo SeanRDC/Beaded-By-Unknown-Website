@@ -103,6 +103,37 @@ function App() {
     firstName: '', lastName: '', email: '', phone: '', 
     street: '', barangay: '', city: '', postalCode: ''
   });
+  const [myOrders, setMyOrders] = useState([]);
+  const [orderFilter, setOrderFilter] = useState('All');
+
+  // Catch PayMongo Redirects
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      setPg('confirmation');
+      setCart([]); // Clear the cart because they bought it!
+      // Clean up the URL so it doesn't keep triggering if they refresh
+      window.history.replaceState(null, '', window.location.pathname);
+    } else if (urlParams.get('canceled') === 'true') {
+      flash('Payment was canceled or failed.', 'info');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
+  // Fetch user orders when they open the "Orders" tab in their account
+  useEffect(() => {
+    const token = localStorage.getItem('beaded_token');
+    if (logged && token && acctTab === 'orders') {
+      fetch('http://localhost:4242/api/user/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMyOrders(data);
+      })
+      .catch(err => console.error("Failed to fetch user orders:", err));
+    }
+  }, [logged, acctTab]);
   
   // This effect runs every time the 'pg' (page) state changes
   useEffect(() => {
@@ -462,6 +493,40 @@ function App() {
 
       {/* MAIN CONTENT */}
       <main className={`flex-1 pb-16 md:pb-0 ${pg !== 'checkout' && pg !== 'confirmation' ? 'pt-[76px] md:pt-[94px]' : ''}`}>
+
+        {/* PAYMENT SUCCESS CONFIRMATION */}
+        {pg === 'confirmation' && (
+          <div className="max-w-2xl mx-auto px-5 py-24 md:py-32 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-[#FAF6F1] border-4 border-[#A0522D] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+              <Check className="w-12 h-12 text-[#A0522D]" />
+            </div>
+            <h1 className="text-3xl md:text-5xl mb-4 text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Payment Successful!</h1>
+            <p className="text-[#8B7D6B] text-sm md:text-base mb-10 max-w-md mx-auto leading-relaxed">
+              Your order has been received and is currently being prepared in our studio. A receipt has been sent to your email.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button 
+                onClick={() => { 
+                  if (logged) {
+                    setAcctTab('orders'); 
+                    go('account'); 
+                  } else {
+                    setLoginOpen(true);
+                  }
+                }} 
+                className="bg-[#3E2F1C] text-white px-8 py-4 rounded-xl text-xs font-bold tracking-[0.15em] uppercase hover:bg-[#A0522D] transition-colors shadow-md"
+              >
+                View Order Status
+              </button>
+              <button 
+                onClick={() => go('collection')} 
+                className="bg-white text-[#3E2F1C] border-2 border-[#E8DFD3] px-8 py-4 rounded-xl text-xs font-bold tracking-[0.15em] uppercase hover:bg-[#FAF6F1] hover:border-[#3E2F1C] transition-colors"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* HOME */}
         {pg === 'home' && (
@@ -1214,15 +1279,43 @@ function App() {
           </div>
         )}
 
-        {/* ACCOUNT, WISHLIST, ETC (Simplified unified views) */}
+        {/* ACCOUNT, WISHLIST, ETC */}
         {pg === 'wishlist' && (
-          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
-            <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Wishlist</h2>
-            <p className="text-xs md:text-sm text-[#8B7D6B] mb-5 md:mb-10">{wish.length} items</p>
-            {wish.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">{P.filter(p => wish.includes(p.id)).map(p => <Card key={p.id} p={p} />)}</div> : <div className="py-16 md:py-24 text-center"><Heart className="w-12 h-12 md:w-16 md:h-16 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><h3 className="text-lg md:text-xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Nothing saved yet</h3><button onClick={() => go('collection')} className="bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm uppercase px-6 md:px-8 py-3.5 md:py-4 mt-4 font-medium">Explore</button></div>}
+          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-300">
+            <div className="flex justify-between items-end mb-1 md:mb-2 border-b border-[#E8DFD3] pb-4">
+              <div>
+                <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Wishlist</h2>
+                <p className="text-xs md:text-sm text-[#8B7D6B] mt-1">{wish.length} items</p>
+              </div>
+              
+              {/* CLEAR WISHLIST BUTTON */}
+              {wish.length > 0 && (
+                <button 
+                  onClick={() => { setWish([]); flash('Wishlist cleared', 'info'); }} 
+                  className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-[#8B7D6B] hover:text-[#B85C5C] transition-colors flex items-center gap-1.5 pb-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Clear All
+                </button>
+              )}
+            </div>
+            
+            <div className="mt-8">
+              {wish.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  {P.filter(p => wish.includes(p.id)).map(p => <Card key={p.id} p={p} />)}
+                </div>
+              ) : (
+                <div className="py-16 md:py-24 text-center bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
+                  <Heart className="w-12 h-12 md:w-16 md:h-16 text-[#E8DFD3] mx-auto mb-4" />
+                  <h3 className="text-lg md:text-xl mb-2 text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Nothing saved yet</h3>
+                  <button onClick={() => go('collection')} className="bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm uppercase tracking-widest px-8 py-3.5 md:py-4 mt-4 font-bold hover:bg-[#8B4526] transition-colors">
+                    Explore Collection
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
-
         {/* CHECKOUT */}
         {pg === 'checkout' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
@@ -1391,6 +1484,7 @@ function App() {
             </div>
           </div>
         )}
+
         {/* ACCOUNT / PROFILE */}
         {pg === 'account' && logged && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
@@ -1408,10 +1502,13 @@ function App() {
                   </button>
                 ))}
                 <button 
-                  onClick={() => { setLogged(false); 
+                  onClick={() => { 
+                    setLogged(false); 
                     setCart([]);
                     setWish([]);
-                    localStorage.removeItem('beaded_token'); go('home'); }} 
+                    localStorage.removeItem('beaded_token'); 
+                    go('home'); 
+                  }} 
                   className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-[#B85C5C] hover:bg-[#FDECEC] mt-4 flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" /> Logout
@@ -1420,6 +1517,8 @@ function App() {
 
               {/* Main Content Area */}
               <div className="flex-1 bg-white rounded-2xl p-6 md:p-10 border border-[#E8DFD3]">
+                
+                {/* --- OVERVIEW TAB --- */}
                 {acctTab === 'overview' && (
                   <div>
                     <div className="flex items-center gap-4 mb-8 pb-8 border-b border-[#F0EBE4]">
@@ -1433,25 +1532,118 @@ function App() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      
                       <div className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
                         <div className="flex items-center gap-3 mb-2 text-[#A0522D]">
                           <Package className="w-5 h-5" />
                           <span className="text-xs font-bold uppercase tracking-widest">Recent Orders</span>
                         </div>
-                        <p className="text-sm text-[#3E2F1C]">No orders yet.</p>
-                        <button onClick={() => go('collection')} className="text-xs text-[#A0522D] underline mt-2 font-medium">Start Shopping</button>
+                        
+                        {/* Dynamically check if there are orders to display here too */}
+                        {myOrders && myOrders.length > 0 ? (
+                          <>
+                            <p className="text-sm text-[#3E2F1C] mb-2">You have {myOrders.length} order(s).</p>
+                            <button onClick={() => setAcctTab('orders')} className="text-xs text-[#A0522D] underline font-medium">View Status</button>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-[#3E2F1C]">No orders yet.</p>
+                            <button onClick={() => go('collection')} className="text-xs text-[#A0522D] underline mt-2 font-medium">Start Shopping</button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                 )}
 
+                {/* --- ORDERS TAB --- */}
                 {acctTab === 'orders' && (
-                  <div className="py-12 text-center">
-                    <Package className="w-12 h-12 text-[#E8DFD3] mx-auto mb-4" />
-                    <p className="text-[#8B7D6B]">You haven't placed any orders yet.</p>
+                  <div className="animate-in fade-in duration-300">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-[#F0EBE4] pb-4">
+                      <h3 className="text-xl font-semibold text-[#3E2F1C]">Order History</h3>
+                      
+                      {/* E-commerce Order Filters */}
+                      <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+                        {['All', 'Preparing', 'Shipped', 'Delivered'].map(f => (
+                          <button 
+                            key={f}
+                            onClick={() => setOrderFilter(f)}
+                            className={`px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold whitespace-nowrap transition-colors ${
+                              orderFilter === f ? 'bg-[#3E2F1C] text-white' : 'bg-[#FAF6F1] text-[#8B7D6B] hover:bg-[#E8DFD3]'
+                            }`}
+                          >
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {!myOrders || myOrders.length === 0 ? (
+                      <div className="py-12 text-center bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
+                        <Package className="w-12 h-12 text-[#D1C7B7] mx-auto mb-4" />
+                        <p className="text-[#8B7D6B] font-medium">You haven't placed any orders yet.</p>
+                        <button onClick={() => go('collection')} className="text-xs text-[#A0522D] uppercase tracking-widest font-bold mt-4 hover:text-[#8B4526]">Shop Collection</button>
+                      </div>
+                    ) : (
+                      <div className="space-y-5">
+                        {myOrders
+                          .filter(o => {
+                            if (orderFilter === 'All') return true;
+                            if (orderFilter === 'Preparing') return o.status === 'Paid';
+                            return o.status === orderFilter;
+                          })
+                          .map(order => (
+                          <div key={order._id} className="border border-[#E8DFD3] rounded-xl p-5 hover:border-[#A0522D] transition-colors bg-white shadow-sm">
+                            
+                            {/* Order Header */}
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-[#F0EBE4] pb-4">
+                              <div className="flex gap-8">
+                                <div>
+                                  <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest mb-1 font-bold">Date Placed</p>
+                                  <p className="text-sm font-medium text-[#3E2F1C]">{new Date(order.createdAt).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest mb-1 font-bold">Total</p>
+                                  <p className="text-sm font-medium text-[#3E2F1C]">₱{order.amountPaid}</p>
+                                </div>
+                              </div>
+                              <div className="text-left md:text-right">
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                  order.status === 'Delivered' ? 'bg-purple-100 text-purple-700' :
+                                  order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 
+                                  'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {order.status === 'Paid' ? 'Preparing' : order.status}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Items List */}
+                            <div className="space-y-3">
+                              {order.items?.map((item, idx) => (
+                                <div key={idx} className="flex justify-between items-center text-sm">
+                                  <span className="text-[#3E2F1C] font-medium">
+                                    {item.quantity}x {item.name} 
+                                    <span className="text-[#8B7D6B] font-normal ml-2">{item.color && `(${item.color})`}</span>
+                                  </span>
+                                  <span className="text-[#8B7D6B]">₱{item.amount / 100}</span>
+                                </div>
+                              ))}
+                            </div>
+                            
+                          </div>
+                        ))}
+                        
+                        {/* Fallback if filter is empty */}
+                        {myOrders.filter(o => orderFilter === 'All' ? true : (orderFilter === 'Preparing' ? o.status === 'Paid' : o.status === orderFilter)).length === 0 && (
+                           <div className="text-center py-8 text-[#8B7D6B] text-sm">
+                             No orders found with status: {orderFilter}.
+                           </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
+                
               </div>
             </div>
           </div>
@@ -1668,7 +1860,92 @@ function App() {
       )}
 
       {/* RESPONSIVE CART DRAWER */}
-      {cartOpen && <div className="fixed inset-0 z-[60]"><div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} /><div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col"><div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]"><h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3><button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button></div><div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">{cart.length === 0 ? <div className="py-12 md:py-16 text-center"><ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" /><p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p><button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button></div> : cart.map(it => <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]"><div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0"><img src={it.img} alt="" className="w-full h-full object-cover" /></div><div className="flex-1 min-w-0"><div className="flex justify-between"><div><p className="text-sm font-medium truncate">{it.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p></div><button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]"><Trash2 className="w-3.5 h-3.5" /></button></div><div className="flex items-center justify-between mt-1.5 md:mt-2"><div className="inline-flex items-center border border-[#E8DFD3] rounded"><button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button><span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span><button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button></div><span className="text-sm font-semibold">₱{it.price * it.qty}</span></div></div></div>)}</div>{cart.length > 0 && <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">{cTotal < 50 && <div className="mb-3 md:mb-4"><p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p><div className="bg-[#F0EBE4] rounded-full h-1.5"><div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} /></div></div>}<div className="flex justify-between mb-3 md:mb-4"><span className="text-sm text-[#8B7D6B]">Subtotal</span><span className="text-lg font-bold">₱{cTotal}</span></div><button onClick={() => { setCartOpen(false); setChkStep(1); go('checkout'); }} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2">Checkout</button></div>}</div></div>}
+      {cartOpen && (
+        <div className="fixed inset-0 z-[60]">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]">
+              <h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3>
+              <button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto px-5 md:px-6 py-3 md:py-4">
+              {cart.length === 0 ? (
+                <div className="py-12 md:py-16 text-center">
+                  <ShoppingBag className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" />
+                  <p className="text-sm md:text-base" style={{ fontFamily: 'Playfair Display, serif' }}>Cart is empty</p>
+                  <button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button>
+                </div>
+              ) : (
+                cart.map(it => (
+                  <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]">
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0">
+                      <img src={it.img} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-sm font-medium truncate">{it.name}</p>
+                          <p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p>
+                        </div>
+                        <button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5 md:mt-2">
+                        <div className="inline-flex items-center border border-[#E8DFD3] rounded">
+                          <button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button>
+                          <span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span>
+                          <button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button>
+                        </div>
+                        <span className="text-sm font-semibold">₱{it.price * it.qty}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {cart.length > 0 && (
+              <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">
+                {cTotal < 50 && (
+                  <div className="mb-3 md:mb-4">
+                    <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p>
+                    <div className="bg-[#F0EBE4] rounded-full h-1.5">
+                      <div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} />
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-between mb-3 md:mb-4">
+                  <span className="text-sm text-[#8B7D6B]">Subtotal</span>
+                  <span className="text-lg font-bold">₱{cTotal}</span>
+                </div>
+                <button 
+                  onClick={() => { 
+                    setCartOpen(false); 
+                    setChkStep(1); 
+                    
+                    // Pre-fill the form to guarantee the emails match!
+                    if (logged) {
+                      setCheckoutForm(prev => ({
+                        ...prev,
+                        firstName: logged.firstName || '',
+                        lastName: logged.lastName || '',
+                        email: logged.email || ''
+                      }));
+                    }
+                    
+                    go('checkout'); 
+                  }} 
+                  className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] font-semibold mb-2"
+                >
+                  Checkout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* SEARCH OVERLAY */}
       {searchOpen && (

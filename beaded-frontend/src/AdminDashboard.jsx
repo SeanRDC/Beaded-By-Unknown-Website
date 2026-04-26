@@ -784,7 +784,7 @@ const handleDelete = (id, type = 'product') => {
 
             </div>
 
-           {/* --- ORDERS TAB --- */}
+              {/* --- ORDERS TAB --- */}
               {activeTab === 'orders' && (
                 <div className="animate-in fade-in duration-300 w-full space-y-4 relative">
                   <h2 className="text-xl font-bold text-[#3E2F1C] mb-6">Customer Orders</h2>
@@ -815,16 +815,26 @@ const handleDelete = (id, type = 'product') => {
                             }`}>
                               {order.status}
                             </span>
-                            
-                            {/* e.stopPropagation() prevents the click from opening the modal when hitting the button */}
-                            {order.status === 'Paid' && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); updateOrderStatus(order._id, 'Shipped'); }}
-                                className="text-xs bg-[#3E2F1C] text-white px-3 py-1.5 rounded hover:bg-[#A0522D] transition-colors"
-                              >
-                                Mark Shipped
-                              </button>
-                            )}
+
+                            {/* Action Buttons for Fulfillment */}
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              {order.status === 'Paid' && (
+                                <button 
+                                  onClick={() => updateOrderStatus(order._id, 'Shipped')}
+                                  className="text-[10px] font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-3 py-2 rounded-lg hover:bg-[#A0522D] transition-colors"
+                                >
+                                  Mark Shipped
+                                </button>
+                              )}
+                              {order.status === 'Shipped' && (
+                                <button 
+                                  onClick={() => updateOrderStatus(order._id, 'Delivered')}
+                                  className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  Mark Delivered
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
 
