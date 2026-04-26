@@ -525,30 +525,49 @@ const handleUpdateProfile = async (e) => {
           <div className="bg-[#3E2F1C] text-[#FAF6F1] text-center py-1.5 md:py-2 text-[9px] md:text-[11px] tracking-[0.15em] uppercase font-light">
           {topBannerText}
           </div>
-          <nav className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 flex items-center justify-between">
-            {/* Mobile Menu Icon */}
-            <button onClick={() => setMenuOpen(true)} className="md:hidden p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
+          <nav className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
             
-            {/* Desktop Left Nav */}
-            <div className="hidden md:flex items-center gap-8 flex-1">
-              <button onClick={() => go('collection')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Shop</button>
-              <button onClick={() => go('customizer')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Customize</button>
-              <button onClick={() => go('about')} className="text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Our Story</button>
+            {/* Mobile Menu Icon (Now waits for TRUE mobile size - 768px) */}
+            <div className="flex-1 md:hidden">
+              <button onClick={() => setMenuOpen(true)} className="p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
+            </div>
+            
+            {/* Desktop Left Nav (Visible on iPads and up) */}
+            <div className="hidden md:flex items-center gap-4 xl:gap-8 flex-1 justify-start">
+              <button onClick={() => go('collection')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Shop</button>
+              <button onClick={() => go('customizer')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Customize</button>
+              <button onClick={() => go('about')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Our Story</button>
             </div>
 
-            {/* Center Logo */}
-            <button onClick={() => go('home')} className="absolute left-1/2 -translate-x-1/2 text-[16px] md:text-[22px] tracking-[0.15em] md:tracking-[0.2em] text-[#3E2F1C] uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>beadedbyunknown</button>
+            {/* Center Logo - Swaps to image on Tablets/Laptops to save space! */}
+            <div className="flex-shrink-0 flex justify-center mx-2 lg:mx-4">
+              <button onClick={() => go('home')} className="flex items-center justify-center">
+                
+                {/* 1. TEXT LOGO: Only shows on Large (Desktop) Screens */}
+                <span className="hidden lg:block text-[22px] tracking-[0.2em] text-[#3E2F1C] uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  beadedbyunknown
+                </span>
+                
+                {/* 2. IMAGE LOGO: Shows on Medium (Tablet) and Small (Mobile) Screens */}
+                <img 
+                  src="/Beaded-logo.png" 
+                  alt="Beaded By Unknown" 
+                  className="block lg:hidden h-7 md:h-8 w-auto object-contain" 
+                />
 
-            {/* Desktop Right Nav & Mobile Cart */}
-            <div className="flex items-center justify-end gap-5 flex-1">
-              <button onClick={() => go('blog')} className="hidden md:block text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
+              </button>
+            </div>
+
+            {/* Desktop Right Nav & Mobile Cart (Visible on iPads and up) */}
+            <div className="flex items-center justify-end gap-4 xl:gap-5 flex-1">
+              <button onClick={() => go('blog')} className="hidden md:block text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
               <button onClick={() => setSearchOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><Search className="w-[18px] h-[18px]" /></button>
               <button 
-              onClick={() => logged ? go('account') : setLoginOpen(true)} 
-              className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"
-            >
-              <User className="w-[18px] h-[18px]" />
-            </button>
+                onClick={() => logged ? go('account') : setLoginOpen(true)} 
+                className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"
+              >
+                <User className="w-[18px] h-[18px]" />
+              </button>
               <button onClick={() => go('wishlist')} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors relative">
                 <Heart className={`w-[18px] h-[18px] ${wish.length > 0 ? 'fill-[#A0522D] text-[#A0522D]' : ''}`} />
                 {wish.length > 0 && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#A0522D] text-white text-[10px] rounded-full flex items-center justify-center">{wish.length}</span>}
@@ -558,6 +577,7 @@ const handleUpdateProfile = async (e) => {
                 {cCount > 0 && <span className="absolute -top-0.5 -right-0.5 md:-top-1.5 md:-right-1.5 w-4 h-4 bg-[#A0522D] text-white text-[9px] md:text-[10px] rounded-full flex items-center justify-center">{cCount}</span>}
               </button>
             </div>
+            
           </nav>
         </header>
       )}

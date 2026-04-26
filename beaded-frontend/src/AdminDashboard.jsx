@@ -10,6 +10,15 @@ export default function AdminDashboard() {
   const [editId, setEditId] = useState(null);
   
   const [serverStatus, setServerStatus] = useState('checking'); 
+
+  const [adminName, setAdminName] = useState(localStorage.getItem('beaded_admin_name') || 'Iyesha');
+
+  // Function to toggle between you two and save it to the device!
+  const toggleAdminName = () => {
+    const newName = adminName === 'Iyesha' ? 'Sean' : 'Iyesha';
+    setAdminName(newName);
+    localStorage.setItem('beaded_admin_name', newName);
+  };
   
   // Settings State
   const [bannerText, setBannerText] = useState('WELCOME');
@@ -429,15 +438,22 @@ const handleDelete = (id, type = 'product') => {
 
       <div className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0">
         
-        <header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
-          <h2 className="text-lg font-bold md:hidden" style={{ fontFamily: 'Playfair Display, serif' }}>Hello, Iyesha ✨</h2>
-          <h2 className="hidden md:flex items-center text-xl" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Hello, Iyesha 
-            <span className="text-[#8B7D6B] text-sm ml-3 font-sans font-normal tracking-wide hidden lg:inline-block border-l border-[#E8DFD3] pl-3">
+<header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
+          
+          {/* Mobile Greeting - Clickable! */}
+          <h2 onClick={toggleAdminName} className="text-lg font-bold md:hidden cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Hello, {adminName} ✨
+          </h2>
+          
+          {/* Desktop Greeting - Clickable! */}
+          <h2 onClick={toggleAdminName} className="hidden md:flex items-center text-xl cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Hello, {adminName} ✨
+            <span className="text-[#8B7D6B] text-sm ml-3 font-sans font-normal tracking-wide hidden lg:inline-block border-l border-[#E8DFD3] pl-3 cursor-default">
               {activeTab === 'overview' && 'Business Overview'}
               {activeTab === 'inventory' && 'Catalog Management'}
               {activeTab === 'form' && (editId ? 'Edit Details' : 'Create New Product')}
               {activeTab === 'community' && 'Manage Reviews'}
+              {activeTab === 'journal' && 'Journal Management'}
               {activeTab === 'settings' && 'Global Store Settings'}
             </span>
           </h2>
