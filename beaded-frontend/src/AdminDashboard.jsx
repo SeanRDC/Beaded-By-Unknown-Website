@@ -163,13 +163,15 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     fetchOrders();
   }, [secretKey]); // This tells React: "Run this whenever the secretKey changes"
 
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
+    
     const formData = new FormData();
-
     formData.append('name', product.name);
     formData.append('price', product.price);
     formData.append('cat', product.cat);
+    formData.append('mat', product.mat || ''); // Added Material
+    formData.append('tag', product.tag || ''); // Added Tag
 
     // Append Primary Image OR pass the existing URL back to the server
     if (product.imgFile) {
@@ -186,14 +188,12 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     }
 
     try {
-      // 1. Dynamically set the URL: Include the editId if we are editing!
       const url = editId 
         ? `http://localhost:4242/api/products/${editId}` 
         : `http://localhost:4242/api/products`;
 
       const res = await fetch(url, {
         method: editId ? 'PUT' : 'POST',
-        // IMPORTANT: When testing locally/ngrok with admin routes, ensure your admin key is sent if your backend requires it
         headers: { 'admin_secret': secretKey }, 
         body: formData, 
       });
@@ -202,22 +202,12 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
         setStatus(editId ? 'Product updated successfully!' : 'Product added successfully!');
         
         setProduct({ 
-          name: '', 
-          price: '', 
-          cat: 'Gemstone', 
-          img: '', 
-          img2: '',
-          imgFile: null, 
-          secondaryImgFile: null,
-          colors: [], 
-          sizes: ['S', 'M', 'L'],
-          mat: '',
-          tag: ''
+          name: '', price: '', cat: 'Gemstone', img: '', img2: '',
+          imgFile: null, secondaryImgFile: null,
+          colors: [], sizes: ['S', 'M', 'L'], mat: '', tag: ''
         });
         
-        setEditId(null); // Exit "edit mode"
-        
-        // Refresh your catalog immediately so the new/edited item shows up
+        setEditId(null); 
         fetchAllData(); 
         
         setTimeout(() => setStatus(''), 3000);
@@ -226,7 +216,6 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
         console.error("Backend Error:", errorData);
         setStatus(`Error: ${errorData.error || 'Failed to save'}`);
       }
-
     } catch (error) {
       console.error("Upload error:", error);
       setStatus('Server connection error.');
@@ -879,7 +868,8 @@ const handleDelete = (id, type = 'product') => {
                             {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
                               <div className="text-sm text-[#3E2F1C] bg-white p-4 rounded-lg border border-[#E8DFD3]">
                                 <p>{selectedOrder.shippingAddress.street}</p>
-                                <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}</p>
+                                {/* 👈 ADDED PROVINCE HERE */}
+                                <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.province}</p> 
                                 <p>{selectedOrder.shippingAddress.region}, {selectedOrder.shippingAddress.postalCode}</p>
                               </div>
                             ) : (

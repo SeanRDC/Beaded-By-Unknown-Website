@@ -59,6 +59,7 @@ function App() {
   const [qvId, setQvId] = useState(null);
   const [sgOpen, setSgOpen] = useState(false);
   const [selProd, setSelProd] = useState(P[0]);
+  const [activeImg, setActiveImg] = useState('');
   const [cart, setCart] = useState([]);
   const [wish, setWish] = useState([]);
   const [scrolled, setScrolled] = useState(false);
@@ -101,10 +102,77 @@ function App() {
   const [selectedCat, setSelectedCat] = useState('All');
   const [checkoutForm, setCheckoutForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', 
-    street: '', barangay: '', city: '', postalCode: ''
+    street: '', barangay: '', city: '', province: '', postalCode: ''
   });
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
+// 1. The State Variables
+  const [profileForm, setProfileForm] = useState({
+    firstName: '', lastName: '', phone: '', street: '', barangay: '', city: '', province: '', postalCode: '', region: 'Metro Manila'
+  });
+  const [isProfileSaved, setIsProfileSaved] = useState(true);
+
+  // 2. The Auto-Fill Logic (Runs when they log in)
+  useEffect(() => {
+    if (logged) {
+      setProfileForm({
+        firstName: logged.firstName || '',
+        lastName: logged.lastName || '',
+        phone: logged.phone || '',
+        street: logged.shippingAddress?.street || '',
+        barangay: logged.shippingAddress?.barangay || '',
+        city: logged.shippingAddress?.city || '',
+        province: logged.shippingAddress?.province || '',
+        postalCode: logged.shippingAddress?.postalCode || '',
+        region: logged.shippingAddress?.region || 'Metro Manila'
+      });
+      setIsProfileSaved(true); 
+    }
+  }, [logged]);
+
+  // 3. The Typing Handler (Updates state AND unlocks the button)
+  const handleProfileChange = (field, value) => {
+    setProfileForm(prev => ({ ...prev, [field]: value }));
+    setIsProfileSaved(false); // The moment they type, the button unlocks!
+  };
+
+  // 👈 NEW: This function updates the form AND unlocks the save button
+const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('beaded_token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:4242/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          firstName: profileForm.firstName,
+          lastName: profileForm.lastName,
+          phone: profileForm.phone, // 👈 Added phone
+          shippingAddress: {
+            street: profileForm.street,
+            barangay: profileForm.barangay,
+            city: profileForm.city,
+            province: profileForm.province, // 👈 THE FIX! Province is now sent to the backend
+            postalCode: profileForm.postalCode,
+            region: profileForm.region
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setLogged(data.user); 
+        setIsProfileSaved(true); // 👈 Locks the button back to "Saved"
+        flash('Settings saved successfully!', 'success');
+      } else {
+        flash('Failed to save settings.', 'error');
+      }
+    } catch (err) {
+      flash('Server connection error.', 'error');
+    }
+  };
 
   // Catch PayMongo Redirects
   useEffect(() => {
@@ -267,7 +335,10 @@ function App() {
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
   const go = useCallback((p, data) => { 
     setPg(p); 
-    if (p === 'product' && data) setSelProd(data); 
+    if (p === 'product' && data) {
+      setSelProd(data); 
+      setActiveImg(data.img); // 👈 NEW: Resets to primary image when opening a product
+    }
     if (p === 'blog-post' && data) setSelBlog(data);
     setMenuOpen(false); 
     window.scrollTo({top: 0, behavior: 'smooth'}); 
@@ -1069,33 +1140,67 @@ function App() {
         {/* PRODUCT DETAIL */}
         {pg === 'product' && (() => {
           const p = selProd;
+          
+          // Bulletproof size parsing to fix any selection/mapping issues!
+          const productSizes = Array.isArray(p.sizes) && p.sizes.length > 0 
+            ? p.sizes 
+            : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : ['S', 'M', 'L']);
+            
           return (
             <div className="max-w-[1200px] mx-auto px-0 md:px-8 pt-0 md:pt-8 pb-8 md:pb-20">
               <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><button onClick={() => go('collection')} className="hover:text-[#A0522D]">Shop</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">{p.name}</span></div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-16">
+                
+                {/* --- IMAGE GALLERY SECTION --- */}
                 <div>
-                  <div className="aspect-square md:rounded-xl overflow-hidden bg-[#F0EBE4]"><img src={p.img} alt={p.name} className="w-full h-full object-cover" /></div>
-                  <div className="hidden md:grid grid-cols-4 gap-3 mt-4">{[p.img, p.img2, p.img, p.img2].map((im, i) => <div key={i} className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-[#A0522D] cursor-pointer"><img src={im} alt="" className="w-full h-full object-cover" /></div>)}</div>
+                  {/* MAIN LARGE IMAGE */}
+                  <div className="aspect-square md:rounded-xl overflow-hidden bg-[#F0EBE4]">
+                    <img 
+                      src={activeImg || p.img} // 👈 Displays the clicked image, defaults to primary
+                      alt={p.name} 
+                      className="w-full h-full object-cover transition-opacity duration-300" 
+                    />
+                  </div>
+                  
+                  {/* THUMBNAIL SELECTORS */}
+                  {/* Removed 'hidden' so mobile users can select images too! */}
+                  <div className="grid grid-cols-4 gap-3 mt-3 md:mt-4 px-5 md:px-0">
+                    {[p.img, p.img2].filter(Boolean).map((im, i) => (
+                      <div 
+                        key={i} 
+                        onClick={() => setActiveImg(im)} // 👈 Changes the main image on click
+                        className={`aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+                          (activeImg || p.img) === im 
+                            ? 'border-[#A0522D] opacity-100' // Highlighted state
+                            : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#E8DFD3]' // Inactive state
+                        }`}
+                      >
+                        <img src={im} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 
-                <div className="px-5 py-5 md:px-0 md:py-4">
+                {/* --- PRODUCT INFO SECTION --- */}
+                <div className="px-5 py-5 md:px-0 md:py-4 mt-2 md:mt-0">
                   {p.tag && <span className="text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] text-[#A0522D] uppercase font-medium">{p.tag}</span>}
-                  <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
-                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4"><div className="flex gap-0.5">{stars(p.rating)}</div><span className="text-xs md:text-sm text-[#8B7D6B]">({p.reviews} reviews)</span></div>
-                  <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C]">₱{p.price}</span>
+                  <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
                   
-                  <div className="mb-5 md:mb-6">
-                    <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase mb-2 md:mb-3 font-semibold">Color</p>
-                    <div className="flex gap-3">{p.colors.map((c, i) => <button key={i} onClick={() => setSelColor(i)} className={`w-8 h-8 rounded-full border-2 transition-all ${selColor === i ? 'border-[#A0522D] scale-110' : 'border-[#E8DFD3]'}`} style={{ backgroundColor: c }} />)}</div>
-                  </div>
+                  <span className="text-[24px] md:text-[28px] font-bold text-[#3E2F1C] block mb-6 md:mb-8">₱{p.price}</span>
 
                   <div className="mb-5 md:mb-6">
                     <div className="flex items-center justify-between mb-2 md:mb-3">
                       <p className="text-[10px] md:text-xs tracking-[0.15em] uppercase font-semibold">Size</p>
                       <button onClick={() => go('sizeguide')} className="text-[10px] md:text-xs text-[#A0522D] underline">Size Guide</button>
                     </div>
-                    <div className="flex gap-2 md:gap-3">{p.sizes.map(s => <button key={s} onClick={() => setSelSz(s)} className={`w-11 h-11 md:w-12 md:h-12 text-sm font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] hover:bg-[#E8DFD3]'}`}>{s}</button>)}</div>
+                    <div className="flex flex-wrap gap-2 md:gap-3">
+                      {productSizes.map(s => (
+                        <button key={s} onClick={() => setSelSz(s)} className={`w-11 h-11 md:w-12 md:h-12 text-sm font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] hover:bg-[#E8DFD3]'}`}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="mb-6 md:mb-8">
@@ -1115,7 +1220,7 @@ function App() {
                     <button onClick={() => go('customizer')} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Palette className="w-4 h-4 md:w-5 md:h-5 text-[#3E2F1C]" /> <span className="hidden md:inline">Customize</span></button>
                   </div>
 
-                  {[{ k: 'description', t: 'Description', c: `Handcrafted ${p.mat} beads. Each bead selected for natural beauty.` }, { k: 'care', t: 'Materials & Care', c: `${p.mat}. Remove before swimming. Store in pouch.` }, { k: 'shipping', t: 'Shipping', c: 'Free over ₱50. Standard 5-7 days. 30-day returns.' }].map(s => (
+                  {[{ k: 'description', t: 'Description', c: `Handcrafted ${p.mat || 'quality'} beads. Each bead selected for natural beauty.` }, { k: 'care', t: 'Materials & Care', c: `${p.mat || 'Quality materials'}. Remove before swimming. Store in pouch.` }, { k: 'shipping', t: 'Shipping', c: 'Free over ₱500. Standard 7-14 days Pre-order.' }].map(s => (
                     <div key={s.k} className="border-t border-[#E8DFD3]">
                       <button onClick={() => setAcc(prev => prev === s.k ? '' : s.k)} className="w-full flex items-center justify-between py-3.5 md:py-4">
                         <span className="text-xs md:text-sm font-semibold tracking-wider uppercase">{s.t}</span>
@@ -1135,7 +1240,6 @@ function App() {
             </div>
           );
         })()}
-
 
 
         {/* CUSTOMIZER */}
@@ -1317,8 +1421,21 @@ function App() {
           </div>
         )}
         {/* CHECKOUT */}
-        {pg === 'checkout' && (
+{pg === 'checkout' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
+            
+            {/* 👈 THE NEW RETURN BUTTON */}
+            <button 
+              onClick={() => { 
+                go('collection'); // Send them back to the shop
+                setCartOpen(true); // Pop the cart open for them
+                setChkStep(1); // Reset checkout step just in case
+              }} 
+              className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 hover:text-[#A0522D] flex items-center gap-1 transition-colors font-medium uppercase tracking-widest"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Return to Cart
+            </button>
+
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E8DFD3]">
               <h2 className="text-[24px] md:text-[32px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Checkout</h2>
               <div className="hidden md:flex gap-4">
@@ -1359,8 +1476,10 @@ function App() {
                         <input required value={checkoutForm.street} onChange={(e) => setCheckoutForm({...checkoutForm, street: e.target.value})} placeholder="House/Unit No., Building, Street Name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         <input required value={checkoutForm.barangay} onChange={(e) => setCheckoutForm({...checkoutForm, barangay: e.target.value})} placeholder="Barangay / Village" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* City, Province, Postal */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <input required value={checkoutForm.city} onChange={(e) => setCheckoutForm({...checkoutForm, city: e.target.value})} placeholder="City/Municipality" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                          <input required value={checkoutForm.province} onChange={(e) => setCheckoutForm({...checkoutForm, province: e.target.value})} placeholder="Province" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                           <input required value={checkoutForm.postalCode} onChange={(e) => setCheckoutForm({...checkoutForm, postalCode: e.target.value})} placeholder="Postal Code" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
@@ -1441,7 +1560,7 @@ function App() {
                 )}
               </div>
 
-              {/* RIGHT COLUMN: ORDER SUMMARY */}
+{/* RIGHT COLUMN: ORDER SUMMARY */}
               <div className="md:col-span-2 order-1 md:order-2">
                 <div className="bg-[#FAF6F1] p-6 rounded-xl md:sticky md:top-32 border border-[#E8DFD3] md:border-none">
                   <h3 className="text-sm font-semibold tracking-wider uppercase mb-4 text-[#3E2F1C]">Order Summary</h3>
@@ -1469,10 +1588,15 @@ function App() {
                       <span>Subtotal</span>
                       <span>₱{cTotal || 0}</span>
                     </div>
-                    <div className="flex justify-between text-sm text-[#8B7D6B]">
+                    
+                    {/* 👈 UPDATED SHIPPING DISPLAY */}
+                    <div className="flex justify-between text-sm text-[#8B7D6B] items-center">
                       <span>Shipping ({shippingRegion})</span>
-                      <span>₱{currentShippingFee || 0}</span>
+                      <span className={currentShippingFee === 0 ? "text-[#7A8B6F] font-bold tracking-widest uppercase text-[10px] bg-[#F0EBE4] px-2 py-1 rounded" : ""}>
+                        {currentShippingFee === 0 ? 'FREE' : `₱${currentShippingFee}`}
+                      </span>
                     </div>
+                    
                     <div className="flex justify-between pt-2 mt-2 border-t border-[#E8DFD3] items-center">
                       <span className="font-semibold text-[#3E2F1C]">Total</span>
                       <span className="text-xl font-bold text-[#3E2F1C]">₱{finalTotal || 0}</span>
@@ -1643,11 +1767,83 @@ function App() {
                     )}
                   </div>
                 )}
+
+                {/* --- SETTINGS TAB --- */}
+                {acctTab === 'settings' && (
+                  <div className="animate-in fade-in duration-300 w-full max-w-2xl">
+                    <h3 className="text-xl font-semibold text-[#3E2F1C] mb-6 border-b border-[#F0EBE4] pb-4">Account Settings</h3>
+                    
+                    <form onSubmit={handleUpdateProfile} className="space-y-8">
+                      {/* Personal Information */}
+                      <div>
+                        <h4 className="text-sm font-bold uppercase tracking-widest text-[#8B7D6B] mb-4">Personal Information</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-xs text-[#8B7D6B]">First Name</label>
+                            <input required value={profileForm.firstName || ''} onChange={(e) => handleProfileChange('firstName', e.target.value)} className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-xs text-[#8B7D6B]">Last Name</label>
+                            <input required value={profileForm.lastName || ''} onChange={(e) => handleProfileChange('lastName', e.target.value)} className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                          
+                          <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-xs text-[#8B7D6B]">Mobile Number</label>
+                            <input required value={profileForm.phone || ''} onChange={(e) => handleProfileChange('phone', e.target.value)} placeholder="0917..." className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                          
+                          <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-xs text-[#8B7D6B]">Email Address</label>
+                            <input defaultValue={logged.email || ''} disabled className="w-full px-4 py-2.5 bg-[#E8DFD3] text-[#8B7D6B] border border-[#E8DFD3] rounded-lg outline-none text-sm cursor-not-allowed" />
+                            <p className="text-[10px] text-[#8B7D6B] mt-1">Email cannot be changed.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Default Shipping Address */}
+                      <div className="pt-6 border-t border-[#F0EBE4]">
+                        <h4 className="text-sm font-bold uppercase tracking-widest text-[#8B7D6B] mb-4">Default Shipping Address</h4>
+                        <p className="text-xs text-[#8B7D6B] mb-4">Save your address to breeze through checkout next time.</p>
+                        
+                        <div className="space-y-4">
+                          <input required value={profileForm.street || ''} onChange={(e) => handleProfileChange('street', e.target.value)} placeholder="Street, Building, House No." className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          <input required value={profileForm.barangay || ''} onChange={(e) => handleProfileChange('barangay', e.target.value)} placeholder="Barangay / Village" className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input required value={profileForm.city || ''} onChange={(e) => handleProfileChange('city', e.target.value)} placeholder="City" className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                            <input required value={profileForm.province || ''} onChange={(e) => handleProfileChange('province', e.target.value)} placeholder="Province" className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                            <input required value={profileForm.postalCode || ''} onChange={(e) => handleProfileChange('postalCode', e.target.value)} placeholder="Postal Code" className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          </div>
+                          
+                          <select value={profileForm.region || 'Metro Manila'} onChange={(e) => handleProfileChange('region', e.target.value)} className="w-full px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm cursor-pointer">
+                            <option value="Metro Manila">Metro Manila</option>
+                            <option value="Luzon">Luzon (Provincial)</option>
+                            <option value="Visayas">Visayas</option>
+                            <option value="Mindanao">Mindanao</option>
+                          </select>
+                        </div>
+                        
+                        <button 
+                          type="submit" 
+                          disabled={isProfileSaved}
+                          className={`mt-8 text-xs font-bold uppercase tracking-widest border-2 px-8 py-3.5 rounded-xl transition-all duration-300 w-full sm:w-auto ${
+                            isProfileSaved 
+                              ? 'bg-[#FAF6F1] border-[#E8DFD3] text-[#B0A395] cursor-not-allowed'
+                              : 'bg-[#3E2F1C] border-[#3E2F1C] text-white hover:bg-[#A0522D] hover:border-[#A0522D] shadow-md'
+                          }`}
+                        >
+                          {isProfileSaved ? 'Saved' : 'Save All Settings'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
                 
               </div>
             </div>
           </div>
         )}
+
 
         {/* LOGIN MODAL */}
 {loginOpen && (
@@ -1908,12 +2104,17 @@ function App() {
 
             {cart.length > 0 && (
               <div className="px-5 md:px-6 py-4 md:py-5 border-t border-[#E8DFD3]">
-                {cTotal < 50 && (
+                {cTotal < 500 && (
                   <div className="mb-3 md:mb-4">
-                    <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{50 - cTotal} away from free shipping!</p>
+                    <p className="text-[10px] md:text-xs text-[#8B7D6B] mb-1">₱{500 - cTotal} away from free shipping!</p>
                     <div className="bg-[#F0EBE4] rounded-full h-1.5">
-                      <div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 50) * 100}%` }} />
+                      <div className="bg-[#7A8B6F] h-full rounded-full" style={{ width: `${(cTotal / 500) * 100}%` }} />
                     </div>
+                  </div>
+                )}
+                {cTotal >= 500 && (
+                  <div className="mb-3 md:mb-4">
+                    <p className="text-[10px] md:text-xs text-[#7A8B6F] font-bold tracking-widest uppercase mb-1">✓ You unlocked free shipping!</p>
                   </div>
                 )}
                 <div className="flex justify-between mb-3 md:mb-4">
@@ -1925,14 +2126,23 @@ function App() {
                     setCartOpen(false); 
                     setChkStep(1); 
                     
-                    // Pre-fill the form to guarantee the emails match!
+                    // PRE-FILL FORM WITH SAVED DATA!
                     if (logged) {
                       setCheckoutForm(prev => ({
                         ...prev,
                         firstName: logged.firstName || '',
                         lastName: logged.lastName || '',
-                        email: logged.email || ''
+                        email: logged.email || '',
+                        phone: logged.phone || '',
+                        street: logged.shippingAddress?.street || '',
+                        barangay: logged.shippingAddress?.barangay || '',
+                        city: logged.shippingAddress?.city || '',
+                        province: logged.shippingAddress?.province || '',
+                        postalCode: logged.shippingAddress?.postalCode || ''
                       }));
+                      if (logged.shippingAddress?.region) {
+                         setShippingRegion(logged.shippingAddress.region);
+                      }
                     }
                     
                     go('checkout'); 

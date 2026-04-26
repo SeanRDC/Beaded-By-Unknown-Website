@@ -106,7 +106,18 @@ app.post('/api/google-login', async (req, res) => {
 app.get('/api/user/me', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);
-    res.json({ user: { firstName: user.firstName, email: user.email, points: user.points }, cart: user.cart, wishlist: user.wishlist });
+    res.json({ 
+      user: { 
+        firstName: user.firstName, 
+        lastName: user.lastName, 
+        email: user.email, 
+        phone: user.phone, // 👈 ADDED THIS
+        points: user.points,
+        shippingAddress: user.shippingAddress
+      }, 
+      cart: user.cart, 
+      wishlist: user.wishlist 
+    });
   } catch (error) {
     console.error("🔥 Fetch User Error:", error);
     res.status(500).json({ error: 'Failed to fetch user' });
@@ -121,6 +132,34 @@ app.post('/api/user/sync', verifyToken, async (req, res) => {
   } catch (error) {
     console.error("🔥 Sync Error:", error);
     res.status(500).json({ error: 'Sync failed' });
+  }
+});
+
+// --- UPDATE USER PROFILE & ADDRESS ---
+app.put('/api/user/profile', verifyToken, async (req, res) => {
+  try {
+    // 👈 Added phone to req.body
+    const { firstName, lastName, phone, shippingAddress } = req.body; 
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId, 
+      { firstName, lastName, phone, shippingAddress }, // 👈 Added phone here
+      { returnDocument: 'after' }
+    );
+
+    res.json({
+      user: {
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        points: updatedUser.points,
+        shippingAddress: updatedUser.shippingAddress
+      }
+    });
+  } catch (error) {
+    console.error("🔥 Profile Update Error:", error);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 
@@ -241,6 +280,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
               street: checkoutForm.street,
               barangay: checkoutForm.barangay,
               city: checkoutForm.city,
+              province: checkoutForm.province,
               region: shippingRegion,
               postal_code: checkoutForm.postalCode
             }
@@ -277,6 +317,7 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
           street: metadata.street || '',
           barangay: metadata.barangay || '',
           city: metadata.city || '',
+          province: metadata.province || '',
           region: metadata.region || '',
           postalCode: metadata.postal_code || ''
         },
@@ -398,60 +439,85 @@ app.post('/api/products', uploadFields, async (req, res) => {
 app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'secondaryImage', maxCount: 1 }]), async (req, res) => {
   try {
     const productId = req.params.id;
+    console.log(`Received request to update product ${productId}. Handling files...`);
 
-    // 1. First, fetch the existing product from the DB so we know what the old image URLs are.
+    // 1. First, fetch the existing product from the DB. This is crucial for retention.
     const existingProduct = await Product.findById(productId);
     if (!existingProduct) {
+      console.error(`Product ${productId} not found during update.`);
       return res.status(404).json({ status: "Bad", message: "Product not found" });
     }
 
-    // 2. Initialize our image URL variables with the EXISTING data.
+    // 2. Initialize our image URL variables with the EXISTING data as fallbacks.
     let primaryImageUrl = existingProduct.img;
-    let secondaryImageUrl = existingProduct.img2;
+    let secondaryImageUrl = existingProduct.img2; // (Using img2 matching Turn Turn 12 Product schema)
 
-    // 3. Handle Primary Image (img): Check if a NEW file was uploaded.
+    // 3. Handle NEW Primary Image ('image'): Check if a NEW file was uploaded.
     if (req.files && req.files.image && req.files.image[0]) {
-      console.log("New primary image detected. Uploading to Cloudinary...");
-      const result = await cloudinary.uploader.upload(req.files.image[0].path, {
-        folder: 'beaded_by_unknown',
-      });
-      // Update our variable with the NEW url
-      primaryImageUrl = result.secure_url; 
+      try {
+        console.log("New primary image detected. Uploading to Cloudinary...");
+        // Ensure path exists (Multer on Turn Turn 6 setup creates this)
+        if (!req.files.image[0].path) { throw new Error("Multer failed to provide primary file path.")}
+        
+        const result = await cloudinary.uploader.upload(req.files.image[0].path, {
+          folder: 'beaded_by_unknown', // Organize in folder
+        });
+        primaryImageUrl = result.secure_url; // Update our variable with the NEW url
+        console.log("Primary image upload success.");
+      } catch (cloudErr) {
+        console.error("Cloudinary Primary Upload Failed:", cloudErr);
+        // Fallback to old image URL if upload fails, or abort if desired
+        // For now, we continue with existingProduct.img
+      }
     } else {
-      console.log("No new primary image uploaded. Retaining existing image.");
+      console.log("No new primary image uploaded. Retaining existing image URL.");
     }
 
-    // 4. Handle Secondary Image (img2): Check if a NEW file was uploaded.
+    // 4. Handle NEW Secondary Image ('secondaryImage'): Check if a NEW file was uploaded.
     if (req.files && req.files.secondaryImage && req.files.secondaryImage[0]) {
-      console.log("New secondary image detected. Uploading to Cloudinary...");
-      const result2 = await cloudinary.uploader.upload(req.files.secondaryImage[0].path, {
-        folder: 'beaded_by_unknown',
-      });
-      // Update our variable with the NEW url
-      secondaryImageUrl = result2.secure_url;
+      try {
+        console.log("New secondary image detected. Uploading to Cloudinary...");
+        if (!req.files.secondaryImage[0].path) { throw new Error("Multer failed to provide secondary file path.")}
+
+        const result2 = await cloudinary.uploader.upload(req.files.secondaryImage[0].path, {
+          folder: 'beaded_by_unknown',
+        });
+        secondaryImageUrl = result2.secure_url; // Update our variable with the NEW url
+        console.log("Secondary image upload success.");
+      } catch (cloudErr2) {
+        console.error("Cloudinary Secondary Upload Failed:", cloudErr2);
+        // Fallback to old image URL if upload fails.
+      }
     } else {
-      console.log("No new secondary image uploaded. Retaining existing image.");
+      console.log("No new secondary image uploaded. Retaining existing secondary image URL.");
     }
 
-    // 5. Update the product in the database using the new text fields, 
-    //    and whichever image URLs we decided on above (new or retained old ones).
+    // 5. Update the product in the database using new text fields and whichever
+    //    image URLs we decided on above (new ones or retained old ones).
+    
+    // We update using findByIdAndUpdate and use the fix from Turn Turn 33 context to clear DeprecationWarnings.
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
       {
-        ...req.body, // spread other fields (name, price, cat, mat, tag, colours)
-        img: primaryImageUrl,
-        img2: secondaryImageUrl,
-        colors: req.body.colors ? req.body.colors.split(',') : [], // Handle string-to-array if sent that way
+        ...req.body, // spread other text fields
+        img: primaryImageUrl, // Must exist (ensured by fallback logic)
+        img2: secondaryImageUrl, // Use the fallback
+        // secure colors array processing (Fix from Turn Turn Turn 8 context)
+        colors: req.body.colors ? req.body.colors.split(',') : (existingProduct.colors || []), 
+        rating: req.body.rating || existingProduct.rating,
+        reviews: req.body.reviews || existingProduct.reviews
       },
-      { new: true } // Return the updated document
+      // returnDocument: 'after' ensures DeprecationWarnings Turn Turn Turn 32 context are gone.
+      { new: true, returnDocument: 'after', runValidators: true } 
     );
 
-    res.json(updatedProduct);
     console.log(`Product ${productId} updated successfully.`);
-    
+    res.json({ status: "OK", message: "Product updated successfully.", product: updatedProduct });
+
   } catch (err) {
-    console.error("Error during product update:", err);
-    res.status(500).json({ status: "Bad", message: "Update failed", error: err.message });
+    console.error("Error during product update (PUT route):", err);
+    // Generic catch-all for validation errors or connection issues.
+    res.status(500).json({ status: "Bad", message: "Product update failed on server.", error: err.message });
   }
 });
 
