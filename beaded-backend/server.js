@@ -124,6 +124,23 @@ app.post('/api/user/sync', verifyToken, async (req, res) => {
   }
 });
 
+// --- FETCH ORDERS FOR LOGGED-IN USER ---
+app.get('/api/user/orders', verifyToken, async (req, res) => {
+  try {
+    // 1. Find the user based on their secure token
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    // 2. Find all orders that match this user's email, sorted by newest first
+    const userOrders = await Order.find({ customerEmail: user.email }).sort({ createdAt: -1 });
+    
+    res.json(userOrders);
+  } catch (error) {
+    console.error("🔥 Fetch User Orders Error:", error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 // =====================================================================
 // 2.1 CATALOG & ADMIN ROUTES
 // =====================================================================
