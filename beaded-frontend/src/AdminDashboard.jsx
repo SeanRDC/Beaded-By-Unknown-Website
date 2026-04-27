@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
@@ -53,6 +53,15 @@ const [popup, setPopup] = useState({
   // Orders State
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [customOrders, setCustomOrders] = useState([]);
+
+  useEffect(() => {
+    // Fetch custom design submissions
+    fetch('http://localhost:4242/api/custom-orders')
+      .then(res => res.json())
+      .then(data => setCustomOrders(data))
+      .catch(err => console.error(err));
+  }, []);
 
 const closePopup = () => setPopup({ ...popup, isOpen: false });
 
@@ -407,12 +416,12 @@ const handleDelete = (id, type = 'product') => {
         } 
         setStatus(''); 
       }} 
-      className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 p-3 md:px-4 md:py-3 w-full md:rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${
+      className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 p-2 md:px-4 md:py-3 min-w-[72px] md:w-full md:rounded-lg text-[10px] md:text-sm font-medium transition-all duration-200 shrink-0 ${
         activeTab === id ? 'text-[#A0522D] md:bg-[#3E2F1C] md:text-white' : 'text-[#8B7D6B] hover:text-[#3E2F1C] md:hover:bg-[#E8DFD3]'
       }`}
     >
       <Icon className="w-5 h-5 md:w-4 md:h-4" />
-      <span className="hidden md:inline">{label}</span>
+      <span>{label}</span>
     </button>
   );
 
@@ -457,6 +466,7 @@ const handleDelete = (id, type = 'product') => {
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
       
+      {/* --- SIDEBAR DESKTOP NAVIGATION --- */}
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-[#E8DFD3] z-20 shrink-0">
         <div className="p-6 border-b border-[#E8DFD3]">
           <h1 className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -466,6 +476,7 @@ const handleDelete = (id, type = 'product') => {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
           <NavButton id="orders" icon={ShoppingBag} label="Orders" />
+          <NavButton id="custom" icon={Palette} label="Custom Orders" /> {/* 👈 ADDED DESKTOP TAB */}
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
           <NavButton id="journal" icon={BookOpen} label="Journal Editor" /> 
@@ -488,6 +499,8 @@ const handleDelete = (id, type = 'product') => {
             Hello, {adminName} ✨
             <span className="text-[#8B7D6B] text-sm ml-3 font-sans font-normal tracking-wide hidden lg:inline-block border-l border-[#E8DFD3] pl-3 cursor-default">
               {activeTab === 'overview' && 'Business Overview'}
+              {activeTab === 'orders' && 'Order Management'}
+              {activeTab === 'custom' && 'Custom Designs'} {/* 👈 Added Text Display */}
               {activeTab === 'inventory' && 'Catalog Management'}
               {activeTab === 'form' && (editId ? 'Edit Details' : 'Create New Product')}
               {activeTab === 'community' && 'Manage Reviews'}
@@ -578,8 +591,6 @@ const handleDelete = (id, type = 'product') => {
                           {/* Minimalist Grid System */}
                           <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
                           <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
-                          
-                          {/* Underglow path removed */}
 
                           {/* The Main Smooth Line (Thin & Fine) */}
                           <path
@@ -589,7 +600,6 @@ const handleDelete = (id, type = 'product') => {
                             strokeWidth="1.25" // VERY Thin, Lean line
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            // Filter/Glow removed
                           />
 
                           {/* Data Points (Smaller & Clean) */}
@@ -612,6 +622,94 @@ const handleDelete = (id, type = 'product') => {
                       <span className="text-[10px] text-[#B0A395] font-bold uppercase tracking-widest">7 Days Ago</span>
                       <span className="text-[10px] text-[#A0522D] font-bold uppercase tracking-widest">Today</span>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* --- CUSTOM ORDERS TAB --- */}
+              {activeTab === 'custom' && (
+                <div className="animate-in fade-in duration-500 w-full">
+                  <div className="flex justify-between items-center mb-8 border-b border-[#E8DFD3] pb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Custom Designs</h2>
+                      <p className="text-sm text-[#8B7D6B] mt-1">Pending designs submitted for studio review.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {customOrders.length === 0 ? (
+                      <div className="text-center py-16 bg-[#FAF6F1] rounded-2xl border border-[#E8DFD3]">
+                        <Palette className="w-12 h-12 text-[#D1C7B7] mx-auto mb-4" />
+                        <p className="text-[#8B7D6B] font-medium">No custom designs pending.</p>
+                      </div>
+                    ) : (
+                      customOrders.map(order => (
+                        <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6">
+                          
+                          {/* Info Column */}
+                          <div className="flex-1 space-y-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="text-lg font-bold text-[#3E2F1C]">{order.name}</h3>
+                                <p className="text-sm text-[#A0522D] font-medium flex items-center gap-1.5 mt-0.5">
+                                  <Mail className="w-4 h-4" /> {order.email}
+                                </p>
+                              </div>
+                              <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] uppercase tracking-widest font-bold rounded-full">
+                                {order.status}
+                              </span>
+                            </div>
+
+                            {/* Build Specs */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
+                                <p className="font-medium text-[#3E2F1C]">{order.wristSize}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Size</p>
+                                <p className="font-medium text-[#3E2F1C]">{order.beadSize}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">String</p>
+                                <p className="font-medium text-[#3E2F1C]">{order.string}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Value</p>
+                                <p className="font-medium text-[#3E2F1C]">₱{order.totalPrice}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Material Breakdown Column */}
+                          <div className="w-full md:w-72 bg-[#Fdfbf9] p-5 rounded-xl border border-[#E8DFD3]">
+                            <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3">Material Breakdown</p>
+                            
+                            <div className="space-y-2 mb-4">
+                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Charms ({order.charms?.length || 0})</p>
+                              <p className="text-sm text-[#5A4A3A]">{order.charms?.length > 0 ? order.charms.join(', ') : 'None'}</p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
+                              <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
+                                {order.beads && (() => {
+                                  // This perfectly counts and groups duplicates so you don't read a list of 20 identical lines!
+                                  const counts = order.beads.reduce((acc, b) => ({...acc, [b]: (acc[b] || 0) + 1}), {});
+                                  return Object.entries(counts).map(([bead, count]) => (
+                                    <div key={bead} className="flex justify-between py-0.5">
+                                      <span>{bead}</span>
+                                      <span className="font-medium text-[#8B7D6B]">x{count}</span>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -720,8 +818,6 @@ const handleDelete = (id, type = 'product') => {
                   </form>
                 </div>
               )}
-
-              
 
               {/* --- COMMUNITY LOVE TAB --- */}
               {activeTab === 'community' && (
@@ -982,7 +1078,6 @@ const handleDelete = (id, type = 'product') => {
                             {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
                               <div className="text-sm text-[#3E2F1C] bg-white p-4 rounded-lg border border-[#E8DFD3]">
                                 <p>{selectedOrder.shippingAddress.street}</p>
-                                {/* 👈 ADDED PROVINCE HERE */}
                                 <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.province}</p> 
                                 <p>{selectedOrder.shippingAddress.region}, {selectedOrder.shippingAddress.postalCode}</p>
                               </div>
@@ -1026,14 +1121,17 @@ const handleDelete = (id, type = 'product') => {
           </div>
         </main>
 
-        {/* MOBILE BOTTOM NAVIGATION */}
-        <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex justify-around p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-          <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
-          <NavButton id="inventory" icon={Package} label="Catalog" />
-          {/* Added the Journal Tab here */}
-          <NavButton id="journal" icon={BookOpen} label="Journal" /> 
-          <NavButton id="community" icon={MessageSquare} label="Reviews" />
-          <NavButton id="settings" icon={SettingsIcon} label="Settings" />
+        {/* 👈 NEW SCROLLABLE MOBILE BOTTOM NAVIGATION */}
+        <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex overflow-x-auto p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 scrollbar-hide">
+          <div className="flex w-full justify-start sm:justify-around gap-2 px-1">
+            <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
+            <NavButton id="orders" icon={ShoppingBag} label="Orders" />
+            <NavButton id="custom" icon={Palette} label="Custom" />
+            <NavButton id="inventory" icon={Package} label="Catalog" />
+            <NavButton id="journal" icon={BookOpen} label="Journal" /> 
+            <NavButton id="community" icon={MessageSquare} label="Reviews" />
+            <NavButton id="settings" icon={SettingsIcon} label="Settings" />
+          </div>
         </nav>
         
         {/* --- UNIVERSAL CUSTOM POP-UP (MODAL) --- */}
@@ -1067,8 +1165,8 @@ const handleDelete = (id, type = 'product') => {
                 }} 
                 className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-colors ${
                   popup.title.toLowerCase().includes('delete') 
-                    ? 'bg-red-600 hover:bg-red-700' // Make it red if it's a delete action
-                    : 'bg-[#3E2F1C] hover:bg-[#A0522D]' // Otherwise use your brand colors
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'bg-[#3E2F1C] hover:bg-[#A0522D]' 
                 }`}
               >
                 {popup.isConfirm ? 'Confirm' : 'Okay'}
@@ -1084,4 +1182,3 @@ const handleDelete = (id, type = 'product') => {
     </div>
   );
 }
-

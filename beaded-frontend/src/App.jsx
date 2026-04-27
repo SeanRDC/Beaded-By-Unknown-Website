@@ -31,24 +31,70 @@ const blogs = [
 */
 
 const beadOpts = [
-  { id: 'b1', name: 'Rose Quartz', color: '#D4A0A0', price: 3 }, { id: 'b2', name: 'Tiger Eye', color: '#A0522D', price: 3 },
-  { id: 'b3', name: 'Lapis Lazuli', color: '#1E3A5F', price: 4 }, { id: 'b4', name: 'Jade', color: '#7A8B6F', price: 4 },
-  { id: 'b5', name: 'Moonstone', color: '#E8DFD3', price: 5 }, { id: 'b6', name: 'Onyx', color: '#2C2C2C', price: 3 },
-  { id: 'b7', name: 'Sunstone', color: '#C9A96E', price: 4 }, { id: 'b8', name: 'Amethyst', color: '#7B5EA7', price: 4 },
+  { id: 'b1', name: 'Pink', color: '#D4A0A0', price: 3 }, 
+  { id: 'b2', name: 'Brown', color: '#A0522D', price: 3 },
+  { id: 'b3', name: 'Navy Blue', color: '#1E3A5F', price: 3 }, 
+  { id: 'b4', name: 'Olive Green', color: '#7A8B6F', price: 3 },
+  { id: 'b5', name: 'Cream', color: '#E8DFD3', price: 3 }, 
+  { id: 'b6', name: 'Black', color: '#2C2C2C', price: 3 },
+  { id: 'b7', name: 'Gold', color: '#C9A96E', price: 3 }, 
+  { id: 'b8', name: 'Purple', color: '#7B5EA7', price: 3 },
 ];
 
 const strOpts = [
-  { id: 's1', name: 'Natural Cotton', color: '#E8DFD3', price: 0 }, { id: 's2', name: 'Brown Leather', color: '#6B4423', price: 2 },
-  { id: 's3', name: 'Black Silk', color: '#1a1a1a', price: 3 }, { id: 's4', name: 'Gold Thread', color: '#C9A96E', price: 4 },
+  { id: 's1', name: 'Stretchable Nylon', color: '#E8DFD3', price: 8, desc: 'Durable elastic core. Easy to slip on and off daily.' }, 
+  { id: 's2', name: 'Nylon String with Lock', color: '#B0A395', price: 6, desc: 'Non-stretch string secured with a premium metal clasp.' }
 ];
 
 const charmOpts = [
-  { id: 'c1', name: 'Leaf', em: '🍃', price: 5 }, { id: 'c2', name: 'Star', em: '⭐', price: 5 },
-  { id: 'c3', name: 'Heart', em: '💛', price: 5 }, { id: 'c4', name: 'Moon', em: '🌙', price: 6 },
-  { id: 'c5', name: 'Initial', em: 'A', price: 7 }, { id: 'c6', name: 'Feather', em: '🪶', price: 5 },
+  // Cats (Image 1)
+  { id: 'c1', name: 'Black Cat', em: '🐈‍⬛', price: 10 },
+  { id: 'c2', name: 'Pink Cat', em: '🐱', price: 10 },
+  { id: 'c3', name: 'Teal Cat', em: '😸', price: 10 },
+
+  // Black & Gold Theme (Image 2)
+  { id: 'c4', name: 'Black Whale Tail', em: '🐋', price: 10 },
+  { id: 'c5', name: 'Open Heart', em: '♡', price: 10 },
+  { id: 'c6', name: 'Vintage Key', em: '🗝️', price: 10 },
+  { id: 'c7', name: 'Black Flower', em: '✿', price: 10 },
+  { id: 'c8', name: 'Crescent Moon', em: '🌙', price: 10 },
+  { id: 'c9', name: 'Solid Heart', em: '🖤', price: 10 },
+
+  // Pink & Gold Theme (Image 3)
+  { id: 'c10', name: 'Pink Flower', em: '🌸', price: 10 },
+  { id: 'c11', name: 'Starfish', em: '⭐', price: 10 },
+  { id: 'c12', name: 'Pink Whale', em: '🐳', price: 10 },
+  { id: 'c13', name: 'Peach', em: '🍑', price: 10 },
+  { id: 'c14', name: 'Smiley Face', em: '😊', price: 10 },
+  { id: 'c15', name: 'Flamingo', em: '🦩', price: 10 },
+  { id: 'c16', name: 'Hand Fan', em: '🪭', price: 10 },
+  { id: 'c17', name: 'Rose', em: '🌹', price: 10 },
+
+  // Teal Theme (Image 4)
+  { id: 'c18', name: 'Teal Butterfly', em: '🦋', price: 10 },
+  { id: 'c19', name: 'Teal Whale Tail', em: '🌊', price: 10 },
+
+  // Green Theme (Image 5)
+  { id: 'c20', name: 'Wine Glass', em: '🍷', price: 10 },
+  { id: 'c21', name: 'Green Mermaid', em: '🧜‍♀️', price: 5 },
+  { id: 'c22', name: 'Cactus', em: '🌵', price: 10 },
+  { id: 'c23', name: 'Green Leaf', em: '🍃', price: 10 },
+
+  // Bronze & Miscellaneous (Images 6 & 7)
+  { id: 'c24', name: 'Fish Bone', em: '🐟', price: 10 },
+  { id: 'c25', name: 'Strawberry', em: '🍓', price: 10 },
+  { id: 'c26', name: 'Lucky Bunny', em: '🐰', price: 10 },
+  { id: 'c27', name: 'Lightning Bolt', em: '⚡', price: 10 },
+  { id: 'c28', name: 'Palm Tree', em: '🌴', price: 10 },
+
+  // Colorful (Image 8)
+  { id: 'c29', name: 'Rainbow', em: '🌈', price: 10 },
+  { id: 'c30', name: 'Happy Cloud', em: '☁️', price: 10 },
+  { id: 'c31', name: 'Rainbow Flower', em: '🌻', price: 10 }
 ];
 
 function App() {
+  const [cEmail, setCEmail] = useState('');
   const [pg, setPg] = useState('home');
   const [P, setP] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -106,6 +152,7 @@ function App() {
   });
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
+  const [sBeadSize, setSBeadSize] = useState('4mm');
 // 1. The State Variables
   const [profileForm, setProfileForm] = useState({
     firstName: '', lastName: '', phone: '', street: '', barangay: '', city: '', province: '', postalCode: '', region: 'Metro Manila'
@@ -283,6 +330,7 @@ const handleUpdateProfile = async (e) => {
       .then(data => {
         if (!data.error) {
           setLogged(data.user);
+          setCEmail(data.user.email);
           setCart(data.cart || []);
           setWish(data.wishlist || []);
         } else {
@@ -1312,146 +1360,443 @@ const handleUpdateProfile = async (e) => {
         })()}
 
 
-        {/* CUSTOMIZER */}
-        {pg === 'customizer' && (
-          <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
-            {/* Desktop Progress Bar */}
-            <div className="hidden md:flex items-center gap-0 mb-10">{['Choose Beads','Pick String','Add Charms','Review'].map((s, i) => (
-              <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[#A0522D]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 3 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />}</div>
-            ))}</div>
-            
-            {/* Mobile Progress Bar */}
-            <div className="md:hidden flex gap-1 mb-6">
-              {['Beads', 'String', 'Charms', 'Review'].map((s, i) => (
-                <div key={i} className="flex-1">
-                  <div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />
-                  <p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[#A0522D] font-medium' : 'text-[#B0A395]'}`}>{s}</p>
-                </div>
-              ))}
-            </div>
+{/* CUSTOMIZER */}
+        {pg === 'customizer' && (() => {
+          // 🧮 Dynamic Scaling Logic
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+          const baseRadius = isMobile ? 96 : 128;
+          const sizeMult = selSz === 'S' ? 0.85 : selSz === 'L' ? 1.15 : 1;
+          const radius = baseRadius * sizeMult;
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-12">
-              {/* LEFT COLUMN: Visual Preview Card */}
-              <div className="md:col-span-2 order-1 md:order-none">
-                <div className="md:sticky md:top-32">
-                  <div className="aspect-square rounded-2xl bg-white border border-[#E8DFD3] flex items-center justify-center p-6 md:p-8 shadow-sm relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[#FAF6F1] opacity-50 pointer-events-none"></div>
-                    
-                    {/* 1. THE STRING */}
-                    <div 
-                      className="w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center relative shadow-inner bg-[#FDFBF9] transition-colors duration-500"
-                      style={{ 
-                        borderWidth: sBeads.length > 0 ? '4px' : '3px',
-                        borderStyle: sBeads.length > 0 ? 'solid' : 'dashed',
-                        borderColor: sBeads.length > 0 ? (sStr?.color || '#E8DFD3') : '#D4C4A8' 
-                      }}
-                    >
-                      {sBeads.length === 0 && (
-                        <div className="text-center p-4">
-                          <Gem className="w-6 h-6 text-[#D4C4A8] mx-auto mb-2" />
-                          <p className="text-[11px] md:text-sm text-[#B0A395] tracking-wide uppercase font-medium">Empty Canvas</p>
-                        </div>
-                      )}
+          // 🧠 Smart Fit Algorithm
+          const getIdealCount = () => {
+            // Baseline needs based on wrist size
+            let base = selSz === 'S' ? 16 : selSz === 'M' ? 18 : 20;
+            // Adjust based on bead thickness
+            if (sBeadSize === '5mm') base -= 1;
+            if (sBeadSize === '2mm') base += 1;
+            // Clamp strictly to your 15-20 bead limits
+            return Math.max(15, Math.min(20, base)); 
+          };
+          const idealCount = getIdealCount();
+          const beadDiff = idealCount - sBeads.length;
+
+          return (
+            <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
+              {/* Desktop Progress Bar */}
+              <div className="hidden md:flex items-center gap-0 mb-10">{['Choose Beads','Pick String','Bead Size','Add Charm','Wrist Size','Review'].map((s, i) => (
+                <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[#A0522D]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 5 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />}</div>
+              ))}</div>
+              
+              {/* Mobile Progress Bar */}
+              <div className="md:hidden flex gap-1 mb-6">
+                {['Beads', 'String', 'Size', 'Charm', 'Wrist', 'Review'].map((s, i) => (
+                  <div key={i} className="flex-1">
+                    <div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />
+                    <p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[#A0522D] font-medium' : 'text-[#B0A395]'}`}>{s}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-12">
+                {/* LEFT COLUMN: Visual Preview Card */}
+                <div className="md:col-span-2 order-1 md:order-none">
+                  <div className="md:sticky md:top-32">
+                    <div className="aspect-square rounded-2xl bg-white border border-[#E8DFD3] flex items-center justify-center p-6 md:p-8 shadow-sm relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[#FAF6F1] opacity-50 pointer-events-none"></div>
                       
-                      {/* 2. THE BEADS */}
-                      {sBeads.map((b, i) => { 
-                        const isMobile = window.innerWidth < 768;
-                        const radius = isMobile ? 96 : 128; 
-                        const offset = isMobile ? 12 : 14;  
-                        const size = isMobile ? 'w-6 h-6' : 'w-7 h-7';
-                        const angle = (i / Math.max(sBeads.length, 1)) * Math.PI * 2 - Math.PI / 2; 
-                        
-                        return (
-                          <div 
-                            key={i} 
-                            className={`absolute ${size} rounded-full shadow-md border border-white/60 transition-all duration-500 hover:scale-125 z-10`} 
-                            style={{ 
-                              backgroundColor: b.color, 
-                              left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
-                              top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` 
-                            }} 
-                          />
-                        ); 
-                      })}
-
-                      {/* 3. THE CHARMS */}
-                      {sCharms.map((c, i) => {
-                        const isMobile = window.innerWidth < 768;
-                        const radius = isMobile ? 96 : 128;
-                        const offset = isMobile ? 16 : 20;
-                        
-                        let angle = Math.PI / 2; 
-                        if (sCharms.length === 2) angle = i === 0 ? Math.PI / 3 : (2 * Math.PI) / 3;
-                        if (sCharms.length === 3) angle = i === 0 ? Math.PI / 4 : i === 1 ? Math.PI / 2 : (3 * Math.PI) / 4;
-
-                        return (
-                          <div 
-                            key={`charm-${c.id}`}
-                            className="absolute text-2xl md:text-3xl filter drop-shadow-md z-20 transition-all duration-500 hover:scale-125 hover:rotate-12"
-                            style={{
-                              left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
-                              top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px + 15px)` 
-                            }}
-                          >
-                            {c.em}
+                      {/* 1. THE STRING (Dynamically scales width/height based on wrist size!) */}
+                      <div 
+                        className="rounded-full flex items-center justify-center relative shadow-inner bg-[#FDFBF9] transition-all duration-500"
+                        style={{ 
+                          width: radius * 2,
+                          height: radius * 2,
+                          borderWidth: sBeads.length > 0 ? '4px' : '3px',
+                          borderStyle: sBeads.length > 0 ? 'solid' : 'dashed',
+                          borderColor: sBeads.length > 0 ? (sStr?.color || '#E8DFD3') : '#D4C4A8' 
+                        }}
+                      >
+                        {sBeads.length === 0 && (
+                          <div className="text-center p-4">
+                            <Gem className="w-6 h-6 text-[#D4C4A8] mx-auto mb-2" />
+                            <p className="text-[11px] md:text-sm text-[#B0A395] tracking-wide uppercase font-medium">Empty Canvas</p>
                           </div>
-                        );
-                      })}
+                        )}
+                        
+                        {/* 2. THE BEADS */}
+                        {sBeads.map((b, i) => { 
+                          let beadPx = 24; 
+                          if (sBeadSize === '2mm') beadPx = isMobile ? 12 : 14;
+                          if (sBeadSize === '4mm') beadPx = isMobile ? 20 : 24;
+                          if (sBeadSize === '5mm') beadPx = isMobile ? 28 : 32;
+                          
+                          const offset = beadPx / 2;
+                          const totalSlots = sBeads.length + (sCharms.length > 0 ? 1 : 0);
+                          const charmSlot = Math.floor(totalSlots / 2);
+                          const slotIndex = (sCharms.length > 0 && i >= charmSlot) ? i + 1 : i;
+                          const angle = (slotIndex / Math.max(totalSlots, 1)) * Math.PI * 2 - Math.PI / 2; 
+                          
+                          return (
+                            <div 
+                              key={i} 
+                              className={`absolute rounded-full shadow-md border border-white/60 transition-all duration-500 hover:scale-125 z-10`} 
+                              style={{ 
+                                width: beadPx,
+                                height: beadPx,
+                                backgroundColor: b.color, 
+                                left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
+                                top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` 
+                              }} 
+                            />
+                          ); 
+                        })}
+
+                        {/* 3. THE CENTER CHARM */}
+                        {sCharms.map((c) => {
+                          const charmPx = isMobile ? 32 : 40;
+                          const offset = charmPx / 2;
+                          const totalSlots = sBeads.length + 1;
+                          const charmSlot = Math.floor(totalSlots / 2);
+                          const angle = (charmSlot / totalSlots) * Math.PI * 2 - Math.PI / 2;
+
+                          return (
+                            <div 
+                              key={`charm-${c.id}`}
+                              className="absolute text-2xl md:text-3xl filter drop-shadow-md z-20 transition-all duration-500 hover:scale-125 hover:rotate-12 flex items-center justify-center"
+                              style={{
+                                width: charmPx,
+                                height: charmPx,
+                                left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
+                                top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px + 12px)`
+                              }}
+                            >
+                              {c.em}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Real Time Receipt */}
-                  <div className="mt-4 md:mt-6 p-4 md:p-6 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm tracking-widest uppercase font-bold text-[#8B7D6B]">Live Total</span>
-                      <span className="text-2xl font-bold text-[#3E2F1C]">₱{custT}</span>
-                    </div>
-                    <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3">
-                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Base Setting</span><span>₱600</span></div>
-                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sBeads.length} Beads</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
-                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>String ({sStr?.name || 'None'})</span><span>₱{sStr?.price || 0}</span></div>
-                      <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sCharms.length} Charms</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
+                    
+                    {/* Real Time Receipt */}
+                    <div className="mt-4 md:mt-6 p-4 md:p-6 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm tracking-widest uppercase font-bold text-[#8B7D6B]">Live Total</span>
+                        <span className="text-2xl font-bold text-[#3E2F1C]">₱{custT}</span>
+                      </div>
+                      <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3">
+                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Base Setting</span><span>₱600</span></div>
+                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sBeads.length} Beads ({sBeadSize})</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
+                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>String ({sStr?.name || 'None'})</span><span>₱{sStr?.price || 0}</span></div>
+                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Charm ({sCharms[0]?.name || 'None'})</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="md:col-span-3 order-2 md:order-none">
-                {cStep === 1 && <div>
-                  <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Beads</h2>
-                  <p className="text-xs md:text-sm text-[#8B7D6B] mb-4 md:mb-6">{sBeads.length}/12 selected</p>
-                  <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    {beadOpts.map(b => <button key={b.id} onClick={() => { if (sBeads.length < 12) setSBeads(prev => [...prev, b]); }} className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border border-[#E8DFD3] hover:border-[#A0522D] transition-colors text-left"><div className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm" style={{ backgroundColor: b.color }} /><div className="flex-1"><p className="text-xs md:text-sm font-medium">{b.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{b.price}</p></div><Plus className="hidden md:block w-4 h-4 text-[#A0522D]" /></button>)}
+                <div className="md:col-span-3 order-2 md:order-none">
+                  {/* STEP 1: BEADS */}
+                  {cStep === 1 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Beads</h2>
+                    <p className="text-xs md:text-sm text-[#8B7D6B] mb-4 md:mb-6">
+                      {sBeads.length}/20 selected <span className="font-semibold">(Min 15)</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 md:gap-3">
+                      {beadOpts.map(b => (
+                        <button 
+                          key={b.id} 
+                          onClick={() => { if (sBeads.length < 20) setSBeads(prev => [...prev, b]); }} 
+                          className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border border-[#E8DFD3] hover:border-[#A0522D] transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm border border-black/5" style={{ backgroundColor: b.color }} />
+                          <div className="flex-1">
+                            <p className="text-xs md:text-sm font-medium">{b.name}</p>
+                            <p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{b.price}</p>
+                          </div>
+                          <Plus className="hidden md:block w-4 h-4 text-[#A0522D]" />
+                        </button>
+                      ))}
+                    </div>
+                    {sBeads.length > 0 && (
+                      <div className="mt-4 md:mt-6 flex flex-wrap gap-1.5 md:gap-2 p-0 md:p-4 md:bg-[#F0EBE4] rounded-lg">
+                        {sBeads.map((b, i) => (
+                          <button 
+                            key={i} 
+                            onClick={() => setSBeads(prev => prev.filter((_, idx) => idx !== i))} 
+                            className="flex items-center gap-1 md:gap-1.5 px-0 md:px-3 py-0 md:py-1.5 rounded-full text-xs group hover:bg-[#B85C5C] md:hover:text-white transition-colors"
+                          >
+                            <div className="w-6 h-6 md:w-3 md:h-3 rounded-full border-2 border-white md:border-0" style={{ backgroundColor: b.color }} />
+                            <span className="hidden md:inline">{b.name}</span>
+                            <X className="hidden md:inline w-3 h-3 opacity-50 group-hover:opacity-100" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>}
+                  
+                  {/* STEP 2: STRING */}
+                  {cStep === 2 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Pick String</h2>
+                    <div className="flex flex-col gap-3 md:gap-4">
+                      {strOpts.map(s => (
+                        <button 
+                          key={s.id} 
+                          onClick={() => setSStr(s)} 
+                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left group ${sStr?.id === s.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                        >
+                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors ${sStr?.id === s.id ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4] text-[#8B7D6B] group-hover:bg-[#E8DFD3]'}`}>
+                            {s.id === 's1' ? <Layers className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-[#3E2F1C]">{s.name}</p>
+                            <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5 leading-relaxed">{s.desc}</p>
+                          </div>
+                          <div className="text-right flex flex-col items-end">
+                            <p className="text-[11px] md:text-xs font-bold text-[#A0522D]">{s.price === 0 ? 'Included' : `+₱${s.price}`}</p>
+                            {sStr?.id === s.id && <Check className="w-5 h-5 text-[#A0522D] mt-1" />}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>}
+
+                  {/* STEP 3: BEAD SIZE */}
+                  {cStep === 3 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Bead Size</h2>
+                    
+                    <div className="flex flex-col gap-3 md:gap-4 mb-8">
+                      {[
+                        { id: 'sz2', name: '2mm', desc: 'Dainty, subtle, and minimalist.', px: 8 },
+                        { id: 'sz4', name: '4mm', desc: 'Standard classic everyday fit.', px: 16 },
+                        { id: 'sz5', name: '5mm', desc: 'Bold, prominent, and chunky.', px: 20 }
+                      ].map(sz => (
+                        <button
+                          key={sz.id}
+                          onClick={() => setSBeadSize(sz.name)}
+                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left ${sBeadSize === sz.name ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                        >
+                          <div className="w-12 h-12 flex items-center justify-center bg-white border border-[#E8DFD3] rounded-full shadow-sm shrink-0">
+                             <div className="rounded-full bg-[#3E2F1C] transition-all duration-300" style={{ width: sz.px, height: sz.px }} />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-[#3E2F1C]">{sz.name}</p>
+                            <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5">{sz.desc}</p>
+                          </div>
+                          {sBeadSize === sz.name && <Check className="w-5 h-5 text-[#A0522D]" />}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Visual 1 Peso Coin Reference Box */}
+                    <div className="bg-white border border-[#E8DFD3] rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-6">Actual Size Reference</p>
+                      <div className="flex items-end justify-center gap-8 h-24">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="rounded-full bg-gradient-to-br from-[#E8DFD3] to-[#D1CBC3] border-4 border-[#B0A395] flex items-center justify-center shadow-[inset_0_4px_4px_rgba(0,0,0,0.05)] drop-shadow-md" style={{ width: 92, height: 92 }}>
+                             <span className="text-[#8B7D6B] font-bold text-xl tracking-widest">1₱</span>
+                          </div>
+                          <span className="text-[10px] uppercase tracking-widest text-[#8B7D6B] font-bold">23mm</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="rounded-full bg-[#A0522D] shadow-md transition-all duration-500 flex-shrink-0" style={{
+                            width: sBeadSize === '2mm' ? 8 : sBeadSize === '4mm' ? 16 : 20,
+                            height: sBeadSize === '2mm' ? 8 : sBeadSize === '4mm' ? 16 : 20,
+                            marginBottom: sBeadSize === '2mm' ? 42 : sBeadSize === '4mm' ? 38 : 36 
+                          }} />
+                          <span className="text-[10px] uppercase tracking-widest text-[#A0522D] font-bold">{sBeadSize}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                  
+                  {/* STEP 4: CHARM */}
+                  {cStep === 4 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Charm</h2>
+                    <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center charm</p>
+                    
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-1 md:pr-2 scrollbar-hide">
+                      {charmOpts.map(c => (
+                        <button 
+                          key={c.id} 
+                          onClick={() => setSCharms(prev => prev.find(x => x.id === c.id) ? [] : [c])} 
+                          className={`flex flex-col items-center justify-center gap-1 md:gap-2 p-3 rounded-xl border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                        >
+                          <span className="text-2xl md:text-3xl mb-1">{c.em}</span>
+                          <p className="text-[10px] md:text-xs font-bold text-[#3E2F1C] text-center leading-tight">{c.name}</p>
+                          <p className="text-[9px] md:text-[10px] text-[#8B7D6B]">+₱{c.price}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>}
+
+                  {/* STEP 5: WRIST SIZE & SMART SUGGESTIONS */}
+                  {cStep === 5 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Wrist Size</h2>
+                    <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Select your perfect fit.</p>
+                    
+                    <div className="flex flex-col gap-3 md:gap-4 mb-4">
+                      {[
+                        { id: 'S', name: 'Small (S)', desc: '5.5" - 6.0" snug fit for petite wrists.' },
+                        { id: 'M', name: 'Medium (M)', desc: '6.5" - 7.0" standard fit (Most Popular).' },
+                        { id: 'L', name: 'Large (L)', desc: '7.5" - 8.0" loose, relaxed fit.' }
+                      ].map(ws => (
+                        <button
+                          key={ws.id}
+                          onClick={() => setSelSz(ws.id)} 
+                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left ${selSz === ws.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                        >
+                          <div className={`w-12 h-12 flex items-center justify-center rounded-full shrink-0 font-bold transition-colors ${selSz === ws.id ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4] text-[#3E2F1C]'}`}>
+                             {ws.id}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-[#3E2F1C]">{ws.name}</p>
+                            <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5">{ws.desc}</p>
+                          </div>
+                          {selSz === ws.id && <Check className="w-5 h-5 text-[#A0522D]" />}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <button onClick={() => go('sizeguide')} className="text-xs text-[#A0522D] underline font-medium mb-8 block">Need help measuring?</button>
+
+                    {/* 🧠 SMART FIT SUGGESTION BOX */}
+                    <div className={`p-5 rounded-2xl border transition-all duration-500 ${beadDiff === 0 ? 'bg-[#F2F7F4] border-[#7A8B6F]/30' : 'bg-[#FAF6F1] border-[#A0522D]/30 shadow-sm'}`}>
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className={`p-2 rounded-full shrink-0 ${beadDiff === 0 ? 'bg-[#7A8B6F]/10 text-[#7A8B6F]' : 'bg-[#A0522D]/10 text-[#A0522D]'}`}>
+                          {beadDiff === 0 ? <Check className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className={`font-bold text-sm mb-1 ${beadDiff === 0 ? 'text-[#7A8B6F]' : 'text-[#3E2F1C]'}`}>
+                            {beadDiff === 0 ? 'Perfect Fit!' : 'Smart Fit Suggestion'}
+                          </h4>
+                          <p className={`text-xs leading-relaxed ${beadDiff === 0 ? 'text-[#7A8B6F]/80' : 'text-[#8B7D6B]'}`}>
+                            {beadDiff === 0 
+                              ? `Your current design of ${sBeads.length} beads is perfectly scaled for a Size ${selSz} wrist. No gaps!`
+                              : beadDiff > 0 
+                                ? `To prevent string gaps on a Size ${selSz} wrist, we highly recommend adding ${beadDiff} more beads to your design.`
+                                : `To prevent your bracelet from being too tight on a Size ${selSz} wrist, we recommend removing ${Math.abs(beadDiff)} beads.`
+                            }
+                          </p>
+                          
+                          {beadDiff !== 0 && (
+                            <button 
+                              onClick={() => {
+                                if (beadDiff > 0) {
+                                  // Adds beads by repeating the very last bead they selected
+                                  const lastBead = sBeads[sBeads.length - 1] || beadOpts[0];
+                                  const newBeads = Array(beadDiff).fill(lastBead);
+                                  setSBeads([...sBeads, ...newBeads]);
+                                  flash(`Added ${beadDiff} beads for a perfect fit!`, 'success');
+                                } else {
+                                  // Trims the excess beads
+                                  setSBeads(sBeads.slice(0, idealCount));
+                                  flash(`Removed ${Math.abs(beadDiff)} beads for a perfect fit!`, 'info');
+                                }
+                              }}
+                              className="mt-4 text-[10px] md:text-xs font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-5 py-3 rounded-xl hover:bg-[#A0522D] transition-colors shadow-md flex items-center justify-center gap-2 w-full md:w-auto"
+                            >
+                              {beadDiff > 0 
+                                ? `Auto-Fill Beads (+₱${beadDiff * (sBeads[sBeads.length - 1]?.price || 3)})` 
+                                : `Auto-Remove Beads (-₱${Math.abs(beadDiff) * (sBeads[sBeads.length - 1]?.price || 3)})`
+                              }
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                  
+                  {/* STEP 6: REVIEW */}
+                  {cStep === 6 && <div>
+                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Review & Submit</h2>
+                    <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6">
+                      <div className="hidden md:flex flex-wrap gap-1.5 mb-4 border-b border-[#E8DFD3] pb-4">
+                        {sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full border border-black/5" style={{ backgroundColor: b.color }} />)}
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Bead Size</span><span className="font-bold text-[#A0522D]">{sBeadSize}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Wrist Fit</span><span className="font-bold text-[#A0522D]">Size {selSz}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Charm</span><span className="font-medium">{sCharms.length > 0 ? sCharms[0].name : 'None'}</span></div>
+                      </div>
+                      <div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{custT}</span></div>
+                    </div>
+                    
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <label className="text-xs tracking-[0.15em] uppercase mb-1.5 font-semibold block text-[#8B7D6B]">Your Email <span className="text-[#A0522D]">*</span></label>
+                        <p className="text-[10px] text-[#8B7D6B] mb-2">We will send the actual photo of your crafted design here.</p>
+                        <input value={cEmail} onChange={(e)=>setCEmail(e.target.value)} type="email" placeholder="hello@example.com" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      </div>
+
+                      <div>
+                        <label className="text-xs tracking-[0.15em] uppercase mb-1.5 font-semibold block text-[#8B7D6B]">Name Your Bracelet (Optional)</label>
+                        <input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="e.g. My Healing Energy Bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={async () => {
+                        if (!cEmail || !cEmail.includes('@')) {
+                          flash('Please enter a valid email to receive your picture.', 'info');
+                          return;
+                        }
+
+                        // 1. Send the design quietly to the backend for the Admin Dashboard
+                        try {
+                          await fetch('http://localhost:4242/api/custom-orders', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: cEmail,
+                              name: cName || 'Custom Bracelet',
+                              beads: sBeads.map(b => b.name),
+                              string: sStr?.name,
+                              beadSize: sBeadSize,
+                              wristSize: selSz,
+                              charms: sCharms.map(c => c.name),
+                              totalPrice: custT,
+                              status: 'Pending Studio Review',
+                              createdAt: new Date().toISOString()
+                            })
+                          });
+                        } catch(err) {
+                          console.log('Failed to send to admin', err);
+                        }
+
+                        // 2. Add to Cart for checkout
+                        addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0]?.img || '', mat:`Custom (${sBeadSize}, ${selSz})` });
+                        flash('Design sent to studio!', 'success');
+                      }} 
+                      className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold shadow-md flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" /> Send to Studio & Add to Cart — ₱{custT}
+                    </button>
+                  </div>}
+                  
+                  {/* NAVIGATION BUTTONS */}
+                  <div className="flex justify-between mt-6 md:mt-10 pt-0 md:pt-6 md:border-t border-[#E8DFD3]">
+                    {cStep > 1 ? <button onClick={() => setCStep(prev => prev - 1)} className="flex items-center gap-1 md:gap-2 text-sm hover:text-[#A0522D]"><ChevronLeft className="w-4 h-4" /> Back</button> : <div />}
+                    {cStep < 6 && (
+                      <button 
+                        onClick={() => {
+                          if (cStep === 1 && sBeads.length < 15) {
+                            flash('Please select at least 15 beads to continue.', 'info');
+                            return;
+                          }
+                          setCStep(prev => prev + 1);
+                        }} 
+                        className={`flex items-center gap-1 md:gap-2 text-sm font-medium transition-all ${cStep === 1 && sBeads.length < 15 ? 'text-[#B0A395] cursor-not-allowed opacity-50' : 'text-[#A0522D] hover:scale-105'}`}
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
-                  {sBeads.length > 0 && <div className="mt-4 md:mt-6 flex flex-wrap gap-1.5 md:gap-2 p-0 md:p-4 md:bg-[#F0EBE4] rounded-lg">{sBeads.map((b, i) => <button key={i} onClick={() => setSBeads(prev => prev.filter((_, idx) => idx !== i))} className="flex items-center gap-1 md:gap-1.5 px-0 md:px-3 py-0 md:py-1.5 rounded-full text-xs group hover:bg-[#B85C5C] md:hover:text-white transition-colors"><div className="w-6 h-6 md:w-3 md:h-3 rounded-full border-2 border-white md:border-0" style={{ backgroundColor: b.color }} /><span className="hidden md:inline">{b.name}</span><X className="hidden md:inline w-3 h-3 opacity-50 group-hover:opacity-100" /></button>)}</div>}
-                </div>}
-                
-                {cStep === 2 && <div>
-                  <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Pick String</h2>
-                  <div className="flex flex-col gap-2 md:gap-3">{strOpts.map(s => <button key={s.id} onClick={() => setSStr(s)} className={`flex items-center gap-3 md:gap-4 p-4 md:p-5 rounded-lg border-2 transition-all text-left ${sStr?.id === s.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: s.color }} /><div className="flex-1"><p className="text-sm font-medium">{s.name}</p><p className="text-xs text-[#8B7D6B]">{s.price === 0 ? 'Included' : `+₱${s.price}`}</p></div>{sStr?.id === s.id && <Check className="w-5 h-5 text-[#A0522D]" />}</button>)}</div>
-                </div>}
-                
-                {cStep === 3 && <div>
-                  <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Add Charms</h2>
-                  <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Optional — up to 3</p>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3">{charmOpts.map(c => <button key={c.id} onClick={() => setSCharms(prev => prev.find(x => x.id === c.id) ? prev.filter(x => x.id !== c.id) : prev.length < 3 ? [...prev, c] : prev)} className={`flex flex-col items-center gap-1 md:gap-2 p-3 md:p-5 rounded-lg border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3]'}`}><span className="text-xl md:text-2xl">{c.em}</span><p className="text-[10px] md:text-sm font-medium">{c.name}</p><p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{c.price}</p></button>)}</div>
-                </div>}
-                
-                {cStep === 4 && <div>
-                  <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Review</h2>
-                  <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6"><div className="hidden md:flex flex-wrap gap-1.5 mb-4">{sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full" style={{ backgroundColor: b.color }} />)}</div><div className="space-y-2 text-sm"><div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div><div className="flex justify-between"><span className="text-[#8B7D6B]">Charms</span><span className="font-medium">{sCharms.length > 0 ? sCharms.map(c => c.name).join(', ') : 'None'}</span></div></div><div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{custT}</span></div></div>
-                  <div className="mb-4 md:mb-6"><label className="hidden md:block text-xs tracking-[0.15em] uppercase mb-2 font-semibold">Name Your Bracelet</label><input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="Name your bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" /></div>
-                  <button onClick={() => addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0].img, mat:'Custom' })} className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold">Add to Cart — ₱{custT}</button>
-                </div>}
-                
-                <div className="flex justify-between mt-6 md:mt-10 pt-0 md:pt-6 md:border-t border-[#E8DFD3]">
-                  {cStep > 1 ? <button onClick={() => setCStep(prev => prev - 1)} className="flex items-center gap-1 md:gap-2 text-sm hover:text-[#A0522D]"><ChevronLeft className="w-4 h-4" /> Back</button> : <div />}
-                  {cStep < 4 && <button onClick={() => setCStep(prev => prev + 1)} className="flex items-center gap-1 md:gap-2 text-sm text-[#A0522D] font-medium">Next <ChevronRight className="w-4 h-4" /></button>}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
 {/* ACCOUNT, WISHLIST, ETC */}
         {pg === 'wishlist' && (
