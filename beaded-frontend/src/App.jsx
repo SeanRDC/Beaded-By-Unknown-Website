@@ -345,15 +345,55 @@ const handleUpdateProfile = async (e) => {
   }, []);
 
   const addCart = useCallback((p) => {
-    setCart(prev => { const ex = prev.find(i => i.id === p.id); if (ex) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + qty } : i); return [...prev, { ...p, qty: qty, sz: selSz }]; });
-    setCartOpen(true); flash('Added to cart!', 'success');
+    // 1. Establish the ultimate fallback ID
+    const uniqueId = p._id || p.id || p.name;
+    const selectedSize = selSz || 'M';
+
+    setCart(prev => { 
+      // 2. Check if the exact product AND size exists
+      const ex = prev.find(i => (i._id || i.id || i.name) === uniqueId && i.sz === selectedSize); 
+      
+      if (ex) {
+        return prev.map(i => 
+          (i._id || i.id || i.name) === uniqueId && i.sz === selectedSize 
+            ? { ...i, qty: i.qty + qty } 
+            : i
+        ); 
+      }
+      return [...prev, { ...p, _id: uniqueId, id: uniqueId, qty: qty, sz: selectedSize }]; 
+    });
+    
+    setCartOpen(true); 
+    flash('Added to cart!', 'success');
   }, [qty, selSz, flash]);
 
-  const rmCart = useCallback((id) => { setCart(prev => prev.filter(i => i.id !== id)); flash('Removed', 'info'); }, [flash]);
-  const updQty = useCallback((id, d) => { setCart(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + d) } : i)); }, []);
-  const togWish = useCallback((id) => { setWish(prev => { if (prev.includes(id)) { flash('Removed from wishlist', 'info'); return prev.filter(i => i !== id); } flash('Saved!', 'success'); return [...prev, id]; }); }, [flash]);
+  const rmCart = useCallback((id) => { 
+    setCart(prev => prev.filter(i => (i._id || i.id || i.name) !== id)); 
+    flash('Removed', 'info'); 
+  }, [flash]);
+
+  const updQty = useCallback((id, d) => { 
+    setCart(prev => prev.map(i => (i._id || i.id || i.name) === id ? { ...i, qty: Math.max(1, i.qty + d) } : i)); 
+  }, []);
+
+  const togWish = useCallback((productOrId) => { 
+    // Safely handles if you pass the whole product (p) or just the ID from the UI
+    const uniqueId = typeof productOrId === 'object' 
+      ? (productOrId._id || productOrId.id || productOrId.name) 
+      : productOrId;
+
+    setWish(prev => { 
+      if (prev.includes(uniqueId)) { 
+        flash('Removed from wishlist', 'info'); 
+        return prev.filter(i => i !== uniqueId); 
+      } 
+      flash('Saved!', 'success'); 
+      return [...prev, uniqueId]; 
+    }); 
+  }, [flash]);
 
   const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
+
     // Your new J&T Express Shipping States
   const [shippingRegion, setShippingRegion] = useState('Metro Manila');
   const shippingRates = {
@@ -489,21 +529,30 @@ const handleUpdateProfile = async (e) => {
     <Star key={i} className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < Math.floor(rt) ? 'fill-[#C9A96E] text-[#C9A96E]' : 'text-[#E8DFD3]'}`} />
   ));
 
-  // Responsive Product Card
+// Responsive Product Card
   const Card = ({ p }) => {
     const [h, setH] = useState(false);
+    
+    // 👈 The Bulletproof ID Check!
+    const uniqueId = p._id || p.id || p.name;
+    
     return (
       <div className="group cursor-pointer" onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} onClick={() => go('product', p)}>
         <div className="relative aspect-square overflow-hidden rounded-xl bg-[#F0EBE4] mb-2 md:mb-3">
-          <img src={h ? p.img2 : p.img} alt={p.name} className="w-full h-full object-cover transition-all duration-500" />
+          {/* Safe image swap if img2 doesn't exist */}
+          <img src={h && p.img2 ? p.img2 : p.img} alt={p.name} className="w-full h-full object-cover transition-all duration-500" />
+          
           {p.tag && <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-[#3E2F1C] text-[#FAF6F1] text-[9px] md:text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 md:px-3 md:py-1">{p.tag}</span>}
+          
           {/* Desktop Hover Actions */}
           <div className={`hidden md:flex absolute inset-0 bg-[#3E2F1C]/10 items-end justify-center pb-4 gap-2 transition-opacity duration-300 ${h ? 'opacity-100' : 'opacity-0'}`}>
             <button onClick={(e) => { e.stopPropagation(); addCart(p); }} className="bg-[#FAF6F1] text-[#3E2F1C] text-xs tracking-wider uppercase px-5 py-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200 font-medium">Add</button>
-            <button onClick={(e) => { e.stopPropagation(); setQvId(p.id); }} className="bg-[#FAF6F1] text-[#3E2F1C] p-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200"><Eye className="w-4 h-4" /></button>
+            <button onClick={(e) => { e.stopPropagation(); setQvId(uniqueId); }} className="bg-[#FAF6F1] text-[#3E2F1C] p-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200"><Eye className="w-4 h-4" /></button>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); togWish(p.id); }} className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-            <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${wish.includes(p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} />
+          
+          {/* 👈 UPDATED WISHLIST BUTTON FOR CARDS */}
+          <button onClick={(e) => { e.stopPropagation(); togWish(p); }} className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+            <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${wish.includes(uniqueId) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} />
           </button>
         </div>
         <div className="flex items-start justify-between">
@@ -1202,7 +1251,7 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 </div>
                 
-                {/* --- PRODUCT INFO SECTION --- */}
+               {/* --- PRODUCT INFO SECTION --- */}
                 <div className="px-5 py-5 md:px-0 md:py-4 mt-2 md:mt-0">
                   {p.tag && <span className="text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] text-[#A0522D] uppercase font-medium">{p.tag}</span>}
                   <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
@@ -1236,7 +1285,8 @@ const handleUpdateProfile = async (e) => {
                   <button onClick={() => addCart(p)} className="hidden md:block w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] transition-colors font-semibold mb-3">Add to Cart — ₱{p.price * qty}</button>
 
                   <div className="flex gap-3 mb-6 md:mb-8">
-                    <button onClick={() => togWish(p.id)} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Heart className={`w-4 h-4 md:w-5 md:h-5 ${wish.includes(p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} /> <span className="hidden md:inline">{wish.includes(p.id) ? 'Saved' : 'Wishlist'}</span></button>
+                    {/* 👈 UPDATED WISHLIST BUTTON HERE */}
+                    <button onClick={() => togWish(p)} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Heart className={`w-4 h-4 md:w-5 md:h-5 ${wish.includes(p._id || p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} /> <span className="hidden md:inline">{wish.includes(p._id || p.id) ? 'Saved' : 'Wishlist'}</span></button>
                     <button onClick={() => go('customizer')} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Palette className="w-4 h-4 md:w-5 md:h-5 text-[#3E2F1C]" /> <span className="hidden md:inline">Customize</span></button>
                   </div>
 
@@ -1403,9 +1453,11 @@ const handleUpdateProfile = async (e) => {
           </div>
         )}
 
-        {/* ACCOUNT, WISHLIST, ETC */}
+{/* ACCOUNT, WISHLIST, ETC */}
         {pg === 'wishlist' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-300">
+            
+            {/* 1. THE HEADER */}
             <div className="flex justify-between items-end mb-1 md:mb-2 border-b border-[#E8DFD3] pb-4">
               <div>
                 <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Wishlist</h2>
@@ -1423,10 +1475,12 @@ const handleUpdateProfile = async (e) => {
               )}
             </div>
             
+            {/* 2. THE PRODUCT GRID */}
             <div className="mt-8">
               {wish.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                  {P.filter(p => wish.includes(p.id)).map(p => <Card key={p.id} p={p} />)}
+                  {/* Bulletproof ID filter and key */}
+                  {P.filter(p => wish.includes(p._id || p.id || p.name)).map(p => <Card key={p._id || p.id || p.name} p={p} />)}
                 </div>
               ) : (
                 <div className="py-16 md:py-24 text-center bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
@@ -1438,10 +1492,12 @@ const handleUpdateProfile = async (e) => {
                 </div>
               )}
             </div>
+
           </div>
         )}
+
         {/* CHECKOUT */}
-{pg === 'checkout' && (
+          {pg === 'checkout' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
             
             {/* 👈 THE NEW RETURN BUTTON */}
@@ -2080,8 +2136,21 @@ const handleUpdateProfile = async (e) => {
         <div className="fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} />
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col">
+            
+            {/* 👈 UPDATED HEADER WITH CLEAR CART BUTTON */}
             <div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]">
-              <h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3>
+                
+                {cart.length > 0 && (
+                  <button 
+                    onClick={() => { setCart([]); flash('Cart cleared', 'info'); }} 
+                    className="text-[10px] uppercase tracking-widest text-[#8B7D6B] hover:text-[#B85C5C] font-bold flex items-center gap-1 transition-colors mt-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" /> Clear
+                  </button>
+                )}
+              </div>
               <button onClick={() => setCartOpen(false)} className="p-1 hover:bg-[#F0EBE4] rounded-full"><X className="w-5 h-5" /></button>
             </div>
             
@@ -2093,32 +2162,38 @@ const handleUpdateProfile = async (e) => {
                   <button onClick={() => { setCartOpen(false); go('collection'); }} className="text-xs md:text-sm text-[#A0522D] underline mt-2 md:mt-4">Shop Now</button>
                 </div>
               ) : (
-                cart.map(it => (
-                  <div key={it.id} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]">
-                    <div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0">
-                      <img src={it.img} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="text-sm font-medium truncate">{it.name}</p>
-                          <p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p>
-                        </div>
-                        <button onClick={() => rmCart(it.id)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                cart.map(it => {
+                  // 👈 ADDED SAFETY CHECK FOR ID IN CART MAP
+                  const uniqueId = it._id || it.id || it.name;
+                  return (
+                    <div key={uniqueId} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]">
+                      <div className="w-14 h-14 md:w-16 md:h-16 rounded md:rounded-lg bg-[#F0EBE4] overflow-hidden shrink-0">
+                        <img src={it.img} alt="" className="w-full h-full object-cover" />
                       </div>
-                      <div className="flex items-center justify-between mt-1.5 md:mt-2">
-                        <div className="inline-flex items-center border border-[#E8DFD3] rounded">
-                          <button onClick={() => updQty(it.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button>
-                          <span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span>
-                          <button onClick={() => updQty(it.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="text-sm font-medium truncate">{it.name}</p>
+                            <p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p>
+                          </div>
+                          {/* 👈 UPDATED ID REFERENCE HERE */}
+                          <button onClick={() => rmCart(uniqueId)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <span className="text-sm font-semibold">₱{it.price * it.qty}</span>
+                        <div className="flex items-center justify-between mt-1.5 md:mt-2">
+                          <div className="inline-flex items-center border border-[#E8DFD3] rounded">
+                            {/* 👈 UPDATED ID REFERENCES HERE */}
+                            <button onClick={() => updQty(uniqueId, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button>
+                            <span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span>
+                            <button onClick={() => updQty(uniqueId, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button>
+                          </div>
+                          <span className="text-sm font-semibold">₱{it.price * it.qty}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -2176,6 +2251,105 @@ const handleUpdateProfile = async (e) => {
           </div>
         </div>
       )}
+
+      {/* QUICK VIEW MODAL */}
+      {qvId && (() => {
+        // Find the exact product based on our bulletproof ID logic
+        const p = P.find(item => (item._id || item.id || item.name) === qvId);
+        if (!p) return null; // Safety check
+        
+        // Ensure sizes are formatted correctly
+        const productSizes = Array.isArray(p.sizes) && p.sizes.length > 0 
+          ? p.sizes 
+          : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : ['S', 'M', 'L']);
+
+        return (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 md:p-6">
+            {/* Darkened Backdrop */}
+            <div className="absolute inset-0 bg-[#3E2F1C]/50 backdrop-blur-sm" onClick={() => setQvId(null)} />
+            
+            {/* Modal Container */}
+            <div className="relative w-full max-w-[850px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px]">
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setQvId(null)} 
+                className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm hover:bg-white text-[#3E2F1C] rounded-full transition-colors z-20 shadow-sm"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Left: Product Image */}
+              <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#F0EBE4] relative shrink-0">
+                <img src={p.img} alt={p.name} className="w-full h-full object-cover md:absolute md:inset-0" />
+                {p.tag && <span className="absolute top-4 left-4 bg-[#3E2F1C] text-[#FAF6F1] text-[10px] tracking-[0.15em] uppercase px-3 py-1 z-10">{p.tag}</span>}
+              </div>
+
+              {/* Right: Product Details */}
+              <div className="w-full md:w-1/2 p-6 md:p-10 overflow-y-auto flex flex-col bg-[#FAF6F1] md:bg-white">
+                <h2 className="text-[24px] md:text-[32px] text-[#3E2F1C] mb-2 leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
+                <p className="text-xl font-bold text-[#3E2F1C] mb-4 border-b border-[#E8DFD3] pb-4">₱{p.price}</p>
+                
+                <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">
+                  Handcrafted {p.mat || 'quality'} beads. A beautiful piece designed to bring intention and grounded energy to your daily journey.
+                </p>
+
+                {/* Size Selector */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B]">Select Size</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {productSizes.map(s => (
+                      <button 
+                        key={s} 
+                        onClick={() => setSelSz(s)} 
+                        className={`w-11 h-11 text-xs font-medium transition-all ${selSz === s ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] text-[#3E2F1C] hover:bg-[#E8DFD3]'}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div className="mb-8">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] mb-3">Quantity</p>
+                  <div className="inline-flex items-center border border-[#E8DFD3] bg-white">
+                    <button onClick={() => setQty(prev => Math.max(1, prev - 1))} className="w-11 h-11 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3.5 h-3.5" /></button>
+                    <span className="w-11 h-11 flex items-center justify-center text-sm font-medium border-x border-[#E8DFD3]">{qty}</span>
+                    <button onClick={() => setQty(prev => prev + 1)} className="w-11 h-11 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="mt-auto flex flex-col gap-3 pt-4">
+                  <button 
+                    onClick={() => { 
+                      addCart(p); 
+                      setQvId(null); // Closes the modal automatically after adding!
+                    }} 
+                    className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold transition-colors shadow-md"
+                  >
+                    Add to Cart — ₱{p.price * qty}
+                  </button>
+                  
+                  <button 
+                    onClick={() => { 
+                      setQvId(null); 
+                      go('product', p); // Routes them to the full page if they want to read more
+                    }} 
+                    className="w-full border border-[#E8DFD3] bg-white text-[#3E2F1C] text-xs tracking-[0.15em] uppercase py-4 hover:bg-[#F0EBE4] font-semibold transition-colors"
+                  >
+                    View Full Details
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* SEARCH OVERLAY */}
       {searchOpen && (

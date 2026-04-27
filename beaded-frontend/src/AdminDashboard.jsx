@@ -416,7 +416,7 @@ const handleDelete = (id, type = 'product') => {
     </button>
   );
 
-// 📈 Refined Sparkline Logic with Labels
+// 📈 Refined, Lean Sparkline Logic
   const getSparklineData = () => {
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -430,19 +430,26 @@ const handleDelete = (id, type = 'product') => {
         .reduce((sum, o) => sum + (o.amountPaid || 0), 0);
     });
 
-    const maxVal = Math.max(...revenueData, 1000);
+    // Dynamic baseline 20 expansion
+    const maxVal = Math.max(...revenueData, 20); 
     
-    // Create points for the thin trend line
-    const graphPoints = revenueData.map((val, i) => ({
-      x: (i * (300 / 6)),
-      y: 60 - (val / maxVal * 45) - 10 // Added more padding
+    // Calculate coordinates with extra padding for smaller dots
+    const points = revenueData.map((val, i) => ({
+      x: i * (300 / 6),
+      y: 60 - (val / maxVal * 45) - 10 // Increased padding top/bottom
     }));
 
-    return { 
-      points: graphPoints, 
-      max: maxVal, 
-      path: `M ${graphPoints.map(p => `${p.x},${p.y}`).join(' L ')}` 
-    };
+    // Generate a Smooth Cubic Bezier Curve Path
+    let smoothPath = `M ${points[0].x},${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i];
+      const p1 = points[i + 1];
+      const cpX = p0.x + (p1.x - p0.x) / 2; // Control point halfway horizontally
+      smoothPath += ` C ${cpX},${p0.y} ${cpX},${p1.y} ${p1.x},${p1.y}`;
+    }
+
+    // areaPath removed here
+    return { points, max: maxVal, smoothPath };
   };
 
   const chart = getSparklineData();
@@ -544,12 +551,12 @@ const handleDelete = (id, type = 'product') => {
                     </div>
                   </div>
 
-                  {/* 📊 ELEGANT SALES TREND GRAPH */}
+                  {/* 📊 LEAN, MINIMALIST SALES TREND GRAPH */}
                   <div className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                       <div>
-                        <h4 className="text-lg font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Sales Trend</h4>
-                        <p className="text-xs text-[#8B7D6B]">Revenue performance over the last 7 days</p>
+                        <h4 className="text-lg font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Sales Performance</h4>
+                        <p className="text-xs text-[#8B7D6B]">Daily revenue performance over the last 7 days</p>
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#A0522D] bg-[#FAF6F1] px-3 py-1.5 rounded-full border border-[#E8DFD3]">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#A0522D] animate-pulse" /> Live Sync
@@ -558,27 +565,31 @@ const handleDelete = (id, type = 'product') => {
 
                     <div className="relative w-full h-40 md:h-60 flex gap-4">
                       {/* Y-Axis Labels */}
-                      <div className="flex flex-col justify-between text-[9px] font-bold text-[#B0A395] uppercase h-full py-1">
+                      <div className="flex flex-col justify-between text-[9px] font-bold text-[#B0A395] uppercase h-full py-1 pb-6 shrink-0">
                         <span>₱{chart.max.toLocaleString()}</span>
                         <span>₱{(chart.max / 2).toLocaleString()}</span>
                         <span>₱0</span>
                       </div>
 
                       {/* The Graph Area */}
-                      <div className="flex-1 relative border-l border-b border-[#F0EBE4] bg-[#FAF6F1]/30 rounded-br-lg">
-                        <svg viewBox="0 0 300 60" className="w-full h-full" preserveAspectRatio="none">
-                          {/* Horizontal Grid Lines */}
-                          <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" />
-                          <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" />
+                      <div className="flex-1 relative border-l border-b border-[#E8DFD3] bg-[#FAF6F1]/30">
+                        <svg viewBox="0 -5 300 75" className="w-full h-full" preserveAspectRatio="none">
                           
-                          {/* The Main Line (Thinner & Smoother) */}
+                          {/* Minimalist Grid System */}
+                          <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
+                          <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
+                          
+                          {/* Underglow path removed */}
+
+                          {/* The Main Smooth Line (Thin & Fine) */}
                           <path
-                            d={chart.path}
+                            d={chart.smoothPath}
                             fill="none"
                             stroke="#A0522D"
-                            strokeWidth="1.5"
+                            strokeWidth="1.25" // VERY Thin, Lean line
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            // Filter/Glow removed
                           />
 
                           {/* Data Points (Smaller & Clean) */}
@@ -587,10 +598,10 @@ const handleDelete = (id, type = 'product') => {
                               key={i} 
                               cx={p.x} 
                               cy={p.y} 
-                              r="2" 
+                              r="1.75" // Minimalist dots
                               fill="white" 
                               stroke="#A0522D" 
-                              strokeWidth="1.5" 
+                              strokeWidth="1.25" 
                             />
                           ))}
                         </svg>
@@ -598,8 +609,8 @@ const handleDelete = (id, type = 'product') => {
                     </div>
                     
                     <div className="flex justify-between mt-4 ml-12 pr-2">
-                      <span className="text-[9px] text-[#B0A395] font-bold uppercase tracking-tighter">7 Days Ago</span>
-                      <span className="text-[9px] text-[#A0522D] font-black uppercase tracking-tighter">Today</span>
+                      <span className="text-[10px] text-[#B0A395] font-bold uppercase tracking-widest">7 Days Ago</span>
+                      <span className="text-[10px] text-[#A0522D] font-bold uppercase tracking-widest">Today</span>
                     </div>
                   </div>
                 </div>
