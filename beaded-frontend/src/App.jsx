@@ -30,15 +30,41 @@ const blogs = [
 ];
 */
 
-const beadOpts = [
-  { id: 'b1', name: 'Pink', color: '#D4A0A0', price: 3 }, 
-  { id: 'b2', name: 'Brown', color: '#A0522D', price: 3 },
-  { id: 'b3', name: 'Navy Blue', color: '#1E3A5F', price: 3 }, 
-  { id: 'b4', name: 'Olive Green', color: '#7A8B6F', price: 3 },
-  { id: 'b5', name: 'Cream', color: '#E8DFD3', price: 3 }, 
-  { id: 'b6', name: 'Black', color: '#2C2C2C', price: 3 },
-  { id: 'b7', name: 'Gold', color: '#C9A96E', price: 3 }, 
-  { id: 'b8', name: 'Purple', color: '#7B5EA7', price: 3 },
+// Master Color Reference Map
+const cMap = {
+  'Dark Blue': '#00008B', 'Navy Blue': '#000080', 'Light Blue': '#ADD8E6', 'Sky Blue': '#87CEEB', 'Blue': '#0000FF',
+  'Pink': '#FFB6C1', 'Purple': '#800080', 'Red': '#FF0000', 'Orange': '#FFA500', 'Yellow': '#FFD700',
+  'Dark Green': '#006400', 'Light Green': '#90EE90', 'Green': '#008000', 'Moss Green': '#8A9A5B',
+  'White': '#FFFFFF', 'Dirty White': '#F5F5DC', 'Black': '#000000', 'Gray': '#808080', 'Brown': '#8B4513'
+};
+
+// Helper function to build collections quickly
+const buildBeads = (id, type, size, price, colorNames) => ({
+  id, type, size, price, name: `${type} (${size}mm)`,
+  colors: colorNames.map(n => ({ name: n, hex: cMap[n] || '#CCCCCC' }))
+});
+
+const beadCollections = [
+  buildBeads('rs3', 'Regular Seed', 3, 0.5, ['Dark Blue', 'Light Blue', 'Pink', 'Dark Green', 'Light Green', 'White', 'Black', 'Yellow', 'Red', 'Purple']),
+  buildBeads('gs3', 'Glass Seed', 3, 0.5, ['White', 'Dirty White', 'Orange', 'Pink', 'Purple', 'Blue', 'Light Green', 'Green', 'Gray', 'Black']),
+  buildBeads('ac6', 'Acrylic', 6, 1, ['Navy Blue', 'Purple', 'Pink', 'Red', 'White', 'Yellow', 'Brown', 'Moss Green', 'Orange', 'Black', 'Gray']),
+  buildBeads('ac8', 'Acrylic', 8, 1, ['Navy Blue', 'Purple', 'Pink', 'Red', 'White', 'Yellow', 'Brown', 'Moss Green', 'Orange', 'Black', 'Gray']),
+  buildBeads('cr8', 'Cracked', 8, 1, ['Blue', 'Purple', 'Pink', 'Red', 'White', 'Yellow', 'Brown', 'Green']),
+  buildBeads('ij4', 'Imitation Jade', 4, 1, ['Dark Blue', 'Light Blue', 'Purple', 'Pink', 'Red', 'White', 'Green', 'Orange', 'Black']),
+  buildBeads('ij6', 'Imitation Jade', 6, 2, ['Dark Blue', 'Light Blue', 'Purple', 'Pink', 'Red', 'Brown', 'Green', 'Gray']),
+  buildBeads('ij8', 'Imitation Jade', 8, 2, ['Dark Blue', 'Light Blue', 'Purple', 'Pink', 'Red', 'Green', 'Gray']),
+  buildBeads('ij10', 'Imitation Jade', 10, 3, ['Sky Blue', 'Purple', 'Pink', 'Red', 'Green', 'Brown', 'Gray', 'Black']),
+  buildBeads('ce8', 'Cat Eye', 8, 2, ['Black', 'Gray', 'Brown', 'Blue', 'Green', 'Yellow', 'Orange', 'Pink', 'Purple', 'Red', 'White']),
+  buildBeads('ce10', 'Cat Eye', 10, 3, ['Black', 'Gray', 'Brown', 'Blue', 'Green', 'Yellow', 'Orange', 'Pink', 'Purple', 'Red', 'White']),
+  buildBeads('ce12', 'Cat Eye', 12, 5, ['Black', 'Gray', 'Brown', 'Blue', 'Green', 'Yellow', 'Orange', 'Pink', 'Purple', 'Red', 'White']),
+  buildBeads('ma8', 'Mermaid Acrylic', 8, 2, ['Blue', 'Green', 'Orange', 'Pink', 'Purple', 'White', 'Yellow']),
+  buildBeads('ma10', 'Mermaid Acrylic', 10, 3, ['Blue', 'Green', 'Orange', 'Pink', 'Purple', 'White', 'Yellow']),
+  buildBeads('ip3', 'Imitation Pearl', 3, 0.5, ['Dirty White', 'White']),
+  buildBeads('ip4', 'Imitation Pearl', 4, 1, ['Dirty White', 'White']),
+  buildBeads('ip6', 'Imitation Pearl', 6, 1.5, ['Dirty White', 'White']),
+  buildBeads('ip8', 'Imitation Pearl', 8, 2, ['Dirty White', 'White']),
+  buildBeads('ip10', 'Imitation Pearl', 10, 3, ['Dirty White', 'White']),
+  buildBeads('ip12', 'Imitation Pearl', 12, 4, ['Dirty White', 'White']),
 ];
 
 const strOpts = [
@@ -107,6 +133,18 @@ function App() {
   const [selProd, setSelProd] = useState(P[0]);
   const [activeImg, setActiveImg] = useState('');
   const [cart, setCart] = useState([]);
+
+  // 🌸 Global Theme State
+  const [appTheme, setAppTheme] = useState(localStorage.getItem('beaded_theme') || 'brown');
+
+  // Listen for theme changes from the Admin Dashboard in real-time!
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setAppTheme(localStorage.getItem('beaded_theme') || 'brown');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const [wish, setWish] = useState([]);
   const [scrolled, setScrolled] = useState(false);
   const [toast, setToast] = useState(null);
@@ -117,6 +155,8 @@ function App() {
   const [sort, setSort] = useState('Featured');
   const [cStep, setCStep] = useState(1);
   const [sBeads, setSBeads] = useState([]);
+  const [sBeadCol, setSBeadCol] = useState(beadCollections[7]); // Defaults to Jade 8mm
+  const [wristSize, setWristSize] = useState(6.5); // Defaults to Medium (6.5 inches)
   const [sStr, setSStr] = useState(strOpts[0]);
   const [sCharms, setSCharms] = useState([]);
   const [cName, setCName] = useState('');
@@ -158,6 +198,7 @@ function App() {
     firstName: '', lastName: '', phone: '', street: '', barangay: '', city: '', province: '', postalCode: '', region: 'Metro Manila'
   });
   const [isProfileSaved, setIsProfileSaved] = useState(true);
+  const [sLockColor, setSLockColor] = useState('Gold');
 
   // 2. The Auto-Fill Logic (Runs when they log in)
   useEffect(() => {
@@ -616,6 +657,31 @@ const handleUpdateProfile = async (e) => {
 
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
+
+{/* 🌸 DYNAMIC THEME ENGINE 🌸 */}
+      <style dangerouslySetInnerHTML={{__html: `
+        :root {
+          /* Automatically switches between Pink and Brown variables */
+          --primary: ${appTheme === 'pink' ? '#D88A9A' : '#A0522D'};
+          --dark: ${appTheme === 'pink' ? '#5C434A' : '#3E2F1C'};
+          --bg-light: ${appTheme === 'pink' ? '#FFF5F7' : '#FAF6F1'};
+        }
+        
+        /* Only overrides hardcoded Tailwind hexes if Pink mode is active */
+        ${appTheme === 'pink' ? `
+        .bg-\\[\\#A0522D\\] { background-color: var(--primary) !important; }
+        .text-\\[\\#A0522D\\] { color: var(--primary) !important; }
+        .border-\\[\\#A0522D\\] { border-color: var(--primary) !important; }
+        
+        .bg-\\[\\#3E2F1C\\] { background-color: var(--dark) !important; }
+        .text-\\[\\#3E2F1C\\] { color: var(--dark) !important; }
+        .border-\\[\\#3E2F1C\\] { border-color: var(--dark) !important; }
+        
+        .bg-\\[\\#FAF6F1\\] { background-color: var(--bg-light) !important; }
+        .hover\\:bg-\\[\\#FAF6F1\\]:hover { background-color: var(--bg-light) !important; }
+        ` : ''}
+      `}} />
+
       {/* HEADER - Responsive */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
@@ -1362,38 +1428,38 @@ const handleUpdateProfile = async (e) => {
 
 {/* CUSTOMIZER */}
         {pg === 'customizer' && (() => {
-          // 🧮 Dynamic Scaling Logic
+          // 🧮 Advanced Dynamic Scaling & Math
           const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-          const baseRadius = isMobile ? 96 : 128;
-          const sizeMult = selSz === 'S' ? 0.85 : selSz === 'L' ? 1.15 : 1;
-          const radius = baseRadius * sizeMult;
-
-          // 🧠 Smart Fit Algorithm
-          const getIdealCount = () => {
-            // Baseline needs based on wrist size
-            let base = selSz === 'S' ? 16 : selSz === 'M' ? 18 : 20;
-            // Adjust based on bead thickness
-            if (sBeadSize === '5mm') base -= 1;
-            if (sBeadSize === '2mm') base += 1;
-            // Clamp strictly to your 15-20 bead limits
-            return Math.max(15, Math.min(20, base)); 
-          };
-          const idealCount = getIdealCount();
+          
+          // Math: Circumference in mm = Inches * 25.4
+          const circumference_mm = wristSize * 25.4;
+          // Ideal Beads = Total length / Bead Diameter
+          const idealCount = Math.max(5, Math.floor(circumference_mm / sBeadCol.size));
           const beadDiff = idealCount - sBeads.length;
+
+          // Visualizer scaling
+          const baseRadius = isMobile ? 90 : 120;
+          const scale = Math.min(1.3, Math.max(0.7, wristSize / 6.5));
+          const radius = baseRadius * scale;
+          
+          const getFullStringName = () => sStr?.name + (sStr?.id === 's2' ? ` (${sLockColor})` : '');
+          
+          // BASE SETTING 25 ADDED HERE
+          const totalCost = 25 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0);
 
           return (
             <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
               {/* Desktop Progress Bar */}
-              <div className="hidden md:flex items-center gap-0 mb-10">{['Choose Beads','Pick String','Bead Size','Add Charm','Wrist Size','Review'].map((s, i) => (
-                <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[#A0522D]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 5 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />}</div>
+              <div className="hidden md:flex items-center gap-0 mb-10">{['Bead Type','String Beads','String Options','Charm','Wrist Fit','Review'].map((s, i) => (
+                <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[var(--primary)]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[var(--primary)] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 5 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[var(--primary)]' : 'bg-[#E8DFD3]'}`} />}</div>
               ))}</div>
-              
+
               {/* Mobile Progress Bar */}
               <div className="md:hidden flex gap-1 mb-6">
-                {['Beads', 'String', 'Size', 'Charm', 'Wrist', 'Review'].map((s, i) => (
+                {['Type', 'Beads', 'String', 'Charm', 'Wrist', 'Review'].map((s, i) => (
                   <div key={i} className="flex-1">
-                    <div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[#A0522D]' : 'bg-[#E8DFD3]'}`} />
-                    <p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[#A0522D] font-medium' : 'text-[#B0A395]'}`}>{s}</p>
+                    <div className={`h-1 rounded-full ${i + 1 <= cStep ? 'bg-[var(--primary)]' : 'bg-[#E8DFD3]'}`} />
+                    <p className={`text-[9px] text-center mt-1.5 ${i + 1 <= cStep ? 'text-[var(--primary)] font-medium' : 'text-[#B0A395]'}`}>{s}</p>
                   </div>
                 ))}
               </div>
@@ -1403,33 +1469,25 @@ const handleUpdateProfile = async (e) => {
                 <div className="md:col-span-2 order-1 md:order-none">
                   <div className="md:sticky md:top-32">
                     <div className="aspect-square rounded-2xl bg-white border border-[#E8DFD3] flex items-center justify-center p-6 md:p-8 shadow-sm relative overflow-hidden">
-                      <div className="absolute inset-0 bg-[#FAF6F1] opacity-50 pointer-events-none"></div>
+                      <div className="absolute inset-0 bg-[var(--bg-light)] opacity-50 pointer-events-none"></div>
                       
-                      {/* 1. THE STRING (Dynamically scales width/height based on wrist size!) */}
+                      {/* THE STRING */}
                       <div 
-                        className="rounded-full flex items-center justify-center relative shadow-inner bg-[#FDFBF9] transition-all duration-500"
+                        className="rounded-full flex items-center justify-center relative shadow-inner bg-transparent transition-all duration-500"
                         style={{ 
-                          width: radius * 2,
-                          height: radius * 2,
-                          borderWidth: sBeads.length > 0 ? '4px' : '3px',
+                          width: radius * 2, height: radius * 2,
+                          borderWidth: sBeads.length > 0 ? '2px' : '2px',
                           borderStyle: sBeads.length > 0 ? 'solid' : 'dashed',
                           borderColor: sBeads.length > 0 ? (sStr?.color || '#E8DFD3') : '#D4C4A8' 
                         }}
                       >
-                        {sBeads.length === 0 && (
-                          <div className="text-center p-4">
-                            <Gem className="w-6 h-6 text-[#D4C4A8] mx-auto mb-2" />
-                            <p className="text-[11px] md:text-sm text-[#B0A395] tracking-wide uppercase font-medium">Empty Canvas</p>
-                          </div>
+                        {sStr?.id === 's2' && sBeads.length > 0 && (
+                          <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-3 h-5 rounded-sm shadow-sm z-0 border border-black/10 transition-colors duration-300" style={{ backgroundColor: sLockColor === 'Gold' ? '#C9A96E' : '#E5E7EB' }}/>
                         )}
                         
-                        {/* 2. THE BEADS */}
+                        {/* THE BEADS */}
                         {sBeads.map((b, i) => { 
-                          let beadPx = 24; 
-                          if (sBeadSize === '2mm') beadPx = isMobile ? 12 : 14;
-                          if (sBeadSize === '4mm') beadPx = isMobile ? 20 : 24;
-                          if (sBeadSize === '5mm') beadPx = isMobile ? 28 : 32;
-                          
+                          const beadPx = Math.max(8, sBeadCol.size * 2.5); 
                           const offset = beadPx / 2;
                           const totalSlots = sBeads.length + (sCharms.length > 0 ? 1 : 0);
                           const charmSlot = Math.floor(totalSlots / 2);
@@ -1437,39 +1495,21 @@ const handleUpdateProfile = async (e) => {
                           const angle = (slotIndex / Math.max(totalSlots, 1)) * Math.PI * 2 - Math.PI / 2; 
                           
                           return (
-                            <div 
-                              key={i} 
-                              className={`absolute rounded-full shadow-md border border-white/60 transition-all duration-500 hover:scale-125 z-10`} 
-                              style={{ 
-                                width: beadPx,
-                                height: beadPx,
-                                backgroundColor: b.color, 
-                                left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
-                                top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` 
-                              }} 
+                            <div key={i} className="absolute rounded-full shadow-sm border border-white/40 transition-all duration-500 hover:scale-125 z-10" 
+                              style={{ width: beadPx, height: beadPx, backgroundColor: b.hex, left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` }} 
                             />
                           ); 
                         })}
 
-                        {/* 3. THE CENTER CHARM */}
+                        {/* THE CHARM */}
                         {sCharms.map((c) => {
                           const charmPx = isMobile ? 32 : 40;
                           const offset = charmPx / 2;
                           const totalSlots = sBeads.length + 1;
-                          const charmSlot = Math.floor(totalSlots / 2);
-                          const angle = (charmSlot / totalSlots) * Math.PI * 2 - Math.PI / 2;
-
+                          const angle = (Math.floor(totalSlots / 2) / totalSlots) * Math.PI * 2 - Math.PI / 2;
                           return (
-                            <div 
-                              key={`charm-${c.id}`}
-                              className="absolute text-2xl md:text-3xl filter drop-shadow-md z-20 transition-all duration-500 hover:scale-125 hover:rotate-12 flex items-center justify-center"
-                              style={{
-                                width: charmPx,
-                                height: charmPx,
-                                left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, 
-                                top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px + 12px)`
-                              }}
-                            >
+                            <div key={`charm-${c.id}`} className="absolute text-2xl md:text-3xl filter drop-shadow-md z-20 transition-all duration-500 hover:scale-125 hover:rotate-12 flex items-center justify-center"
+                              style={{ width: charmPx, height: charmPx, left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px + 12px)` }}>
                               {c.em}
                             </div>
                           );
@@ -1478,72 +1518,75 @@ const handleUpdateProfile = async (e) => {
                     </div>
                     
                     {/* Real Time Receipt */}
-                    <div className="mt-4 md:mt-6 p-4 md:p-6 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm tracking-widest uppercase font-bold text-[#8B7D6B]">Live Total</span>
-                        <span className="text-2xl font-bold text-[#3E2F1C]">₱{custT}</span>
-                      </div>
-                      <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3">
-                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Base Setting</span><span>₱600</span></div>
-                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>{sBeads.length} Beads ({sBeadSize})</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
-                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>String ({sStr?.name || 'None'})</span><span>₱{sStr?.price || 0}</span></div>
-                        <div className="flex justify-between text-xs text-[#8B7D6B]"><span>Charm ({sCharms[0]?.name || 'None'})</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
+                    <div className="mt-4 p-5 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
+                      <div className="flex justify-between items-center mb-2"><span className="text-sm font-bold text-[#8B7D6B]">Live Total</span><span className="text-xl font-bold text-[var(--dark)]">₱{totalCost}</span></div>
+                      <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3 text-xs text-[#8B7D6B]">
+                        <div className="flex justify-between"><span>Base Setting</span><span>₱25</span></div>
+                        <div className="flex justify-between"><span>{sBeads.length}x {sBeadCol.name}</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
+                        <div className="flex justify-between"><span>String/Hardware</span><span>₱{sStr?.price || 0}</span></div>
+                        <div className="flex justify-between"><span>Charm</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="md:col-span-3 order-2 md:order-none">
-                  {/* STEP 1: BEADS */}
+                  
+                  {/* STEP 1: BEAD TYPE & SIZE */}
                   {cStep === 1 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-1 md:mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Beads</h2>
-                    <p className="text-xs md:text-sm text-[#8B7D6B] mb-4 md:mb-6">
-                      {sBeads.length}/20 selected <span className="font-semibold">(Min 15)</span>
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 md:gap-3">
-                      {beadOpts.map(b => (
-                        <button 
-                          key={b.id} 
-                          onClick={() => { if (sBeads.length < 20) setSBeads(prev => [...prev, b]); }} 
-                          className="flex items-center gap-2.5 md:gap-3 p-3 md:p-4 rounded-lg border border-[#E8DFD3] hover:border-[#A0522D] transition-colors text-left"
-                        >
-                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-sm border border-black/5" style={{ backgroundColor: b.color }} />
-                          <div className="flex-1">
-                            <p className="text-xs md:text-sm font-medium">{b.name}</p>
-                            <p className="text-[10px] md:text-xs text-[#8B7D6B]">+₱{b.price}</p>
-                          </div>
-                          <Plus className="hidden md:block w-4 h-4 text-[#A0522D]" />
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Bead Collection</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
+                      {beadCollections.map(bc => (
+                        <button key={bc.id} onClick={() => { setSBeadCol(bc); setSBeads([]); }} className={`flex flex-col text-left p-4 rounded-xl border-2 transition-all ${sBeadCol.id === bc.id ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}>
+                          <span className="font-bold text-[var(--dark)] text-sm">{bc.type}</span>
+                          <span className="text-xs text-[#8B7D6B] mt-1">{bc.size}mm • ₱{bc.price}/ea</span>
                         </button>
                       ))}
                     </div>
+                  </div>}
+
+                  {/* STEP 2: STRINGING THE BEADS (COLORS) */}
+                  {cStep === 2 && <div>
+                    <h2 className="text-[24px] text-[var(--dark)] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Design Your Pattern</h2>
+                    <p className="text-sm text-[#8B7D6B] mb-6">Click colors to string them. For a {wristSize}" wrist, you need approx <strong className="text-[var(--primary)]">{idealCount} beads</strong>.</p>
+                    
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-3 mb-6">
+                      {sBeadCol.colors.map(c => (
+                        <button key={c.name} onClick={() => setSBeads([...sBeads, { name: c.name, hex: c.hex, price: sBeadCol.price }])} className="flex flex-col items-center gap-2 p-3 rounded-lg border border-[#E8DFD3] hover:border-[var(--primary)] transition-all">
+                          <div className="w-8 h-8 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: c.hex }} />
+                          <span className="text-[10px] font-bold text-center leading-tight">{c.name}</span>
+                        </button>
+                      ))}
+                    </div>
+
                     {sBeads.length > 0 && (
-                      <div className="mt-4 md:mt-6 flex flex-wrap gap-1.5 md:gap-2 p-0 md:p-4 md:bg-[#F0EBE4] rounded-lg">
-                        {sBeads.map((b, i) => (
-                          <button 
-                            key={i} 
-                            onClick={() => setSBeads(prev => prev.filter((_, idx) => idx !== i))} 
-                            className="flex items-center gap-1 md:gap-1.5 px-0 md:px-3 py-0 md:py-1.5 rounded-full text-xs group hover:bg-[#B85C5C] md:hover:text-white transition-colors"
-                          >
-                            <div className="w-6 h-6 md:w-3 md:h-3 rounded-full border-2 border-white md:border-0" style={{ backgroundColor: b.color }} />
-                            <span className="hidden md:inline">{b.name}</span>
-                            <X className="hidden md:inline w-3 h-3 opacity-50 group-hover:opacity-100" />
-                          </button>
-                        ))}
+                      <div className="p-4 bg-[#F0EBE4] rounded-xl">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Current String ({sBeads.length})</span>
+                          <button onClick={() => setSBeads([])} className="text-[10px] text-red-500 font-bold uppercase">Clear All</button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {sBeads.map((b, i) => (
+                            <button key={i} onClick={() => setSBeads(sBeads.filter((_, idx) => idx !== i))} className="w-6 h-6 rounded-full border border-black/20 hover:scale-110 hover:opacity-50 transition-all flex items-center justify-center group" style={{ backgroundColor: b.hex }}>
+                               <X className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>}
                   
-                  {/* STEP 2: STRING */}
-                  {cStep === 2 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Pick String</h2>
-                    <div className="flex flex-col gap-3 md:gap-4">
+                  {/* STEP 3: STRING OPTIONS */}
+                  {cStep === 3 && <div>
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>String Options</h2>
+                    <div className="flex flex-col gap-3 md:gap-4 mb-6">
                       {strOpts.map(s => (
                         <button 
                           key={s.id} 
                           onClick={() => setSStr(s)} 
-                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left group ${sStr?.id === s.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left group ${sStr?.id === s.id ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
                         >
-                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors ${sStr?.id === s.id ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4] text-[#8B7D6B] group-hover:bg-[#E8DFD3]'}`}>
+                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm transition-colors ${sStr?.id === s.id ? 'bg-[var(--primary)] text-white' : 'bg-[#F0EBE4] text-[#8B7D6B] group-hover:bg-[#E8DFD3]'}`}>
                             {s.id === 's1' ? <Layers className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                           </div>
                           <div className="flex-1">
@@ -1551,74 +1594,45 @@ const handleUpdateProfile = async (e) => {
                             <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5 leading-relaxed">{s.desc}</p>
                           </div>
                           <div className="text-right flex flex-col items-end">
-                            <p className="text-[11px] md:text-xs font-bold text-[#A0522D]">{s.price === 0 ? 'Included' : `+₱${s.price}`}</p>
-                            {sStr?.id === s.id && <Check className="w-5 h-5 text-[#A0522D] mt-1" />}
+                            <p className="text-[11px] md:text-xs font-bold text-[var(--primary)]">{s.price === 0 ? 'Included' : `+₱${s.price}`}</p>
+                            {sStr?.id === s.id && <Check className="w-5 h-5 text-[var(--primary)] mt-1" />}
                           </div>
                         </button>
                       ))}
                     </div>
-                  </div>}
 
-                  {/* STEP 3: BEAD SIZE */}
-                  {cStep === 3 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Bead Size</h2>
-                    
-                    <div className="flex flex-col gap-3 md:gap-4 mb-8">
-                      {[
-                        { id: 'sz2', name: '2mm', desc: 'Dainty, subtle, and minimalist.', px: 8 },
-                        { id: 'sz4', name: '4mm', desc: 'Standard classic everyday fit.', px: 16 },
-                        { id: 'sz5', name: '5mm', desc: 'Bold, prominent, and chunky.', px: 20 }
-                      ].map(sz => (
-                        <button
-                          key={sz.id}
-                          onClick={() => setSBeadSize(sz.name)}
-                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left ${sBeadSize === sz.name ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
-                        >
-                          <div className="w-12 h-12 flex items-center justify-center bg-white border border-[#E8DFD3] rounded-full shadow-sm shrink-0">
-                             <div className="rounded-full bg-[#3E2F1C] transition-all duration-300" style={{ width: sz.px, height: sz.px }} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-bold text-[#3E2F1C]">{sz.name}</p>
-                            <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5">{sz.desc}</p>
-                          </div>
-                          {sBeadSize === sz.name && <Check className="w-5 h-5 text-[#A0522D]" />}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Visual 1 Peso Coin Reference Box */}
-                    <div className="bg-white border border-[#E8DFD3] rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-6">Actual Size Reference</p>
-                      <div className="flex items-end justify-center gap-8 h-24">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="rounded-full bg-gradient-to-br from-[#E8DFD3] to-[#D1CBC3] border-4 border-[#B0A395] flex items-center justify-center shadow-[inset_0_4px_4px_rgba(0,0,0,0.05)] drop-shadow-md" style={{ width: 92, height: 92 }}>
-                             <span className="text-[#8B7D6B] font-bold text-xl tracking-widest">1₱</span>
-                          </div>
-                          <span className="text-[10px] uppercase tracking-widest text-[#8B7D6B] font-bold">23mm</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="rounded-full bg-[#A0522D] shadow-md transition-all duration-500 flex-shrink-0" style={{
-                            width: sBeadSize === '2mm' ? 8 : sBeadSize === '4mm' ? 16 : 20,
-                            height: sBeadSize === '2mm' ? 8 : sBeadSize === '4mm' ? 16 : 20,
-                            marginBottom: sBeadSize === '2mm' ? 42 : sBeadSize === '4mm' ? 38 : 36 
-                          }} />
-                          <span className="text-[10px] uppercase tracking-widest text-[#A0522D] font-bold">{sBeadSize}</span>
+                    {sStr?.id === 's2' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300 p-5 bg-white border border-[#E8DFD3] rounded-xl shadow-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Select Hardware Color</p>
+                        <div className="flex gap-3">
+                          {[
+                            { id: 'Gold', hex: '#C9A96E' },
+                            { id: 'Silver', hex: '#E5E7EB' }
+                          ].map(lc => (
+                            <button 
+                              key={lc.id}
+                              onClick={() => setSLockColor(lc.id)}
+                              className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${sLockColor === lc.id ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                            >
+                              <div className="w-5 h-5 rounded-full border border-black/10 shadow-sm shrink-0" style={{ backgroundColor: lc.hex }} />
+                              <span className="text-xs font-bold text-[#3E2F1C]">{lc.id}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>}
-                  
-                  {/* STEP 4: CHARM */}
+
+                  {/* STEP 4: ADD CHARM */}
                   {cStep === 4 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Charm</h2>
-                    <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center charm</p>
-                    
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Charm</h2>
+                    <p className="text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center charm</p>
                     <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-1 md:pr-2 scrollbar-hide">
                       {charmOpts.map(c => (
                         <button 
                           key={c.id} 
                           onClick={() => setSCharms(prev => prev.find(x => x.id === c.id) ? [] : [c])} 
-                          className={`flex flex-col items-center justify-center gap-1 md:gap-2 p-3 rounded-xl border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                          className={`flex flex-col items-center justify-center gap-1 md:gap-2 p-3 rounded-xl border-2 transition-all ${sCharms.find(x => x.id === c.id) ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
                         >
                           <span className="text-2xl md:text-3xl mb-1">{c.em}</span>
                           <p className="text-[10px] md:text-xs font-bold text-[#3E2F1C] text-center leading-tight">{c.name}</p>
@@ -1628,110 +1642,69 @@ const handleUpdateProfile = async (e) => {
                     </div>
                   </div>}
 
-                  {/* STEP 5: WRIST SIZE & SMART SUGGESTIONS */}
+                  {/* STEP 5: CUSTOM WRIST INPUT & SMART FILL */}
                   {cStep === 5 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Wrist Size</h2>
-                    <p className="hidden md:block text-sm text-[#8B7D6B] mb-6">Select your perfect fit.</p>
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Wrist Measurement</h2>
+                    <p className="text-sm text-[#8B7D6B] mb-6">Measure tightly around your wrist with a tape measure. Enter your exact size in inches. We will adjust the gaps automatically.</p>
                     
-                    <div className="flex flex-col gap-3 md:gap-4 mb-4">
-                      {[
-                        { id: 'S', name: 'Small (S)', desc: '5.5" - 6.0" snug fit for petite wrists.' },
-                        { id: 'M', name: 'Medium (M)', desc: '6.5" - 7.0" standard fit (Most Popular).' },
-                        { id: 'L', name: 'Large (L)', desc: '7.5" - 8.0" loose, relaxed fit.' }
-                      ].map(ws => (
-                        <button
-                          key={ws.id}
-                          onClick={() => setSelSz(ws.id)} 
-                          className={`flex items-center gap-4 p-4 md:p-5 rounded-xl border-2 transition-all text-left ${selSz === ws.id ? 'border-[#A0522D] bg-[#FAF6F1]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
-                        >
-                          <div className={`w-12 h-12 flex items-center justify-center rounded-full shrink-0 font-bold transition-colors ${selSz === ws.id ? 'bg-[#A0522D] text-white' : 'bg-[#F0EBE4] text-[#3E2F1C]'}`}>
-                             {ws.id}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-bold text-[#3E2F1C]">{ws.name}</p>
-                            <p className="text-[10px] md:text-xs text-[#8B7D6B] mt-0.5">{ws.desc}</p>
-                          </div>
-                          {selSz === ws.id && <Check className="w-5 h-5 text-[#A0522D]" />}
-                        </button>
-                      ))}
+                    <div className="flex items-center gap-4 mb-8">
+                      <input 
+                        type="number" step="0.25" min="4" max="10" 
+                        value={wristSize} onChange={(e) => setWristSize(parseFloat(e.target.value) || 6.5)}
+                        className="w-32 px-4 py-3 border-2 border-[#E8DFD3] rounded-xl text-lg font-bold text-center outline-none focus:border-[var(--primary)]"
+                      />
+                      <span className="text-lg font-bold text-[var(--dark)]">Inches</span>
                     </div>
-                    
-                    <button onClick={() => go('sizeguide')} className="text-xs text-[#A0522D] underline font-medium mb-8 block">Need help measuring?</button>
 
-                    {/* 🧠 SMART FIT SUGGESTION BOX */}
-                    <div className={`p-5 rounded-2xl border transition-all duration-500 ${beadDiff === 0 ? 'bg-[#F2F7F4] border-[#7A8B6F]/30' : 'bg-[#FAF6F1] border-[#A0522D]/30 shadow-sm'}`}>
-                      <div className="flex items-start gap-3 md:gap-4">
-                        <div className={`p-2 rounded-full shrink-0 ${beadDiff === 0 ? 'bg-[#7A8B6F]/10 text-[#7A8B6F]' : 'bg-[#A0522D]/10 text-[#A0522D]'}`}>
-                          {beadDiff === 0 ? <Check className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className={`font-bold text-sm mb-1 ${beadDiff === 0 ? 'text-[#7A8B6F]' : 'text-[#3E2F1C]'}`}>
-                            {beadDiff === 0 ? 'Perfect Fit!' : 'Smart Fit Suggestion'}
-                          </h4>
-                          <p className={`text-xs leading-relaxed ${beadDiff === 0 ? 'text-[#7A8B6F]/80' : 'text-[#8B7D6B]'}`}>
-                            {beadDiff === 0 
-                              ? `Your current design of ${sBeads.length} beads is perfectly scaled for a Size ${selSz} wrist. No gaps!`
-                              : beadDiff > 0 
-                                ? `To prevent string gaps on a Size ${selSz} wrist, we highly recommend adding ${beadDiff} more beads to your design.`
-                                : `To prevent your bracelet from being too tight on a Size ${selSz} wrist, we recommend removing ${Math.abs(beadDiff)} beads.`
-                            }
-                          </p>
-                          
-                          {beadDiff !== 0 && (
-                            <button 
-                              onClick={() => {
-                                if (beadDiff > 0) {
-                                  // Adds beads by repeating the very last bead they selected
-                                  const lastBead = sBeads[sBeads.length - 1] || beadOpts[0];
-                                  const newBeads = Array(beadDiff).fill(lastBead);
-                                  setSBeads([...sBeads, ...newBeads]);
-                                  flash(`Added ${beadDiff} beads for a perfect fit!`, 'success');
-                                } else {
-                                  // Trims the excess beads
-                                  setSBeads(sBeads.slice(0, idealCount));
-                                  flash(`Removed ${Math.abs(beadDiff)} beads for a perfect fit!`, 'info');
-                                }
-                              }}
-                              className="mt-4 text-[10px] md:text-xs font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-5 py-3 rounded-xl hover:bg-[#A0522D] transition-colors shadow-md flex items-center justify-center gap-2 w-full md:w-auto"
-                            >
-                              {beadDiff > 0 
-                                ? `Auto-Fill Beads (+₱${beadDiff * (sBeads[sBeads.length - 1]?.price || 3)})` 
-                                : `Auto-Remove Beads (-₱${Math.abs(beadDiff) * (sBeads[sBeads.length - 1]?.price || 3)})`
-                              }
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                    <div className={`p-5 rounded-2xl border transition-all duration-500 ${beadDiff === 0 ? 'bg-[#F2F7F4] border-[#7A8B6F]/30' : 'bg-[var(--bg-light)] border-[var(--primary)]/30 shadow-sm'}`}>
+                      <h4 className="font-bold text-sm mb-1">{beadDiff === 0 ? 'Perfect Fit!' : 'Smart Fit Suggestion'}</h4>
+                      <p className="text-xs text-[#8B7D6B] mb-4">
+                        Based on a {wristSize}" wrist and {sBeadCol.size}mm beads, you need exactly <strong>{idealCount} beads</strong>. You currently have {sBeads.length}.
+                      </p>
+                      
+                      {beadDiff !== 0 && (
+                        <button onClick={() => {
+                          if (beadDiff > 0) {
+                            const last = sBeads[sBeads.length - 1] || { name: 'Filler', hex: '#ccc', price: sBeadCol.price };
+                            setSBeads([...sBeads, ...Array(beadDiff).fill(last)]);
+                          } else {
+                            setSBeads(sBeads.slice(0, idealCount));
+                          }
+                        }} className="text-[10px] font-bold uppercase tracking-widest bg-[var(--dark)] text-white px-5 py-3 rounded-xl hover:bg-[var(--primary)] transition-colors w-full">
+                          {beadDiff > 0 ? `Auto-Fill Missing ${beadDiff} Beads (+₱${beadDiff * sBeadCol.price})` : `Trim Excess ${Math.abs(beadDiff)} Beads`}
+                        </button>
+                      )}
                     </div>
                   </div>}
                   
                   {/* STEP 6: REVIEW */}
                   {cStep === 6 && <div>
-                    <h2 className="text-[22px] md:text-[28px] text-[#3E2F1C] mb-4 md:mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Review & Submit</h2>
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Review & Submit</h2>
                     <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6">
                       <div className="hidden md:flex flex-wrap gap-1.5 mb-4 border-b border-[#E8DFD3] pb-4">
-                        {sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full border border-black/5" style={{ backgroundColor: b.color }} />)}
+                        {sBeads.map((b, i) => <div key={i} className="w-5 h-5 rounded-full border border-black/5" style={{ backgroundColor: b.hex }} />)}
                       </div>
                       <div className="space-y-3 text-sm">
-                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Bead Size</span><span className="font-bold text-[#A0522D]">{sBeadSize}</span></div>
-                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Wrist Fit</span><span className="font-bold text-[#A0522D]">Size {selSz}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Base Setting</span><span className="font-bold text-[var(--dark)]">₱25</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Bead Collection</span><span className="font-bold text-[var(--primary)]">{sBeadCol.name}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Wrist Fit</span><span className="font-bold text-[var(--primary)]">{wristSize}"</span></div>
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
-                        <div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{sStr?.name}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{getFullStringName()}</span></div>
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">Charm</span><span className="font-medium">{sCharms.length > 0 ? sCharms[0].name : 'None'}</span></div>
                       </div>
-                      <div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{custT}</span></div>
+                      <div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{totalCost}</span></div>
                     </div>
                     
                     <div className="space-y-4 mb-6">
                       <div>
-                        <label className="text-xs tracking-[0.15em] uppercase mb-1.5 font-semibold block text-[#8B7D6B]">Your Email <span className="text-[#A0522D]">*</span></label>
+                        <label className="text-xs tracking-[0.15em] uppercase mb-1.5 font-semibold block text-[#8B7D6B]">Your Email <span className="text-[var(--primary)]">*</span></label>
                         <p className="text-[10px] text-[#8B7D6B] mb-2">We will send the actual photo of your crafted design here.</p>
-                        <input value={cEmail} onChange={(e)=>setCEmail(e.target.value)} type="email" placeholder="hello@example.com" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input value={cEmail} onChange={(e)=>setCEmail(e.target.value)} type="email" placeholder="hello@example.com" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[var(--primary)] rounded-lg" />
                       </div>
 
                       <div>
                         <label className="text-xs tracking-[0.15em] uppercase mb-1.5 font-semibold block text-[#8B7D6B]">Name Your Bracelet (Optional)</label>
-                        <input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="e.g. My Healing Energy Bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
+                        <input value={cName} onChange={(e)=>setCName(e.target.value)} placeholder="e.g. My Healing Energy Bracelet" className="w-full px-4 py-3 border border-[#E8DFD3] bg-white text-sm placeholder:text-[#B0A395] outline-none focus:border-[var(--primary)] rounded-lg" />
                       </div>
                     </div>
                     
@@ -1742,7 +1715,6 @@ const handleUpdateProfile = async (e) => {
                           return;
                         }
 
-                        // 1. Send the design quietly to the backend for the Admin Dashboard
                         try {
                           await fetch('http://localhost:4242/api/custom-orders', {
                             method: 'POST',
@@ -1751,11 +1723,11 @@ const handleUpdateProfile = async (e) => {
                               email: cEmail,
                               name: cName || 'Custom Bracelet',
                               beads: sBeads.map(b => b.name),
-                              string: sStr?.name,
-                              beadSize: sBeadSize,
-                              wristSize: selSz,
+                              string: getFullStringName(),
+                              beadSize: `${sBeadCol.size}mm`,
+                              wristSize: `${wristSize}"`,
                               charms: sCharms.map(c => c.name),
-                              totalPrice: custT,
+                              totalPrice: totalCost,
                               status: 'Pending Studio Review',
                               createdAt: new Date().toISOString()
                             })
@@ -1764,31 +1736,31 @@ const handleUpdateProfile = async (e) => {
                           console.log('Failed to send to admin', err);
                         }
 
-                        // 2. Add to Cart for checkout
-                        addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:custT, img:P[0]?.img || '', mat:`Custom (${sBeadSize}, ${selSz})` });
+                        const customMaterial = `Custom: ${sBeadCol.name} for ${wristSize}" wrist${sStr?.id === 's2' ? ` (${sLockColor} Lock)` : ''}`;
+                        addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:totalCost, img:'', mat: customMaterial });
                         flash('Design sent to studio!', 'success');
                       }} 
-                      className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 hover:bg-[#8B4526] transition-colors font-semibold shadow-md flex items-center justify-center gap-2"
+                      className="w-full bg-[var(--primary)] text-white text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 font-bold shadow-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity rounded-xl"
                     >
-                      <Sparkles className="w-4 h-4" /> Send to Studio & Add to Cart — ₱{custT}
+                      <Sparkles className="w-4 h-4" /> Send to Studio & Add to Cart — ₱{totalCost}
                     </button>
                   </div>}
                   
-                  {/* NAVIGATION BUTTONS */}
-                  <div className="flex justify-between mt-6 md:mt-10 pt-0 md:pt-6 md:border-t border-[#E8DFD3]">
-                    {cStep > 1 ? <button onClick={() => setCStep(prev => prev - 1)} className="flex items-center gap-1 md:gap-2 text-sm hover:text-[#A0522D]"><ChevronLeft className="w-4 h-4" /> Back</button> : <div />}
+                  {/* NAVIGATION */}
+                  <div className="flex justify-between mt-8 pt-6 border-t border-[#E8DFD3]">
+                    {cStep > 1 ? <button onClick={() => setCStep(cStep - 1)} className="text-sm font-bold text-[#8B7D6B]">Back</button> : <div/>}
                     {cStep < 6 && (
                       <button 
                         onClick={() => {
-                          if (cStep === 1 && sBeads.length < 15) {
-                            flash('Please select at least 15 beads to continue.', 'info');
+                          if (cStep === 2 && sBeads.length < 5) {
+                            flash('Please string at least 5 beads to continue.', 'info');
                             return;
                           }
-                          setCStep(prev => prev + 1);
+                          setCStep(cStep + 1);
                         }} 
-                        className={`flex items-center gap-1 md:gap-2 text-sm font-medium transition-all ${cStep === 1 && sBeads.length < 15 ? 'text-[#B0A395] cursor-not-allowed opacity-50' : 'text-[#A0522D] hover:scale-105'}`}
+                        className="text-sm font-bold text-[var(--primary)]"
                       >
-                        Next <ChevronRight className="w-4 h-4" />
+                        Next Step
                       </button>
                     )}
                   </div>

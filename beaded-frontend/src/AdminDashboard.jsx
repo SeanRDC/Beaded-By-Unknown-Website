@@ -25,6 +25,12 @@ export default function AdminDashboard() {
   const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
+  const [siteTheme, setSiteTheme] = useState(localStorage.getItem('beaded_theme') || 'brown');
+
+  const handleThemeChange = (theme) => {
+    setSiteTheme(theme);
+    localStorage.setItem('beaded_theme', theme);
+  };
   
   // Community Reviews State
   const [reviews, setReviews] = useState([]);
@@ -56,12 +62,15 @@ const [popup, setPopup] = useState({
   const [customOrders, setCustomOrders] = useState([]);
 
   useEffect(() => {
-    // Fetch custom design submissions
-    fetch('http://localhost:4242/api/custom-orders')
-      .then(res => res.json())
-      .then(data => setCustomOrders(data))
-      .catch(err => console.error(err));
-  }, []);
+      // Safe fetch that won't crash if the backend route isn't built yet!
+      fetch('http://localhost:4242/api/custom-orders')
+        .then(res => {
+          if (!res.ok) throw new Error('Backend route not ready');
+          return res.json();
+        })
+        .then(data => setCustomOrders(data))
+        .catch(err => console.log('Custom orders waiting on backend setup.'));
+    }, []);
 
 const closePopup = () => setPopup({ ...popup, isOpen: false });
 
@@ -252,7 +261,8 @@ const handleSubmit = async (e) => {
           topBannerText: bannerText,
           featureOne: featureOne,
           featureTwo: featureTwo,
-          featureThree: featureThree
+          featureThree: featureThree,
+          theme: siteTheme
         })
       });
       if (res.ok) {
@@ -260,6 +270,8 @@ const handleSubmit = async (e) => {
         setTimeout(() => { setStatus(''); }, 2000);
       } else { setStatus(`❌ Error updating.`); }
     } catch (err) { setStatus('❌ Server error.'); }
+
+    
   };
 
   const handleReviewSubmit = async (e) => {
@@ -465,6 +477,28 @@ const handleDelete = (id, type = 'product') => {
 
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
+
+{/* 🌸 DYNAMIC THEME ENGINE 🌸 */}
+      <style dangerouslySetInnerHTML={{__html: `
+        :root {
+          --primary: ${siteTheme === 'pink' ? '#D88A9A' : '#A0522D'};
+          --dark: ${siteTheme === 'pink' ? '#5C434A' : '#3E2F1C'};
+          --bg-light: ${siteTheme === 'pink' ? '#FFF5F7' : '#FAF6F1'};
+        }
+        
+        ${siteTheme === 'pink' ? `
+        .bg-\\[\\#A0522D\\] { background-color: var(--primary) !important; }
+        .text-\\[\\#A0522D\\] { color: var(--primary) !important; }
+        .border-\\[\\#A0522D\\] { border-color: var(--primary) !important; }
+        
+        .bg-\\[\\#3E2F1C\\] { background-color: var(--dark) !important; }
+        .text-\\[\\#3E2F1C\\] { color: var(--dark) !important; }
+        .border-\\[\\#3E2F1C\\] { border-color: var(--dark) !important; }
+        
+        .bg-\\[\\#FAF6F1\\] { background-color: var(--bg-light) !important; }
+        .hover\\:bg-\\[\\#FAF6F1\\]:hover { background-color: var(--bg-light) !important; }
+        ` : ''}
+      `}} />
       
       {/* --- SIDEBAR DESKTOP NAVIGATION --- */}
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-[#E8DFD3] z-20 shrink-0">
@@ -973,6 +1007,15 @@ const handleDelete = (id, type = 'product') => {
                     </div>
 
                     {status && status.includes('Settings') && <div className="text-sm text-center text-[#A0522D] font-bold">{status}</div>}
+
+                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl mt-4 mb-6">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Global Website Theme</label>
+                        <div className="flex gap-4">
+                          {/* 👇 UPDATED ONCLICK 👇 */}
+                          <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#E8DFD3]' : 'border-transparent bg-white'}`}>🤎 Brown/Earth</button>
+                          <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5]' : 'border-transparent bg-white'}`}>🌸 Pink/Rose</button>
+                        </div>
+                      </div>
                     
                     <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-sm">
                       Update Website
