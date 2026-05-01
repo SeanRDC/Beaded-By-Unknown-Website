@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail } from 'lucide-react';
+import { Tags, Menu, LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail } from 'lucide-react';
 
 export default function AdminDashboard() {
   
@@ -48,6 +48,13 @@ export default function AdminDashboard() {
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
   const [siteTheme, setSiteTheme] = useState(localStorage.getItem('beaded_theme') || 'brown');
 
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Categories specific state
+  const [shopCategories, setShopCategories] = useState(['Plastic', 'Gemstone', 'Glass']);
+  const [newCategory, setNewCategory] = useState('');
+
   // --- FETCHERS ---
 
   const fetchAllData = async () => {
@@ -86,6 +93,7 @@ export default function AdminDashboard() {
         if (data.featureOne) setFeatureOne(data.featureOne);
         if (data.featureTwo) setFeatureTwo(data.featureTwo);
         if (data.featureThree) setFeatureThree(data.featureThree);
+        if (data.categories) setShopCategories(data.categories);
       }
     } catch (err) {}
   };
@@ -250,7 +258,8 @@ export default function AdminDashboard() {
           featureOne: featureOne,
           featureTwo: featureTwo,
           featureThree: featureThree,
-          theme: siteTheme
+          theme: siteTheme,
+          categories: shopCategories
         })
       });
       if (res.ok) {
@@ -381,34 +390,62 @@ export default function AdminDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const saveCategoryUpdate = async (updatedCategories) => {
+    if (!secretKey) {
+      setPopup({ isOpen: true, title: 'Access Denied', message: 'Admin Key Required to save categories.', isConfirm: false });
+      return;
+    }
+    try {
+      const res = await fetch('http://localhost:4242/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
+        body: JSON.stringify({ 
+          topBannerText: bannerText, featureOne, featureTwo, featureThree, theme: siteTheme,
+          categories: updatedCategories 
+        })
+      });
+      if (res.ok) {
+        setShopCategories(updatedCategories);
+      }
+    } catch (err) {
+      console.error("Failed to save categories");
+    }
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() && !shopCategories.includes(newCategory.trim())) {
+      const updated = [...shopCategories, newCategory.trim()];
+      saveCategoryUpdate(updated);
+      setNewCategory('');
+    }
+  };
+
+  const handleDeleteCategory = (catToRemove) => {
+    const updated = shopCategories.filter(c => c !== catToRemove);
+    saveCategoryUpdate(updated);
+  };
+
   // --- SUB-COMPONENTS & HELPERS ---
 
   const NavButton = ({ id, icon: Icon, label }) => (
     <button 
       onClick={() => { 
         setActiveTab(id); 
+        setIsMobileMenuOpen(false); 
         if(id === 'form') { 
           setEditId(null); 
-          setProduct({ 
-            name: '', 
-            price: '', 
-            img: '', 
-            img2: '', 
-            cat: 'Gemstone', 
-            mat: '', 
-            tag: '', 
-            colors: [], 
-            sizes: ['S', 'M', 'L'] 
-          }); 
+          setProduct({ name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: [], sizes: ['S', 'M', 'L'] }); 
         } 
         setStatus(''); 
       }} 
-      className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 p-2 md:px-4 md:py-3 min-w-[72px] md:w-full md:rounded-lg text-[10px] md:text-sm font-medium transition-all duration-200 shrink-0 ${
-        activeTab === id ? 'text-[#A0522D] md:bg-[#3E2F1C] md:text-white' : 'text-[#8B7D6B] hover:text-[#3E2F1C] md:hover:bg-[#E8DFD3]'
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+        activeTab === id 
+          ? 'bg-[#3E2F1C] text-white shadow-md' 
+          : 'text-[#8B7D6B] hover:bg-[#FAF6F1] hover:text-[#3E2F1C]'
       }`}
     >
-      <Icon className="w-5 h-5 md:w-4 md:h-4" />
-      <span>{label}</span>
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="truncate">{label}</span>
     </button>
   );
 
@@ -469,7 +506,7 @@ export default function AdminDashboard() {
   // --- RENDER ---
 
   return (
-    <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
+    <div className="h-screen w-full flex bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
 
       {/* DYNAMIC THEME ENGINE */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -478,572 +515,237 @@ export default function AdminDashboard() {
           --dark: ${siteTheme === 'pink' ? '#5C434A' : '#3E2F1C'};
           --bg-light: ${siteTheme === 'pink' ? '#FFF5F7' : '#FAF6F1'};
         }
-        
-        ${siteTheme === 'pink' ? `
-        .bg-\\[\\#A0522D\\] { background-color: var(--primary) !important; }
-        .text-\\[\\#A0522D\\] { color: var(--primary) !important; }
-        .border-\\[\\#A0522D\\] { border-color: var(--primary) !important; }
-        
-        .bg-\\[\\#3E2F1C\\] { background-color: var(--dark) !important; }
-        .text-\\[\\#3E2F1C\\] { color: var(--dark) !important; }
-        .border-\\[\\#3E2F1C\\] { border-color: var(--dark) !important; }
-        
-        .bg-\\[\\#FAF6F1\\] { background-color: var(--bg-light) !important; }
-        .hover\\:bg-\\[\\#FAF6F1\\]:hover { background-color: var(--bg-light) !important; }
-        ` : ''}
       `}} />
       
-      {/* --- SIDEBAR DESKTOP NAVIGATION --- */}
-      <aside className="hidden md:flex w-64 flex-col bg-white border-r border-[#E8DFD3] z-20 shrink-0">
-        <div className="p-6 border-b border-[#E8DFD3]">
-          <h1 className="text-2xl font-bold tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+      {/* --- MOBILE MENU OVERLAY --- */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-[60] bg-[#3E2F1C]/40 backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* --- SIDEBAR (Slide-in on Mobile, Fixed on Desktop) --- */}
+      <aside className={`fixed md:relative top-0 left-0 h-full w-64 bg-white border-r border-[#E8DFD3] z-[70] transform transition-transform duration-300 ease-in-out flex flex-col ${
+        isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+      }`}>
+        <div className="p-6 border-b border-[#E8DFD3] flex items-center justify-between">
+          <h1 className="text-xl font-bold tracking-widest uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>
             BEADED <span className="font-light text-[#A0522D]">ADMIN</span>
           </h1>
+          <button className="md:hidden text-[#8B7D6B] hover:text-[#3E2F1C]" onClick={() => setIsMobileMenuOpen(false)}>
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto scrollbar-hide">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#B0A395] mb-3 ml-2 mt-2">Dashboard</p>
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
           <NavButton id="orders" icon={ShoppingBag} label="Orders" />
           <NavButton id="custom" icon={Palette} label="Custom Orders" /> 
+          
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#B0A395] mb-3 ml-2 mt-6">Store Management</p>
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
+          <NavButton id="categories" icon={Tags} label="Categories" /> 
+          
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#B0A395] mb-3 ml-2 mt-6">Content</p>
           <NavButton id="journal" icon={BookOpen} label="Journal Editor" /> 
           <NavButton id="community" icon={MessageSquare} label="Community Love" />
           <NavButton id="settings" icon={SettingsIcon} label="Store Settings" />
         </nav>
       </aside>
 
-      <div className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0">
+      {/* --- MAIN CONTENT AREA --- */}
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0 bg-[#Fdfbf9]">
         
-        <header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
+        {/* HEADER */}
+        <header className="bg-white border-b border-[#E8DFD3] px-4 md:px-8 h-16 flex items-center justify-between shrink-0 z-10 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 -ml-2 text-[#3E2F1C] hover:bg-[#FAF6F1] rounded-lg transition-colors">
+              <Menu className="w-6 h-6" />
+            </button>
+            <h2 onClick={toggleAdminName} className="text-lg md:text-xl font-bold cursor-pointer select-none text-[#3E2F1C] truncate" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Hello, {adminName} ✨
+            </h2>
+          </div>
           
-          <h2 onClick={toggleAdminName} className="text-lg font-bold md:hidden cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Hello, {adminName} ✨
-          </h2>
-          
-          <h2 onClick={toggleAdminName} className="hidden md:flex items-center text-xl cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Hello, {adminName} ✨
-            <span className="text-[#8B7D6B] text-sm ml-3 font-sans font-normal tracking-wide hidden lg:inline-block border-l border-[#E8DFD3] pl-3 cursor-default">
-              {activeTab === 'overview' && 'Business Overview'}
-              {activeTab === 'orders' && 'Order Management'}
-              {activeTab === 'custom' && 'Custom Designs'}
-              {activeTab === 'inventory' && 'Catalog Management'}
-              {activeTab === 'form' && (editId ? 'Edit Details' : 'Create New Product')}
-              {activeTab === 'community' && 'Manage Reviews'}
-              {activeTab === 'journal' && 'Journal Management'}
-              {activeTab === 'settings' && 'Global Store Settings'}
-            </span>
-          </h2>
-          
-          <div className="flex items-center gap-2 bg-[#FAF6F1] px-3 py-1.5 rounded-lg border border-[#E8DFD3] focus-within:border-[#A0522D] focus-within:ring-1 focus-within:ring-[#A0522D] transition-all">
-            <KeyRound className="w-4 h-4 text-[#8B7D6B]" />
-            <input 
-              type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} 
-              className="w-24 sm:w-32 bg-transparent text-sm outline-none placeholder-[#8B7D6B]" placeholder="Admin Key"
-            />
+          <div className="flex items-center gap-3">
+            {/* System Status Ping */}
+            <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+              serverStatus === 'online' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
+              {serverStatus === 'online' ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+              {serverStatus === 'online' ? 'System Live' : 'Offline'}
+            </div>
+
+            {/* Admin Key Input */}
+            <div className="flex items-center gap-2 bg-[#FAF6F1] px-3 py-2 rounded-lg border border-[#E8DFD3] focus-within:border-[#A0522D] focus-within:ring-2 focus-within:ring-[#A0522D]/20 transition-all">
+              <KeyRound className="w-4 h-4 text-[#8B7D6B]" />
+              <input 
+                type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} 
+                className="w-20 sm:w-28 bg-transparent text-sm outline-none placeholder-[#B0A395]" placeholder="Admin Key"
+              />
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 flex justify-center items-start">
-          
-          <div className="w-full max-w-5xl bg-white border border-[#E8DFD3] rounded-2xl shadow-sm min-h-[75vh] flex flex-col relative overflow-hidden">
+        {/* SCROLLABLE WORKSPACE */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:px-12 pb-24 flex justify-center items-start">
+          <div className="w-full max-w-6xl">
             
-            <div className={`w-full px-6 py-3 flex items-center justify-between border-b text-sm font-medium transition-colors ${serverStatus === 'online' ? 'bg-green-50 border-green-100 text-green-800' : serverStatus === 'checking' ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-              <div className="flex items-center gap-2">
-                {serverStatus === 'online' ? <Wifi className="w-4 h-4" /> : serverStatus === 'checking' ? <TrendingUp className="w-4 h-4 animate-pulse" /> : <WifiOff className="w-4 h-4" />}
-                <span>
-                  {serverStatus === 'online' ? 'System Live & Synced via MongoDB Atlas' : serverStatus === 'checking' ? 'Establishing secure connection...' : 'Connection Offline'}
-                </span>
-              </div>
-              <div className="hidden sm:block text-xs opacity-70">Auto-pings every 15s</div>
-            </div>
-
-            <div className="p-6 sm:p-8 flex-1 w-full">
-              
-              {/* --- OVERVIEW TAB --- */}
-              {activeTab === 'overview' && (
-                <div className="animate-in fade-in duration-300 w-full space-y-6">
+            {/* --- OVERVIEW TAB --- */}
+            {activeTab === 'overview' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="p-6 bg-white rounded-2xl border border-[#E8DFD3] shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Total Inventory</p>
+                      <div className="p-2 bg-[#FAF6F1] rounded-lg text-[#A0522D]"><Package className="w-5 h-5" /></div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#3E2F1C]">{products.length}</h3>
+                  </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Total Inventory</p>
-                        <Package className="w-5 h-5 text-[#A0522D]" />
-                      </div>
-                      <h3 className="text-3xl font-light">{products.length} <span className="text-sm text-[#8B7D6B]">items</span></h3>
+                  <div className="p-6 bg-white rounded-2xl border border-[#E8DFD3] shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Gross Revenue</p>
+                      <div className="p-2 bg-[#FAF6F1] rounded-lg text-[#A0522D]"><TrendingUp className="w-5 h-5" /></div>
                     </div>
-                    
-                    <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Gross Revenue</p>
-                        <TrendingUp className="w-5 h-5 text-[#A0522D]" />
-                      </div>
-                      <h3 className="text-3xl font-light">₱{stats.revenue.toLocaleString()}</h3>
-                    </div>
-
-                    <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3] sm:col-span-2 lg:col-span-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] text-[#8B7D6B] font-bold uppercase tracking-widest">Total Orders</p>
-                        <ShoppingBag className="w-5 h-5 text-[#A0522D]" />
-                      </div>
-                      <h3 className="text-3xl font-light">{stats.totalOrders}</h3>
-                    </div>
+                    <h3 className="text-3xl font-bold text-[#3E2F1C]">₱{stats.revenue.toLocaleString()}</h3>
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-                      <div>
-                        <h4 className="text-lg font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Sales Performance</h4>
-                        <p className="text-xs text-[#8B7D6B]">Daily revenue performance over the last 7 days</p>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#A0522D] bg-[#FAF6F1] px-3 py-1.5 rounded-full border border-[#E8DFD3]">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#A0522D] animate-pulse" /> Live Sync
-                      </div>
+                  <div className="p-6 bg-white rounded-2xl border border-[#E8DFD3] shadow-sm hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-xs font-bold uppercase tracking-widest text-[#8B7D6B]">Total Orders</p>
+                      <div className="p-2 bg-[#FAF6F1] rounded-lg text-[#A0522D]"><ShoppingBag className="w-5 h-5" /></div>
                     </div>
-
-                    <div className="relative w-full h-40 md:h-60 flex gap-4">
-                      <div className="flex flex-col justify-between text-[9px] font-bold text-[#B0A395] uppercase h-full py-1 pb-6 shrink-0">
-                        <span>₱{chart.max.toLocaleString()}</span>
-                        <span>₱{(chart.max / 2).toLocaleString()}</span>
-                        <span>₱0</span>
-                      </div>
-
-                      <div className="flex-1 relative border-l border-b border-[#E8DFD3] bg-[#FAF6F1]/30">
-                        <svg viewBox="0 -5 300 75" className="w-full h-full" preserveAspectRatio="none">
-                          <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
-                          <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
-
-                          <path
-                            d={chart.smoothPath}
-                            fill="none"
-                            stroke="#A0522D"
-                            strokeWidth="1.25" 
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-
-                          {chart.points.map((p, i) => (
-                            <circle 
-                              key={i} 
-                              cx={p.x} 
-                              cy={p.y} 
-                              r="1.75" 
-                              fill="white" 
-                              stroke="#A0522D" 
-                              strokeWidth="1.25" 
-                            />
-                          ))}
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mt-4 ml-12 pr-2">
-                      <span className="text-[10px] text-[#B0A395] font-bold uppercase tracking-widest">7 Days Ago</span>
-                      <span className="text-[10px] text-[#A0522D] font-bold uppercase tracking-widest">Today</span>
-                    </div>
+                    <h3 className="text-3xl font-bold text-[#3E2F1C]">{stats.totalOrders}</h3>
                   </div>
                 </div>
-              )}
 
-              {/* --- CUSTOM ORDERS TAB --- */}
-              {activeTab === 'custom' && (
-                <div className="animate-in fade-in duration-500 w-full">
-                  <div className="flex justify-between items-center mb-8 border-b border-[#E8DFD3] pb-6">
+                <div className="bg-white p-6 md:p-8 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                      <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Custom Designs</h2>
-                      <p className="text-sm text-[#8B7D6B] mt-1">Pending designs submitted for studio review.</p>
+                      <h4 className="text-xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Sales Performance</h4>
+                      <p className="text-sm text-[#8B7D6B] mt-1">Daily revenue performance over the last 7 days</p>
                     </div>
                   </div>
 
-                  <div className="grid gap-6">
-                    {customOrders.length === 0 ? (
-                      <div className="text-center py-16 bg-[#FAF6F1] rounded-2xl border border-[#E8DFD3]">
-                        <Palette className="w-12 h-12 text-[#D1C7B7] mx-auto mb-4" />
-                        <p className="text-[#8B7D6B] font-medium">No custom designs pending.</p>
-                      </div>
-                    ) : (
-                      customOrders.map(order => (
-                        <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6">
-                          
-                          <div className="flex-1 space-y-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className="text-lg font-bold text-[#3E2F1C]">{order.name}</h3>
-                                <p className="text-sm text-[#A0522D] font-medium flex items-center gap-1.5 mt-0.5">
-                                  <Mail className="w-4 h-4" /> {order.email}
-                                </p>
-                              </div>
-                              <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] uppercase tracking-widest font-bold rounded-full">
-                                {order.status}
-                              </span>
-                            </div>
+                  <div className="relative w-full h-48 md:h-64 flex gap-4">
+                    <div className="flex flex-col justify-between text-[10px] font-bold text-[#B0A395] uppercase h-full py-1 pb-6 shrink-0">
+                      <span>₱{chart.max.toLocaleString()}</span>
+                      <span>₱{(chart.max / 2).toLocaleString()}</span>
+                      <span>₱0</span>
+                    </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
-                              <div>
-                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
-                                <p className="font-medium text-[#3E2F1C]">{order.wristSize}</p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Size</p>
-                                <p className="font-medium text-[#3E2F1C]">{order.beadSize}</p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">String</p>
-                                <p className="font-medium text-[#3E2F1C]">{order.string}</p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Value</p>
-                                <p className="font-medium text-[#3E2F1C]">₱{order.totalPrice}</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="w-full md:w-72 bg-[#Fdfbf9] p-5 rounded-xl border border-[#E8DFD3]">
-                            <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3">Material Breakdown</p>
-                            
-                            <div className="space-y-2 mb-4">
-                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Charms ({order.charms?.length || 0})</p>
-                              <p className="text-sm text-[#5A4A3A]">{order.charms?.length > 0 ? order.charms.join(', ') : 'None'}</p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
-                              <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
-                                {order.beads && (() => {
-                                  const counts = order.beads.reduce((acc, b) => ({...acc, [b]: (acc[b] || 0) + 1}), {});
-                                  return Object.entries(counts).map(([bead, count]) => (
-                                    <div key={bead} className="flex justify-between py-0.5">
-                                      <span>{bead}</span>
-                                      <span className="font-medium text-[#8B7D6B]">x{count}</span>
-                                    </div>
-                                  ));
-                                })()}
-                              </div>
-                            </div>
-                          </div>
-                          
-                        </div>
-                      ))
-                    )}
+                    <div className="flex-1 relative border-l border-b border-[#E8DFD3] bg-[#FAF6F1]/50 rounded-tr-lg">
+                      <svg viewBox="0 -5 300 75" className="w-full h-full" preserveAspectRatio="none">
+                        <line x1="0" y1="10" x2="300" y2="10" stroke="#E8DFD3" strokeWidth="0.5" strokeDasharray="4 4" />
+                        <line x1="0" y1="35" x2="300" y2="35" stroke="#E8DFD3" strokeWidth="0.5" strokeDasharray="4 4" />
+                        <path d={chart.smoothPath} fill="none" stroke="#A0522D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        {chart.points.map((p, i) => (
+                          <circle key={i} cx={p.x} cy={p.y} r="2" fill="white" stroke="#A0522D" strokeWidth="1.5" className="hover:r-3 transition-all cursor-pointer" />
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between mt-4 ml-12 pr-2">
+                    <span className="text-[10px] text-[#B0A395] font-bold uppercase tracking-widest">7 Days Ago</span>
+                    <span className="text-[10px] text-[#A0522D] font-bold uppercase tracking-widest">Today</span>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* --- INVENTORY TAB --- */}
-              {activeTab === 'inventory' && (
-                <div className="animate-in fade-in duration-300 w-full">
-                  {products.length === 0 ? (
-                    <div className="py-20 text-center text-[#8B7D6B]">Catalog is empty.</div>
-                  ) : (
-                    <div className="overflow-x-auto border border-[#E8DFD3] rounded-xl hidden md:block">
-                      <table className="w-full text-left border-collapse min-w-full">
-                        <thead className="bg-[#FAF6F1]">
-                          <tr className="border-b border-[#E8DFD3] text-xs uppercase tracking-widest text-[#8B7D6B]">
-                            <th className="p-4 font-medium">Product</th>
-                            <th className="p-4 font-medium">Price</th>
-                            <th className="p-4 font-medium">Category</th>
-                            <th className="p-4 font-medium text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {products.map(p => (
-                            <tr key={p._id} className="border-b border-[#E8DFD3] hover:bg-[#FAF6F1]">
-                              <td className="p-4 flex items-center gap-4">
-                                <img src={p.img} alt={p.name} className="w-12 h-12 rounded-lg object-cover border border-[#E8DFD3] bg-white shadow-sm" />
-                                <span className="font-medium text-sm">{p.name}</span>
-                              </td>
-                              <td className="p-4 text-sm">₱{p.price}</td>
-                              <td className="p-4 text-sm text-[#8B7D6B]"><span className="bg-white px-2 py-1 rounded-md border border-[#E8DFD3]">{p.cat}</span></td>
-                              <td className="p-4 text-right">
-                                <button onClick={() => handleEditClick(p)} className="p-2 text-[#8B7D6B] hover:text-[#A0522D]"><Edit2 className="w-4 h-4 inline" /></button>
-                                <button onClick={() => handleDelete(p._id, 'product')} className="p-2 text-[#8B7D6B] hover:text-red-500 ml-1"><Trash2 className="w-4 h-4 inline" /></button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+            {/* --- CATEGORIES TAB (NEW) --- */}
+            {activeTab === 'categories' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Shop Categories</h2>
+                  <p className="text-sm text-[#8B7D6B] mt-1">Manage the categories available for your products on the storefront.</p>
+                </div>
 
-                  <div className="md:hidden divide-y divide-[#E8DFD3] border border-[#E8DFD3] rounded-xl">
-                    {products.map(p => (
-                      <div key={p._id} className="p-4 flex gap-4 items-center">
-                        <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover border border-[#E8DFD3] shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-sm truncate">{p.name}</h3>
-                          <p className="text-xs text-[#8B7D6B] mt-1">₱{p.price} • {p.cat}</p>
-                        </div>
-                        <div className="flex flex-col gap-2 shrink-0">
-                          <button onClick={() => handleEditClick(p)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] rounded-lg"><Edit2 className="w-4 h-4" /></button>
-                          <button onClick={() => handleDelete(p._id, 'product')} className="p-2 bg-red-50 text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                        </div>
+                <div className="bg-white p-6 md:p-8 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                    <input 
+                      value={newCategory} 
+                      onChange={(e)=>setNewCategory(e.target.value)} 
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                      placeholder="e.g. Limited Edition" 
+                      className="flex-1 px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 text-sm transition-all" 
+                    />
+                    <button 
+                      onClick={handleAddCategory} 
+                      className="bg-[#3E2F1C] text-white px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-[#A0522D] shadow-md transition-colors"
+                    >
+                      Add Category
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {shopCategories.map(c => (
+                      <div key={c} className="flex items-center justify-between p-4 bg-white border border-[#E8DFD3] rounded-xl group hover:border-[#A0522D] hover:shadow-sm transition-all">
+                        <span className="font-semibold text-[#3E2F1C] text-sm">{c}</span>
+                        <button 
+                          onClick={() => handleDeleteCategory(c)} 
+                          className="text-[#B0A395] hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4"/>
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* --- FORM TAB (Products) --- */}
-              {activeTab === 'form' && (
-                <div className="animate-in fade-in duration-300 relative w-full">
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Product Name</label>
-                        <input required value={product.name} onChange={(e) => setProduct({...product, name: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Price (₱)</label>
-                        <input type="number" required value={product.price} onChange={(e) => setProduct({...product, price: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] focus:ring-2 focus:ring-[#A0522D]/20 text-sm" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
-                        <select value={product.cat} onChange={(e) => setProduct({...product, cat: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-transparent rounded-xl outline-none text-sm appearance-none">
-                          <option>Plastic</option><option>Gemstone</option><option>Glass</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image</label>
-                        <input type="file" accept="image/*" onChange={(e) => setProduct({...product, imgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Secondary Image (Hover/Detail)</label>
-                      <input type="file" accept="image/*" onChange={(e) => setProduct({...product, secondaryImgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
-                    </div>
-
-                    <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] mt-2 text-sm transition-colors">
-                      {editId ? 'Save Changes' : 'Add to Catalog'}
-                    </button>
-
-                    {status && (
-                      <div className="mt-4 p-3 bg-[#E8DFD3] text-[#3E2F1C] rounded-xl text-sm font-bold tracking-wide text-center animate-in fade-in duration-300">
-                        {status}
-                      </div>
-                    )}
-                  </form>
-                </div>
-              )}
-
-              {/* --- COMMUNITY LOVE TAB --- */}
-              {activeTab === 'community' && (
-                <div className="animate-in fade-in duration-300 relative w-full">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-1">
-                      <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Review</h3>
-                      <form onSubmit={handleReviewSubmit} className="space-y-4 bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Name</label>
-                          <input required value={reviewForm.author} onChange={(e) => setReviewForm({...reviewForm, author: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Review Text</label>
-                          <textarea required value={reviewForm.text} onChange={(e) => setReviewForm({...reviewForm, text: e.target.value})} rows="4" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm resize-none" />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Rating (1-5)</label>
-                          <input type="number" min="1" max="5" step="0.5" required value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: parseFloat(e.target.value) || ''})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[var(--primary)] text-sm" />
-                        </div>
-                        <button type="submit" className="w-full bg-[#3E2F1C] text-white py-3 rounded-lg font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs">
-                          Publish Review
-                        </button>
-                      </form>
-                    </div>
-                    <div className="lg:col-span-2">
-                      <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Live Reviews</h3>
-                      {reviews.length === 0 ? (
-                        <p className="text-sm text-[#8B7D6B] py-8 text-center border border-dashed border-[#E8DFD3] rounded-xl">No community reviews added yet.</p>
-                      ) : (
-                        <div className="space-y-4">
-                          {reviews.map(r => (
-                            <div key={r._id} className="p-5 border border-[#E8DFD3] rounded-xl bg-white flex justify-between items-start gap-4">
-                              <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-sm">{r.author}</span>
-                                  {renderStars(r.rating)}
-                                </div>
-                                <p className="text-sm text-[#8B7D6B] leading-relaxed">"{r.text}"</p>
-                              </div>
-                              <button onClick={() => handleDelete(r._id, 'review')} className="p-2 text-[#8B7D6B] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+            {/* --- ORDERS TAB --- */}
+            {activeTab === 'orders' && (
+              <div className="animate-in fade-in duration-300 w-full space-y-4 relative">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Customer Orders</h2>
+                    <p className="text-sm text-[#8B7D6B] mt-1">Manage and fulfill your recent orders.</p>
                   </div>
                 </div>
-              )}
-
-              {/* --- JOURNAL TAB --- */}
-              {activeTab === 'journal' && (
-                <div className="animate-in fade-in duration-300 relative w-full">
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    
-                    <div className="xl:col-span-1">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl" style={{ fontFamily: 'Playfair Display, serif' }}>
-                          {editBlogId ? 'Edit Article' : 'Write an Article'}
-                        </h3>
-                        {editBlogId && (
-                          <button onClick={() => { setEditBlogId(null); setBlogForm({ title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' }); }} className="text-xs font-bold text-[#8B7D6B] flex items-center gap-1 hover:text-[#3E2F1C]">
-                            <X className="w-3 h-3" /> Cancel Edit
-                          </button>
-                        )}
-                      </div>
-
-                      <form onSubmit={handleBlogSubmit} className="space-y-4 bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3]">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Article Title</label>
-                          <input required value={blogForm.title} onChange={(e) => setBlogForm({...blogForm, title: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Cover Image URL</label>
-                          <input required value={blogForm.img} onChange={(e) => setBlogForm({...blogForm, img: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Short Excerpt (Shows on home page)</label>
-                          <textarea required value={blogForm.ex} onChange={(e) => setBlogForm({...blogForm, ex: e.target.value})} rows="2" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm resize-none" />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Full Story (Use Enter for paragraphs)</label>
-                          <textarea required value={blogForm.content} onChange={(e) => setBlogForm({...blogForm, content: e.target.value})} rows="10" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm resize-none" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
-                            <input required value={blogForm.cat} onChange={(e) => setBlogForm({...blogForm, cat: e.target.value})} placeholder="e.g. Style Guide" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Read Time</label>
-                            <input required value={blogForm.time} onChange={(e) => setBlogForm({...blogForm, time: e.target.value})} placeholder="e.g. 5 min" className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                          </div>
-                        </div>
-                        <button type="submit" className="w-full bg-[#3E2F1C] text-white py-3 rounded-lg font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs mt-2">
-                          {editBlogId ? 'Update Article' : 'Publish Article'}
-                        </button>
-                      </form>
-                      {status && status.includes('Article') && <div className="mt-4 text-sm text-center text-[#A0522D] font-bold">{status}</div>}
-                    </div>
-
-                    <div className="xl:col-span-1">
-                      <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Live Articles ({blogs.length})</h3>
-                      {blogs.length === 0 ? (
-                        <p className="text-sm text-[#8B7D6B] py-8 text-center border border-dashed border-[#E8DFD3] rounded-xl">No articles published yet.</p>
-                      ) : (
-                        <div className="space-y-4">
-                          {blogs.map(b => (
-                            <div key={b._id} className="p-4 border border-[#E8DFD3] rounded-xl bg-white flex justify-between items-center gap-4 hover:border-[#A0522D] transition-colors">
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <img src={b.img} alt="" className="w-16 h-16 rounded-lg object-cover border border-[#E8DFD3]" />
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-bold text-[#3E2F1C] text-sm truncate">{b.title}</h4>
-                                  <p className="text-xs text-[#8B7D6B] mt-1">{b.date} • {b.cat}</p>
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-2 shrink-0">
-                                <button onClick={() => handleEditBlog(b)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] hover:bg-[#E8DFD3] rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                <button onClick={() => handleDelete(b._id, 'blog')} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
+                
+                {orders.length === 0 ? (
+                  <div className="p-12 text-center text-[#8B7D6B] bg-white rounded-2xl border border-[#E8DFD3] shadow-sm">
+                    <ShoppingBag className="w-12 h-12 text-[#D1C7B7] mx-auto mb-4" />
+                    No orders yet. They will appear here once someone checks out!
                   </div>
-                </div>
-              )}
-
-              {/* --- SETTINGS TAB --- */}
-              {activeTab === 'settings' && (
-                <div className="animate-in fade-in duration-300 relative w-full max-w-2xl">
-                  <h3 className="text-2xl mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Storefront Controls</h3>
-                  <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">Update the text across your customer-facing website.</p>
-                  
-                  <form onSubmit={handleSettingsSubmit} className="space-y-6 mt-6">
-                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl">
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Top Announcement Banner</label>
-                      <input required value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                    </div>
-
-                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl space-y-4">
-                      <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B]">Store Highlights / Features</label>
-                      <p className="text-xs text-[#8B7D6B] mb-3">These are the three main selling points shown on your site.</p>
-                      <input required value={featureOne} onChange={(e) => setFeatureOne(e.target.value)} placeholder="Highlight 1" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                      <input required value={featureTwo} onChange={(e) => setFeatureTwo(e.target.value)} placeholder="Highlight 2" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                      <input required value={featureThree} onChange={(e) => setFeatureThree(e.target.value)} placeholder="Highlight 3" className="w-full px-4 py-3 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
-                    </div>
-
-                    {status && status.includes('Settings') && <div className="text-sm text-center text-[#A0522D] font-bold">{status}</div>}
-
-                    <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl mt-4 mb-6">
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Global Website Theme</label>
-                        <div className="flex gap-4">
-                          <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#E8DFD3]' : 'border-transparent bg-white'}`}>Brown</button>
-                          <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5]' : 'border-transparent bg-white'}`}>Pink</button>
-                        </div>
-                      </div>
-                    
-                    <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-sm">
-                      Update Website
-                    </button>
-                  </form>
-                </div>
-              )}
-
-            </div>
-
-              {/* --- ORDERS TAB --- */}
-              {activeTab === 'orders' && (
-                <div className="animate-in fade-in duration-300 w-full space-y-4 relative">
-                  <h2 className="text-xl font-bold text-[#3E2F1C] mb-6">Customer Orders</h2>
-                  
-                  {orders.length === 0 ? (
-                    <div className="p-8 text-center text-[#8B7D6B] bg-white rounded-xl shadow-sm">
-                      No orders yet. They will appear here once someone checks out!
-                    </div>
-                  ) : (
-                    orders.map((order) => (
+                ) : (
+                  <div className="grid gap-4">
+                    {orders.map((order) => (
                       <div 
                         key={order._id} 
                         onClick={() => setSelectedOrder(order)} 
-                        className="bg-white p-5 rounded-xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4 cursor-pointer hover:border-[#A0522D] transition-colors"
+                        className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4 cursor-pointer hover:border-[#A0522D] transition-colors"
                       >
-                        
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E8DFD3] pb-4 gap-2">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E8DFD3] pb-4 gap-4">
                           <div>
                             <h3 className="font-bold text-[#3E2F1C]">{order.customerName}</h3>
                             <p className="text-xs tracking-wide text-[#8B7D6B]">{order.customerEmail}</p>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-4">
                             <span className="text-lg font-bold text-[#A0522D]">₱{order.amountPaid}</span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                              order.status === 'Paid' ? 'bg-green-100 text-green-700' : 
-                              order.status === 'Shipped' ? 'bg-blue-100 text-blue-700' : 'bg-[#E8DFD3] text-[#3E2F1C]'
+                            <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              order.status === 'Paid' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                              order.status === 'Shipped' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-[#FAF6F1] text-[#3E2F1C] border border-[#E8DFD3]'
                             }`}>
                               {order.status}
                             </span>
 
                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               {order.status === 'Paid' && (
-                                <button 
-                                  onClick={() => updateOrderStatus(order._id, 'Shipped')}
-                                  className="text-[10px] font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-3 py-2 rounded-lg hover:bg-[#A0522D] transition-colors"
-                                >
+                                <button onClick={() => updateOrderStatus(order._id, 'Shipped')} className="text-[10px] font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-4 py-2 rounded-lg hover:bg-[#A0522D] transition-colors">
                                   Mark Shipped
                                 </button>
                               )}
                               {order.status === 'Shipped' && (
-                                <button 
-                                  onClick={() => updateOrderStatus(order._id, 'Delivered')}
-                                  className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                >
+                                <button onClick={() => updateOrderStatus(order._id, 'Delivered')} className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                   Mark Delivered
                                 </button>
                               )}
@@ -1060,90 +762,444 @@ export default function AdminDashboard() {
                           Ordered: {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
+                )}
 
-                  {selectedOrder && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedOrder(null)}>
-                      <div className="w-full max-w-lg bg-[#FAF6F1] rounded-2xl p-6 md:p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-[#8B7D6B] hover:text-[#3E2F1C]">
-                          <X className="w-5 h-5" />
-                        </button>
-                        
-                        <h3 className="text-2xl font-bold text-[#3E2F1C] mb-6 border-b border-[#E8DFD3] pb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-                          Order Details
-                        </h3>
+                {/* Order Detail Modal */}
+                {selectedOrder && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#3E2F1C]/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedOrder(null)}>
+                    <div className="w-full max-w-lg bg-white rounded-2xl p-6 md:p-8 shadow-2xl relative border border-[#E8DFD3]" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 p-2 text-[#8B7D6B] hover:bg-[#FAF6F1] rounded-full transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                      
+                      <h3 className="text-2xl font-bold text-[#3E2F1C] mb-6 border-b border-[#E8DFD3] pb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        Order Details
+                      </h3>
 
-                        <div className="space-y-6">
-                          <div>
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Info</h4>
-                            <p className="text-sm text-[#3E2F1C] font-medium">{selectedOrder.customerName}</p>
-                            <p className="text-sm text-[#3E2F1C]">{selectedOrder.customerEmail}</p>
-                            <p className="text-sm text-[#3E2F1C]">{selectedOrder.contactNumber || 'No Phone Provided'}</p>
-                          </div>
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Info</h4>
+                          <p className="text-sm text-[#3E2F1C] font-medium">{selectedOrder.customerName}</p>
+                          <p className="text-sm text-[#3E2F1C]">{selectedOrder.customerEmail}</p>
+                          <p className="text-sm text-[#3E2F1C]">{selectedOrder.contactNumber || 'No Phone Provided'}</p>
+                        </div>
 
-                          <div>
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Shipping Address</h4>
-                            {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
-                              <div className="text-sm text-[#3E2F1C] bg-white p-4 rounded-lg border border-[#E8DFD3]">
-                                <p>{selectedOrder.shippingAddress.street}</p>
-                                <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.province}</p> 
-                                <p>{selectedOrder.shippingAddress.region}, {selectedOrder.shippingAddress.postalCode}</p>
+                        <div>
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Shipping Address</h4>
+                          {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
+                            <div className="text-sm text-[#3E2F1C] bg-[#FAF6F1] p-4 rounded-xl border border-[#E8DFD3]">
+                              <p>{selectedOrder.shippingAddress.street}</p>
+                              <p>Brgy. {selectedOrder.shippingAddress.barangay}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.province}</p> 
+                              <p>{selectedOrder.shippingAddress.region}, {selectedOrder.shippingAddress.postalCode}</p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-[#8B7D6B] italic">No address recorded (Old Order)</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Items Purchased</h4>
+                          <div className="bg-white rounded-xl border border-[#E8DFD3] divide-y divide-[#E8DFD3]">
+                            {selectedOrder.items?.map((item, idx) => (
+                              <div key={idx} className="p-4 flex justify-between text-sm">
+                                <span className="font-medium text-[#3E2F1C]">{item.quantity}x {item.name} {item.color && `(${item.color})`}</span>
+                                <span className="font-bold text-[#A0522D]">₱{item.amount / 100}</span>
                               </div>
-                            ) : (
-                              <p className="text-sm text-[#8B7D6B] italic">No address recorded (Old Order)</p>
-                            )}
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* --- CUSTOM ORDERS TAB --- */}
+            {activeTab === 'custom' && (
+              <div className="animate-in fade-in duration-500 w-full">
+                <div className="flex justify-between items-center mb-6 border-b border-[#E8DFD3] pb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Custom Designs</h2>
+                    <p className="text-sm text-[#8B7D6B] mt-1">Pending designs submitted for studio review.</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-6">
+                  {customOrders.length === 0 ? (
+                    <div className="text-center py-16 bg-white rounded-2xl border border-[#E8DFD3] shadow-sm">
+                      <Palette className="w-12 h-12 text-[#D1C7B7] mx-auto mb-4" />
+                      <p className="text-[#8B7D6B] font-medium">No custom designs pending.</p>
+                    </div>
+                  ) : (
+                    customOrders.map(order => (
+                      <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6">
+                        <div className="flex-1 space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-lg font-bold text-[#3E2F1C]">{order.name}</h3>
+                              <p className="text-sm text-[#A0522D] font-medium flex items-center gap-1.5 mt-0.5">
+                                <Mail className="w-4 h-4" /> {order.email}
+                              </p>
+                            </div>
+                            <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] uppercase tracking-widest font-bold rounded-full">
+                              {order.status}
+                            </span>
                           </div>
 
-                          <div>
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Items Purchased</h4>
-                            <div className="bg-white rounded-lg border border-[#E8DFD3] divide-y divide-[#E8DFD3]">
-                              {selectedOrder.items?.map((item, idx) => (
-                                <div key={idx} className="p-3 flex justify-between text-sm">
-                                  <span>{item.quantity}x {item.name} {item.color && `(${item.color})`}</span>
-                                  <span className="font-medium text-[#8B7D6B]">₱{item.amount / 100}</span>
-                                </div>
-                              ))}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
+                            <div>
+                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
+                              <p className="font-medium text-[#3E2F1C]">{order.wristSize}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Size</p>
+                              <p className="font-medium text-[#3E2F1C]">{order.beadSize}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">String</p>
+                              <p className="font-medium text-[#3E2F1C]">{order.string}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Value</p>
+                              <p className="font-bold text-[#A0522D]">₱{order.totalPrice}</p>
                             </div>
                           </div>
                         </div>
 
+                        <div className="w-full md:w-72 bg-[#FAF6F1] p-5 rounded-xl border border-[#E8DFD3]">
+                          <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3">Material Breakdown</p>
+                          
+                          <div className="space-y-2 mb-4">
+                            <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Charms ({order.charms?.length || 0})</p>
+                            <p className="text-sm text-[#5A4A3A]">{order.charms?.length > 0 ? order.charms.join(', ') : 'None'}</p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
+                            <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
+                              {order.beads && (() => {
+                                const counts = order.beads.reduce((acc, b) => ({...acc, [b]: (acc[b] || 0) + 1}), {});
+                                return Object.entries(counts).map(([bead, count]) => (
+                                  <div key={bead} className="flex justify-between py-0.5">
+                                    <span>{bead}</span>
+                                    <span className="font-medium text-[#8B7D6B]">x{count}</span>
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* --- INVENTORY TAB --- */}
+            {activeTab === 'inventory' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Catalog</h2>
+                    <p className="text-sm text-[#8B7D6B] mt-1">{products.length} total products</p>
+                  </div>
+                  <button onClick={() => { setActiveTab('form'); setEditId(null); }} className="hidden sm:flex bg-[#3E2F1C] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#A0522D] items-center gap-2 transition-colors">
+                    <Plus className="w-4 h-4"/> Add Product
+                  </button>
+                </div>
+                
+                {products.length === 0 ? (
+                  <div className="py-20 text-center text-[#8B7D6B] bg-white rounded-2xl border border-[#E8DFD3] shadow-sm">Catalog is empty.</div>
+                ) : (
+                  <div className="overflow-x-auto bg-white border border-[#E8DFD3] rounded-2xl shadow-sm hidden md:block">
+                    <table className="w-full text-left border-collapse min-w-full">
+                      <thead className="bg-[#FAF6F1]">
+                        <tr className="border-b border-[#E8DFD3] text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B]">
+                          <th className="p-4 md:px-6">Product</th>
+                          <th className="p-4 md:px-6">Price</th>
+                          <th className="p-4 md:px-6">Category</th>
+                          <th className="p-4 md:px-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.map(p => (
+                          <tr key={p._id} className="border-b border-[#E8DFD3] hover:bg-[#Fdfbf9] transition-colors">
+                            <td className="p-4 md:px-6 flex items-center gap-4">
+                              <img src={p.img} alt={p.name} className="w-12 h-12 rounded-lg object-cover border border-[#E8DFD3] bg-white shadow-sm" />
+                              <span className="font-semibold text-sm text-[#3E2F1C]">{p.name}</span>
+                            </td>
+                            <td className="p-4 md:px-6 text-sm font-medium text-[#3E2F1C]">₱{p.price}</td>
+                            <td className="p-4 md:px-6"><span className="bg-[#FAF6F1] px-3 py-1 rounded-full text-xs font-medium text-[#8B7D6B] border border-[#E8DFD3]">{p.cat}</span></td>
+                            <td className="p-4 md:px-6 text-right">
+                              <button onClick={() => handleEditClick(p)} className="p-2 text-[#8B7D6B] hover:text-[#A0522D] hover:bg-[#FAF6F1] rounded-lg transition-colors"><Edit2 className="w-4 h-4 inline" /></button>
+                              <button onClick={() => handleDelete(p._id, 'product')} className="p-2 text-[#8B7D6B] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"><Trash2 className="w-4 h-4 inline" /></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                <div className="md:hidden space-y-3">
+                  {products.map(p => (
+                    <div key={p._id} className="p-4 bg-white flex gap-4 items-center rounded-xl border border-[#E8DFD3] shadow-sm">
+                      <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover border border-[#E8DFD3] shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-sm text-[#3E2F1C] truncate">{p.name}</h3>
+                        <p className="text-xs font-medium text-[#A0522D] mt-1">₱{p.price}</p>
+                        <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest mt-1">{p.cat}</p>
+                      </div>
+                      <div className="flex flex-col gap-2 shrink-0">
+                        <button onClick={() => handleEditClick(p)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] rounded-lg"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(p._id, 'product')} className="p-2 bg-red-50 text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* --- FORM TAB (Products) --- */}
+            {activeTab === 'form' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-2xl">
+                <h2 className="text-2xl font-bold text-[#3E2F1C] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  {editId ? 'Edit Product' : 'Add New Product'}
+                </h2>
+                <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 md:p-8 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Product Name</label>
+                      <input required value={product.name} onChange={(e) => setProduct({...product, name: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Price (₱)</label>
+                      <input type="number" required value={product.price} onChange={(e) => setProduct({...product, price: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
+                      <select value={product.cat} onChange={(e) => setProduct({...product, cat: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none text-sm appearance-none cursor-pointer">
+                        {shopCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Primary Image</label>
+                      <input type="file" accept="image/*" onChange={(e) => setProduct({...product, imgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Secondary Image (Hover/Detail)</label>
+                    <input type="file" accept="image/*" onChange={(e) => setProduct({...product, secondaryImgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
+                  </div>
+
+                  <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] mt-4 text-sm transition-colors shadow-md">
+                    {editId ? 'Save Changes' : 'Publish to Catalog'}
+                  </button>
+
+                  {status && (
+                    <div className="mt-4 p-4 bg-[#FAF6F1] text-[#A0522D] rounded-xl text-sm font-bold tracking-wide text-center animate-in fade-in duration-300 border border-[#E8DFD3]">
+                      {status}
+                    </div>
                   )}
+                </form>
+              </div>
+            )}
+
+            {/* --- COMMUNITY LOVE TAB --- */}
+            {activeTab === 'community' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-xl font-bold text-[#3E2F1C] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Review</h3>
+                    <form onSubmit={handleReviewSubmit} className="space-y-5 bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Name</label>
+                        <input required value={reviewForm.author} onChange={(e) => setReviewForm({...reviewForm, author: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Review Text</label>
+                        <textarea required value={reviewForm.text} onChange={(e) => setReviewForm({...reviewForm, text: e.target.value})} rows="4" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm resize-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Rating (1-5)</label>
+                        <input type="number" min="1" max="5" step="0.5" required value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: parseFloat(e.target.value) || ''})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                      </div>
+                      <button type="submit" className="w-full bg-[#3E2F1C] text-white py-3.5 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs transition-colors shadow-md">
+                        Publish Review
+                      </button>
+                    </form>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <h3 className="text-xl font-bold text-[#3E2F1C] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Live Reviews</h3>
+                    {reviews.length === 0 ? (
+                      <p className="text-sm text-[#8B7D6B] py-12 text-center bg-white border border-dashed border-[#E8DFD3] rounded-2xl">No community reviews added yet.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {reviews.map(r => (
+                          <div key={r._id} className="p-5 border border-[#E8DFD3] rounded-2xl bg-white shadow-sm flex justify-between items-start gap-4">
+                            <div>
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="font-bold text-[#3E2F1C]">{r.author}</span>
+                                {renderStars(r.rating)}
+                              </div>
+                              <p className="text-sm text-[#5A4A3A] leading-relaxed italic">"{r.text}"</p>
+                            </div>
+                            <button onClick={() => handleDelete(r._id, 'review')} className="p-2 text-[#B0A395] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- JOURNAL TAB --- */}
+            {activeTab === 'journal' && (
+              <div className="animate-in fade-in duration-300 relative w-full">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                  
+                  <div className="xl:col-span-1">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-2xl font-bold text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        {editBlogId ? 'Edit Article' : 'Write an Article'}
+                      </h3>
+                      {editBlogId && (
+                        <button onClick={() => { setEditBlogId(null); setBlogForm({ title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' }); }} className="text-xs font-bold text-[#8B7D6B] bg-[#FAF6F1] px-3 py-1.5 rounded-lg flex items-center gap-1 hover:text-[#3E2F1C]">
+                          <X className="w-3 h-3" /> Cancel
+                        </button>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleBlogSubmit} className="space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-[#E8DFD3] shadow-sm">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Article Title</label>
+                        <input required value={blogForm.title} onChange={(e) => setBlogForm({...blogForm, title: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Cover Image URL</label>
+                        <input required value={blogForm.img} onChange={(e) => setBlogForm({...blogForm, img: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Short Excerpt</label>
+                        <textarea required value={blogForm.ex} onChange={(e) => setBlogForm({...blogForm, ex: e.target.value})} rows="2" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm resize-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Full Story</label>
+                        <textarea required value={blogForm.content} onChange={(e) => setBlogForm({...blogForm, content: e.target.value})} rows="8" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm resize-none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
+                          <input required value={blogForm.cat} onChange={(e) => setBlogForm({...blogForm, cat: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Read Time</label>
+                          <input required value={blogForm.time} onChange={(e) => setBlogForm({...blogForm, time: e.target.value})} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                        </div>
+                      </div>
+                      <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs transition-colors shadow-md mt-2">
+                        {editBlogId ? 'Update Article' : 'Publish Article'}
+                      </button>
+                    </form>
+                    {status && status.includes('Article') && <div className="mt-4 text-sm text-center text-[#A0522D] font-bold">{status}</div>}
+                  </div>
+
+                  <div className="xl:col-span-1">
+                    <h3 className="text-xl font-bold text-[#3E2F1C] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Live Articles ({blogs.length})</h3>
+                    {blogs.length === 0 ? (
+                      <p className="text-sm text-[#8B7D6B] py-12 text-center bg-white border border-dashed border-[#E8DFD3] rounded-2xl">No articles published yet.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {blogs.map(b => (
+                          <div key={b._id} className="p-4 border border-[#E8DFD3] rounded-2xl bg-white shadow-sm flex justify-between items-center gap-4 hover:border-[#A0522D] transition-colors">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <img src={b.img} alt="" className="w-16 h-16 rounded-xl object-cover border border-[#E8DFD3]" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-[#3E2F1C] text-sm truncate">{b.title}</h4>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mt-1">{b.date} • {b.cat}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2 shrink-0">
+                              <button onClick={() => handleEditBlog(b)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] hover:bg-[#E8DFD3] rounded-lg transition-colors"><Edit2 className="w-4 h-4" /></button>
+                              <button onClick={() => handleDelete(b._id, 'blog')} className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                 </div>
-              )}
+              </div>
+            )}
 
+            {/* --- SETTINGS TAB --- */}
+            {activeTab === 'settings' && (
+              <div className="animate-in fade-in duration-300 relative w-full max-w-2xl">
+                <h3 className="text-2xl font-bold text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Storefront Settings</h3>
+                <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">Update the text and themes across your customer-facing website.</p>
+                
+                <form onSubmit={handleSettingsSubmit} className="space-y-6">
+                  <div className="p-6 bg-white border border-[#E8DFD3] rounded-2xl shadow-sm">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Top Announcement Banner</label>
+                    <input required value={bannerText} onChange={(e) => setBannerText(e.target.value)} className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                  </div>
+
+                  <div className="p-6 bg-white border border-[#E8DFD3] rounded-2xl shadow-sm space-y-4">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B]">Store Highlights</label>
+                    <p className="text-xs text-[#8B7D6B] mb-3">These are the three main selling points shown on your site.</p>
+                    <input required value={featureOne} onChange={(e) => setFeatureOne(e.target.value)} placeholder="Highlight 1" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                    <input required value={featureTwo} onChange={(e) => setFeatureTwo(e.target.value)} placeholder="Highlight 2" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                    <input required value={featureThree} onChange={(e) => setFeatureThree(e.target.value)} placeholder="Highlight 3" className="w-full px-4 py-3 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl outline-none focus:border-[#A0522D] text-sm" />
+                  </div>
+
+                  <div className="p-6 bg-white border border-[#E8DFD3] rounded-2xl shadow-sm mb-6">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Global Website Theme</label>
+                    <div className="flex gap-4">
+                      <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#FAF6F1] text-[#3E2F1C]' : 'border-transparent bg-[#FAF6F1] text-[#8B7D6B]'}`}>Earthy Brown</button>
+                      <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3.5 rounded-xl border-2 font-bold text-sm transition-all ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5] text-[#5C434A]' : 'border-transparent bg-[#FAF6F1] text-[#8B7D6B]'}`}>Blush Pink</button>
+                    </div>
+                  </div>
+                  
+                  {status && status.includes('Settings') && <div className="text-sm text-center text-[#A0522D] font-bold bg-[#FAF6F1] p-3 rounded-lg">{status}</div>}
+
+                  <button type="submit" className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] text-sm shadow-md transition-colors">
+                    Update Website
+                  </button>
+                </form>
+              </div>
+            )}
+
+          </div>
+
+          {/* Floating Action Button on Mobile */}
           {activeTab === 'inventory' && (
             <button 
-              onClick={() => setActiveTab('form')} 
-              className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#3E2F1C] text-[#FAF6F1] rounded-full flex items-center justify-center shadow-xl z-50 hover:bg-[#A0522D] transition-all active:scale-95 border-2 border-[#5A4A38]"
-              aria-label="Add new product"
+              onClick={() => { setActiveTab('form'); setEditId(null); }} 
+              className="md:hidden fixed bottom-[5.5rem] right-4 w-14 h-14 bg-[#3E2F1C] text-white rounded-full flex items-center justify-center shadow-2xl z-50 hover:bg-[#A0522D] transition-transform active:scale-95 border-2 border-white"
             >
               <Plus className="w-6 h-6" />
             </button>
           )}
-          </div>
-        </main>
 
-        <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex overflow-x-auto p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 scrollbar-hide">
-          <div className="flex w-full justify-start sm:justify-around gap-2 px-1">
-            <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
-            <NavButton id="orders" icon={ShoppingBag} label="Orders" />
-            <NavButton id="custom" icon={Palette} label="Custom" />
-            <NavButton id="inventory" icon={Package} label="Catalog" />
-            <NavButton id="journal" icon={BookOpen} label="Journal" /> 
-            <NavButton id="community" icon={MessageSquare} label="Reviews" />
-            <NavButton id="settings" icon={SettingsIcon} label="Settings" />
-          </div>
-        </nav>
-        
+        </main>
+      </div>
+
+      {/* --- UNIVERSAL CUSTOM POP-UP (MODAL) --- */}
       {popup.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          
-          <div className="w-full max-w-sm bg-[#FAF6F1] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold text-[#3E2F1C] mb-2">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#3E2F1C]/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-[#E8DFD3]">
+            <h3 className="text-xl font-bold text-[#3E2F1C] mb-3">
               {popup.title}
             </h3>
             <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">
@@ -1152,34 +1208,22 @@ export default function AdminDashboard() {
             
             <div className="flex gap-3 justify-end">
               {popup.isConfirm && (
-                <button 
-                  onClick={closePopup} 
-                  className="px-5 py-2.5 text-sm font-bold text-[#8B7D6B] bg-[#E8DFD3] rounded-xl hover:bg-[#D1CBC3] transition-colors"
-                >
+                <button onClick={closePopup} className="px-5 py-2.5 text-sm font-bold text-[#3E2F1C] bg-[#FAF6F1] rounded-xl hover:bg-[#E8DFD3] transition-colors">
                   Cancel
                 </button>
               )}
-              
               <button 
-                onClick={() => {
-                  if (popup.onConfirm) popup.onConfirm();
-                  closePopup();
-                }} 
-                className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-colors ${
-                  popup.title.toLowerCase().includes('delete') 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-[#3E2F1C] hover:bg-[#A0522D]' 
+                onClick={() => { if (popup.onConfirm) popup.onConfirm(); closePopup(); }} 
+                className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-colors shadow-md ${
+                  popup.title.toLowerCase().includes('delete') ? 'bg-red-500 hover:bg-red-600' : 'bg-[#3E2F1C] hover:bg-[#A0522D]' 
                 }`}
               >
                 {popup.isConfirm ? 'Confirm' : 'Okay'}
               </button>
             </div>
           </div>
-
         </div>
       )}
-
-      </div>
 
     </div>
   );

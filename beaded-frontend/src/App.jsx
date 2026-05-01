@@ -17,13 +17,11 @@ const cMap = {
   'White': '#FFFFFF', 'Dirty White': '#F5F5DC', 'Black': '#000000', 'Gray': '#808080', 'Brown': '#8B4513'
 };
 
-// Helper function to build collections
 const buildBeads = (id, type, size, price, colorNames) => ({
   id, type, size, price, name: `${type} (${size}mm)`,
   colors: colorNames.map(n => ({ name: n, hex: cMap[n] || '#CCCCCC' }))
 });
 
-// Bead Collections
 const beadCollections = [
   buildBeads('rs3', 'Regular Seed', 3, 0.5, ['Dark Blue', 'Light Blue', 'Pink', 'Dark Green', 'Light Green', 'White', 'Black', 'Yellow', 'Red', 'Purple']),
   buildBeads('gs3', 'Glass Seed', 3, 0.5, ['White', 'Dirty White', 'Orange', 'Pink', 'Purple', 'Blue', 'Light Green', 'Green', 'Gray', 'Black']),
@@ -47,13 +45,11 @@ const beadCollections = [
   buildBeads('ip12', 'Imitation Pearl', 12, 4, ['Dirty White', 'White']),
 ];
 
-// String Options
 const strOpts = [
   { id: 's1', name: 'Stretchable Nylon', color: '#E8DFD3', price: 8, desc: 'Durable elastic core. Easy to slip on and off daily.' }, 
   { id: 's2', name: 'Nylon String with Lock', color: '#B0A395', price: 6, desc: 'Non-stretch string secured with a premium metal clasp.' }
 ];
 
-// Charm Options
 const charmOpts = [
   { id: 'c1', name: 'Black Cat', em: '🐈‍⬛', price: 10 },
   { id: 'c2', name: 'Pink Cat', em: '🐱', price: 10 },
@@ -116,13 +112,12 @@ function App() {
   const [bestsellers, setBestsellers] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [selProd, setSelProd] = useState(P[0]);
+  const [selProd, setSelProd] = useState(null);
   const [selBlog, setSelBlog] = useState(null);
   const [qvId, setQvId] = useState(null);
   const [searchQ, setSearchQ] = useState('');
   const [cat, setCat] = useState('All');
   const [sort, setSort] = useState('Featured');
-  const [selectedCat, setSelectedCat] = useState('All');
   
   // Customizer State
   const [sBeads, setSBeads] = useState([]);
@@ -132,14 +127,12 @@ function App() {
   const [sCharms, setSCharms] = useState([]);
   const [cName, setCName] = useState('');
   const [sLockColor, setSLockColor] = useState('Gold');
-  const [sBeadSize, setSBeadSize] = useState('4mm');
 
   // Shopping & Checkout
   const [cart, setCart] = useState([]);
   const [wish, setWish] = useState([]);
   const [qty, setQty] = useState(1);
   const [selSz, setSelSz] = useState('M');
-  const [selColor, setSelColor] = useState(0);
   const [acc, setAcc] = useState('description');
   const [shippingRegion, setShippingRegion] = useState('Metro Manila');
   const [checkoutForm, setCheckoutForm] = useState({
@@ -149,7 +142,6 @@ function App() {
 
   // User & Authentication
   const [logged, setLogged] = useState(false);
-  const [email, setEmail] = useState('');
   const [cEmail, setCEmail] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -161,20 +153,19 @@ function App() {
   const [isProfileSaved, setIsProfileSaved] = useState(true);
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
+
+  // Forgot Password Flow States
   const [forgotEmail, setForgotEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [otpTimer, setOtpTimer] = useState(600);
+  const [otpTimer, setOtpTimer] = useState(600); // 600 seconds = 10 minutes
 
-  // Settings & Misc
+  // Settings
   const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN');
   const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
-  const [chatIn, setChatIn] = useState('');
-  const [chatMsgs, setChatMsgs] = useState([{ from: 'bot', text: 'Hi! Welcome to beadedbyunknown 👋' }]);
-  const [gAmt, setGAmt] = useState(50);
-  const r = useRef(null);
+  const [shopCategories, setShopCategories] = useState(['Plastic', 'Gemstone', 'Glass']);
 
   // --- DERIVED STATE & MEMOS ---
   
@@ -207,9 +198,28 @@ function App() {
     return P.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || (p.mat && p.mat.toLowerCase().includes(q)));
   }, [searchQ, P]);
 
-  const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // --- HANDLERS ---
+  const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
 
   // --- EFFECTS ---
+  useEffect(() => {
+    let interval;
+    if (loginTab === 'otp' && otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (loginTab === 'otp' && otpTimer === 0) {
+      flash('OTP expired. Please request a new one.', 'error');
+      setLoginTab('forgot'); 
+    }
+    return () => clearInterval(interval);
+  }, [loginTab, otpTimer, flash]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -243,10 +253,10 @@ function App() {
       setCart([]);
       window.history.replaceState(null, '', window.location.pathname);
     } else if (urlParams.get('canceled') === 'true') {
-      flash('Payment was canceled or failed.', 'info');
+      flash('Payment was canceled or failed.', 'error');
       window.history.replaceState(null, '', window.location.pathname);
     }
-  }, []);
+  }, [flash]);
 
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
@@ -310,6 +320,7 @@ function App() {
           if (data.featureOne) setFeatureOne(data.featureOne);
           if (data.featureTwo) setFeatureTwo(data.featureTwo);
           if (data.featureThree) setFeatureThree(data.featureThree);
+          if (data.categories) setShopCategories(data.categories);
         }
       })
       .catch(err => console.error("Failed to load settings:", err));
@@ -333,7 +344,7 @@ function App() {
         }
       }).catch(err => console.error(err));
     }
-  }, []);
+  }, [logged]);
 
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
@@ -344,7 +355,7 @@ function App() {
         body: JSON.stringify({ cart, wishlist: wish })
       }).catch(err => console.error("Sync error:", err));
     }
-  }, [cart, wish]);
+  }, [cart, wish, logged]);
 
   useEffect(() => {
     fetch('http://localhost:4242/api/products')
@@ -360,7 +371,7 @@ function App() {
       .catch(err => {
         setP([]);
       });
-  }, []);
+  }, [selProd]);
 
   useEffect(() => {
     const handleS = () => setScrolled(window.scrollY > 50);
@@ -368,24 +379,6 @@ function App() {
     return () => window.removeEventListener('scroll', handleS);
   }, []);
 
-  // --- HANDLERS ---
-
-  const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
-
-  // optTimer below flash
-    useEffect(() => {
-    let interval;
-    if (loginTab === 'otp' && otpTimer > 0) {
-      interval = setInterval(() => {
-        setOtpTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (loginTab === 'otp' && otpTimer === 0) {
-      flash('OTP expired. Please request a new one.', 'error');
-      setLoginTab('forgot');
-    }
-    return () => clearInterval(interval);
-  }, [loginTab, otpTimer, flash]);
-  
   const go = useCallback((p, data) => { 
     setPg(p); 
     if (p === 'product' && data) {
@@ -524,7 +517,7 @@ function App() {
       const data = await res.json();
 
       if (!res.ok) {
-        flash(data.error, "error"); // 👈 POPUP INSTEAD OF ALERT
+        flash(data.error, "error"); 
       } else {
         localStorage.setItem('beaded_token', data.token);
         setLogged(data.user); 
@@ -538,6 +531,36 @@ function App() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
+      
+      const res = await fetch('http://localhost:4242/api/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: result.user.email,
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(' ') || ''
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (!data.error) {
+        localStorage.setItem('beaded_token', data.token);
+        setLogged(data.user);
+        setCart(data.cart || []);
+        setWish(data.wishlist || []);
+        setLoginOpen(false);
+        flash(`Welcome, ${data.user.firstName}!`, 'success');
+      }
+    } catch (error) {
+      flash('Google sign-in failed.', 'error');
+    }
+  };
+
   const handleForgotPassword = async () => {
     if (!forgotEmail) return flash("Please enter your email.", "error");
     try {
@@ -548,7 +571,7 @@ function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        setOtpTimer(600); // 👈 RESET TIMER TO 10 MINS
+        setOtpTimer(600);
         flash('OTP sent to your email!', 'success');
         setLoginTab('otp'); 
       } else {
@@ -585,7 +608,7 @@ function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        flash('Your password has been changed! Please log in.', 'success'); // 👈 SUCCESS POPUP
+        flash('Your password has been changed! Please log in.', 'success');
         setLoginTab('signin'); 
         setForgotEmail('');
         setOtpCode('');
@@ -596,47 +619,7 @@ function App() {
     } catch (err) { flash('Server error.', 'error'); }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
-      
-      const res = await fetch('http://localhost:4242/api/google-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: result.user.email,
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(' ') || ''
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (!data.error) {
-        localStorage.setItem('beaded_token', data.token);
-        setLogged(data.user);
-        setCart(data.cart || []);
-        setWish(data.wishlist || []);
-        setLoginOpen(false);
-        flash(`Welcome, ${data.user.firstName}!`, 'success');
-      }
-    } catch (error) {
-      flash('Google sign-in failed.', 'error');
-    }
-  };
-
   // --- SUB-COMPONENTS & RENDER HELPERS ---
-
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const stars = (rt) => Array.from({ length: 5 }, (_, i) => (
-    <Star key={i} className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < Math.floor(rt) ? 'fill-[#C9A96E] text-[#C9A96E]' : 'text-[#E8DFD3]'}`} />
-  ));
 
   const renderStars = (rating) => {
     const num = parseFloat(rating) || 5;
@@ -691,20 +674,6 @@ function App() {
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
 
-      {/* GLOBAL TOAST NOTIFICATION UI */}
-      {toast && (
-        <div className={`fixed top-24 md:top-32 right-4 md:right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-8 duration-300 font-medium text-sm border-l-4 ${
-          toast.t === 'error' ? 'bg-white border-red-500 text-red-700' : 
-          toast.t === 'success' ? 'bg-white border-green-500 text-green-700' : 
-          'bg-white border-[#A0522D] text-[#3E2F1C]'
-        }`}>
-          {toast.t === 'error' ? <X className="w-5 h-5 text-red-500" /> : 
-            toast.t === 'success' ? <Check className="w-5 h-5 text-green-500" /> : 
-            <Sparkles className="w-5 h-5 text-[#A0522D]" />}
-          {toast.m}
-        </div>
-      )}
-
       {/* DYNAMIC THEME ENGINE */}
       <style dangerouslySetInnerHTML={{__html: `
         :root {
@@ -727,6 +696,20 @@ function App() {
         ` : ''}
       `}} />
 
+      {/* GLOBAL TOAST NOTIFICATION UI */}
+      {toast && (
+        <div className={`fixed top-24 md:top-32 right-4 md:right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-8 duration-300 font-medium text-sm border-l-4 ${
+          toast.t === 'error' ? 'bg-white border-red-500 text-red-700' : 
+          toast.t === 'success' ? 'bg-white border-green-500 text-green-700' : 
+          'bg-white border-[#A0522D] text-[#3E2F1C]'
+        }`}>
+          {toast.t === 'error' ? <X className="w-5 h-5 text-red-500" /> : 
+           toast.t === 'success' ? <Check className="w-5 h-5 text-green-500" /> : 
+           <Sparkles className="w-5 h-5 text-[#A0522D]" />}
+          {toast.m}
+        </div>
+      )}
+
       {/* HEADER - Responsive */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled || pg !== 'home' ? 'bg-[#FAF6F1]/95 backdrop-blur-sm shadow-sm' : 'bg-[#FAF6F1] md:bg-transparent'}`}>
@@ -735,19 +718,16 @@ function App() {
           </div>
           <nav className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
             
-            {/* Mobile Menu Icon */}
             <div className="flex-1 md:hidden">
               <button onClick={() => setMenuOpen(true)} className="p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
             </div>
             
-            {/* Desktop Left Nav */}
             <div className="hidden md:flex items-center gap-4 xl:gap-8 flex-1 justify-start">
               <button onClick={() => go('collection')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Shop</button>
               <button onClick={() => go('customizer')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Customize</button>
               <button onClick={() => go('about')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Our Story</button>
             </div>
 
-            {/* Center Logo */}
             <div className="flex-shrink-0 flex justify-center mx-2 lg:mx-4">
               <button onClick={() => go('home')} className="flex items-center justify-center">
                 <span className="hidden lg:block text-[22px] tracking-[0.2em] text-[#3E2F1C] uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -761,7 +741,6 @@ function App() {
               </button>
             </div>
 
-            {/* Desktop Right Nav & Mobile Cart */}
             <div className="flex items-center justify-end gap-4 xl:gap-5 flex-1">
               <button onClick={() => go('blog')} className="hidden md:block text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
               <button onClick={() => setSearchOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><Search className="w-[18px] h-[18px]" /></button>
@@ -788,7 +767,6 @@ function App() {
       {/* MAIN CONTENT */}
       <main className={`flex-1 pb-16 md:pb-0 ${pg !== 'checkout' && pg !== 'confirmation' ? 'pt-[76px] md:pt-[94px]' : ''}`}>
 
-        {/* PAYMENT SUCCESS CONFIRMATION */}
         {pg === 'confirmation' && (
           <div className="max-w-2xl mx-auto px-5 py-24 md:py-32 text-center animate-in fade-in zoom-in-95 duration-500">
             <div className="w-24 h-24 bg-[#FAF6F1] border-4 border-[#A0522D] rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
@@ -822,7 +800,6 @@ function App() {
           </div>
         )}
         
-        {/* HOME */}
         {pg === 'home' && (
           <div>
             <section className="relative h-[420px] md:h-[85vh] flex items-end md:items-center bg-[#EDE7DF]">
@@ -920,7 +897,6 @@ function App() {
                     <div className="flex justify-center mb-4 scale-110 origin-center">
                       {renderStars(review.rating)}
                     </div>
-                    
                     <p className="text-sm italic text-[#8B7D6B] mb-4">"{review.text}"</p>
                     <p className="text-xs uppercase tracking-widest font-bold">- {review.author}</p>
                   </div>
@@ -928,7 +904,6 @@ function App() {
               </div>
             </section>
 
-            {/* OUR STORY SECTION */}
             <section className="py-16 md:py-24 bg-[#FAF6F1]">
               <div className="max-w-[1200px] mx-auto px-5 md:px-8">
                 <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
@@ -948,7 +923,6 @@ function App() {
                     </button>
                   </div>
                   <div className="flex-1 w-full relative">
-                    {/* STACKED AUTO-CAROUSEL */}
                     <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
                       {studioImages.map((img, idx) => (
                         <img
@@ -978,7 +952,6 @@ function App() {
               </div>
             </section>
 
-            {/* THE JOURNAL SECTION */}
             <section className="py-16 md:py-24 bg-white">
               <div className="max-w-[1200px] mx-auto px-5 md:px-8">
                 <div className="text-center mb-12">
@@ -1015,7 +988,6 @@ function App() {
               </div>
             </section>
 
-            {/* FOOTER */}
             <footer className="bg-[#3E2F1C] text-[#FAF6F1] py-16 mt-auto">
               <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 border-b border-[#5A4A38] pb-12 mb-8">
                 
@@ -1083,8 +1055,6 @@ function App() {
           </div>
         )}
 
-        {/* FOOTER PAGES */}
-  
         {pg === 'sizeguide' && (
           <div className="max-w-3xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
             <h1 className="text-3xl md:text-5xl mb-8 text-center text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Size Guide</h1>
@@ -1126,7 +1096,6 @@ function App() {
           <div className="max-w-3xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
             <h1 className="text-3xl md:text-5xl mb-10 md:mb-16 text-center text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping & Returns</h1>
             <div className="space-y-10 md:space-y-12">
-              
               <section>
                 <h2 className="text-xs md:text-sm font-bold tracking-widest uppercase mb-3 md:mb-4 text-[#8B7D6B]">Processing & Shipping</h2>
                 <p className="text-sm md:text-base text-[#3E2F1C] leading-relaxed mb-6">
@@ -1149,7 +1118,6 @@ function App() {
                   Once a custom bracelet has been started in our studio, we cannot accept cancellations, returns, or exchanges. Please ensure your wrist measurement is completely accurate according to our Size Guide before placing your order.
                 </p>
               </section>
-
             </div>
           </div>
         )}
@@ -1167,7 +1135,6 @@ function App() {
           </div>
         )}
 
-        {/* OUR STORY PAGE */}
         {pg === 'about' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-12 pb-16 md:pb-24">
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Our Story</span></div>
@@ -1185,7 +1152,6 @@ function App() {
                 </p>
               </div>
                   <div className="flex-1 w-full relative">
-                    {/* STACKED AUTO-CAROUSEL */}
                     <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
                       {studioImages.map((img, idx) => (
                         <img
@@ -1215,7 +1181,6 @@ function App() {
           </div>
         )}
 
-        {/* JOURNAL PAGE */}
         {pg === 'blog' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-12 pb-16 md:pb-24">
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-8"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Journal</span></div>
@@ -1246,7 +1211,6 @@ function App() {
           </div>
         )}
 
-        {/* SINGLE BLOG POST READING VIEW */}
         {pg === 'blog-post' && selBlog && (
           <div className="bg-white min-h-screen">
             <div className="max-w-[800px] mx-auto px-5 md:px-8 pt-8 md:pt-16 pb-24 animate-in fade-in duration-500">
@@ -1302,7 +1266,6 @@ function App() {
           </div>
         )}
 
-        {/* COLLECTION */}
         {pg === 'collection' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
             <div className="hidden md:flex items-center gap-2 text-xs text-[#8B7D6B] mb-6"><button onClick={() => go('home')} className="hover:text-[#A0522D]">Home</button><ChevronRight className="w-3 h-3" /><span className="text-[#3E2F1C]">Shop All</span></div>
@@ -1311,7 +1274,7 @@ function App() {
             
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-8 pb-4 border-b border-[#E8DFD3] gap-4">
               <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                {['All', 'Plastic', 'Gemstone', 'Glass'].map(c => (
+                {['All', ...shopCategories].map(c => (
                   <button key={c} onClick={() => setCat(c)} className={`text-[10px] md:text-xs tracking-[0.1em] md:tracking-[0.15em] uppercase px-3 md:px-4 py-1.5 md:py-2 whitespace-nowrap font-medium shrink-0 transition-colors ${cat === c ? 'bg-[#3E2F1C] text-[#FAF6F1]' : 'bg-[#F0EBE4] text-[#5A4A3A] hover:bg-[#E8DFD3]'}`}>{c}</button>
                 ))}
               </div>
@@ -1319,7 +1282,7 @@ function App() {
             </div>
 
             {filtered.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">{filtered.map(p => <Card key={p.id} p={p} />)}</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">{filtered.map(p => <Card key={p.id || p._id} p={p} />)}</div>
             ) : (
               <div className="py-16 md:py-24 text-center">
                 <Search className="w-10 h-10 md:w-12 md:h-12 text-[#E8DFD3] mx-auto mb-3 md:mb-4" />
@@ -1330,7 +1293,6 @@ function App() {
           </div>
         )}
 
-        {/* PRODUCT DETAIL */}
         {pg === 'product' && (() => {
           const p = selProd;
           const productSizes = Array.isArray(p.sizes) && p.sizes.length > 0 
@@ -1343,7 +1305,6 @@ function App() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-16">
                 
-                {/* --- IMAGE GALLERY SECTION --- */}
                 <div>
                   <div className="aspect-square md:rounded-xl overflow-hidden bg-[#F0EBE4]">
                     <img 
@@ -1370,7 +1331,6 @@ function App() {
                   </div>
                 </div>
                 
-               {/* --- PRODUCT INFO SECTION --- */}
                 <div className="px-5 py-5 md:px-0 md:py-4 mt-2 md:mt-0">
                   {p.tag && <span className="text-[10px] md:text-[11px] tracking-[0.15em] md:tracking-[0.2em] text-[#A0522D] uppercase font-medium">{p.tag}</span>}
                   <h2 className="text-[26px] md:text-[36px] text-[#3E2F1C] mt-1 mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
@@ -1427,7 +1387,6 @@ function App() {
           );
         })()}
 
-        {/* CUSTOMIZER */}
         {pg === 'customizer' && (() => {
           const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
           const circumference_mm = wristSize * 25.4;
@@ -1748,7 +1707,6 @@ function App() {
           );
         })()}
 
-        {/* ACCOUNT, WISHLIST, ETC */}
         {pg === 'wishlist' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-300">
             
@@ -1787,8 +1745,7 @@ function App() {
           </div>
         )}
 
-        {/* CHECKOUT */}
-          {pg === 'checkout' && (
+        {pg === 'checkout' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
             
             <button 
@@ -1963,7 +1920,6 @@ function App() {
           </div>
         )}
 
-        {/* ACCOUNT / PROFILE */}
         {pg === 'account' && logged && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
             <div className="flex flex-col md:flex-row gap-8 md:gap-12">
@@ -2186,150 +2142,157 @@ function App() {
           </div>
         )}
 
-        {/* LOGIN MODAL */}
+        {/* LOGIN / AUTH MODAL */}
         {loginOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6">
-          <div className="absolute inset-0 bg-[#3E2F1C]/40 backdrop-blur-sm" onClick={() => setLoginOpen(false)} />
-          
-          <div className="relative w-full max-w-[440px] bg-white rounded-[2rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 p-2 text-[#8B7D6B] hover:bg-[#FAF6F1] rounded-full transition-colors z-10">
-              <X className="w-5 h-5" />
-            </button>
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6">
+            <div className="absolute inset-0 bg-[#3E2F1C]/40 backdrop-blur-sm" onClick={() => setLoginOpen(false)} />
             
-            <div className="p-8 md:p-10">
-              <div className="text-center mb-8">
-                <h3 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  {loginTab === 'signin' ? 'Welcome Back' : 'Create Account'}
-                </h3>
-                <p className="text-sm text-[#8B7D6B]">
-                  {loginTab === 'signin' ? 'Sign in to access your wishlist and orders.' : 'Join the community for a personalized experience.'}
-                </p>
-              </div>
+            <div className="relative w-full max-w-[440px] bg-white rounded-[2rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-300">
+              <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 p-2 text-[#8B7D6B] hover:bg-[#FAF6F1] rounded-full transition-colors z-10">
+                <X className="w-5 h-5" />
+              </button>
               
-              <div className="flex p-1 bg-[#FAF6F1] rounded-full mb-8">
-                <button 
-                  onClick={() => setLoginTab('signin')} 
-                  className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'signin' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
-                >
-                  Sign In
-                </button>
-                <button 
-                  onClick={() => setLoginTab('register')} 
-                  className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'register' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
-                >
-                  Register
-                </button>
-              </div>
-
-              <div className="space-y-3 mb-8">
-                <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 py-3 border-2 border-[#E8DFD3] rounded-xl text-sm font-semibold text-[#3E2F1C] hover:bg-[#FAF6F1] hover:border-[#3E2F1C] transition-all">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                  Continue with Google
-                </button>
-              </div>
-
-              <div className="flex items-center gap-4 mb-8">
-                <div className="flex-1 h-px bg-[#E8DFD3]" />
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#B0A395]">Or use email</span>
-                <div className="flex-1 h-px bg-[#E8DFD3]" />
-              </div>
-
-              <div className="space-y-4">
-                {loginTab === 'register' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">First Name</label>
-                      <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="Jane" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Last Name</label>
-                      <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Doe" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                    </div>
-                  </div>
-                )}
+              <div className="p-8 md:p-10">
+                <div className="text-center mb-8">
+                  <h3 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {loginTab === 'signin' ? 'Welcome Back' : loginTab === 'register' ? 'Create Account' : 'Password Reset'}
+                  </h3>
+                  <p className="text-sm text-[#8B7D6B]">
+                    {loginTab === 'signin' ? 'Sign in to access your wishlist and orders.' : loginTab === 'register' ? 'Join the community for a personalized experience.' : 'Securely recover your account access.'}
+                  </p>
+                </div>
                 
                 {(loginTab === 'signin' || loginTab === 'register') && (
-                  <>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
-                      <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Password</label>
-                        {loginTab === 'signin' && (
-                          <button onClick={() => setLoginTab('forgot')} className="text-[10px] font-bold uppercase tracking-widest text-[#A0522D] hover:underline">Forgot?</button>
-                        )}
-                      </div>
-                      <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                    </div>
-
+                  <div className="flex p-1 bg-[#FAF6F1] rounded-full mb-8">
                     <button 
-                      onClick={() => handleAuth(loginTab)} 
-                      className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
+                      onClick={() => setLoginTab('signin')} 
+                      className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'signin' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
                     >
-                      {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+                      Sign In
                     </button>
+                    <button 
+                      onClick={() => setLoginTab('register')} 
+                      className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-widest rounded-full transition-all ${loginTab === 'register' ? 'bg-white text-[#3E2F1C] shadow-sm' : 'text-[#8B7D6B] hover:text-[#3E2F1C]'}`}
+                    >
+                      Register
+                    </button>
+                  </div>
+                )}
+
+                {(loginTab === 'signin' || loginTab === 'register') && (
+                  <>
+                    <div className="space-y-3 mb-8">
+                      <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 py-3 border-2 border-[#E8DFD3] rounded-xl text-sm font-semibold text-[#3E2F1C] hover:bg-[#FAF6F1] hover:border-[#3E2F1C] transition-all">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Continue with Google
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="flex-1 h-px bg-[#E8DFD3]" />
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#B0A395]">Or use email</span>
+                      <div className="flex-1 h-px bg-[#E8DFD3]" />
+                    </div>
                   </>
                 )}
 
-                {loginTab === 'forgot' && (
-                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter your email and we'll send you a 6-digit code.</p>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
-                      <input value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                    </div>
-                    <button onClick={handleForgotPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Send Code</button>
-                    <button onClick={() => setLoginTab('signin')} className="w-full mt-4 text-xs font-bold text-[#8B7D6B] uppercase tracking-widest hover:text-[#3E2F1C]">Back to Sign In</button>
-                  </div>
-                )}
-
-                {loginTab === 'otp' && (
-                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter the 6-digit code sent to {forgotEmail}.</p>
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">6-Digit Code</label>
-                        <span className={`text-[10px] font-bold tracking-widest ${otpTimer < 60 ? 'text-red-500 animate-pulse' : 'text-[#A0522D]'}`}>
-                          {formatTime(otpTimer)}
-                        </span>
+                {/* Form Fields */}
+                <div className="space-y-4">
+                  {loginTab === 'register' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">First Name</label>
+                        <input value={authFirstName} onChange={(e) => setAuthFirstName(e.target.value)} placeholder="Jane" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
                       </div>
-                      <input value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="123456" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center text-lg tracking-[0.5em] font-bold transition-all" maxLength="6" />
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Last Name</label>
+                        <input value={authLastName} onChange={(e) => setAuthLastName(e.target.value)} placeholder="Doe" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      </div>
                     </div>
-                    <button onClick={handleVerifyOtp} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Verify Code</button>
-                  </div>
-                )}
+                  )}
+                  
+                  {(loginTab === 'signin' || loginTab === 'register') && (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
+                        <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      </div>
 
-                {loginTab === 'reset' && (
-                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Almost done! Create a new password.</p>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">New Password</label>
-                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Password</label>
+                          {loginTab === 'signin' && <button onClick={() => setLoginTab('forgot')} className="text-[10px] font-bold uppercase tracking-widest text-[#A0522D] hover:underline">Forgot?</button>}
+                        </div>
+                        <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      </div>
+
+                      <button 
+                        onClick={() => handleAuth(loginTab)} 
+                        className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
+                      >
+                        {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+                      </button>
+                    </>
+                  )}
+
+                  {/* 1. FORGOT PASSWORD STEP */}
+                  {loginTab === 'forgot' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                      <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter your email and we'll send you a 6-digit code.</p>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
+                        <input value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      </div>
+                      <button onClick={handleForgotPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Send Code</button>
+                      <button onClick={() => setLoginTab('signin')} className="w-full mt-4 text-xs font-bold text-[#8B7D6B] uppercase tracking-widest hover:text-[#3E2F1C]">Back to Sign In</button>
                     </div>
-                    <button onClick={handleResetPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Update Password</button>
-                  </div>
-                )}
+                  )}
 
+                  {/* 2. OTP VERIFICATION STEP */}
+                  {loginTab === 'otp' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                      <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter the 6-digit code sent to {forgotEmail}.</p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">6-Digit Code</label>
+                          <span className={`text-[10px] font-bold tracking-widest ${otpTimer < 60 ? 'text-red-500 animate-pulse' : 'text-[#A0522D]'}`}>
+                            {formatTime(otpTimer)}
+                          </span>
+                        </div>
+                        <input value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="123456" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center text-lg tracking-[0.5em] font-bold transition-all" maxLength="6" />
+                      </div>
+                      <button onClick={handleVerifyOtp} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Verify Code</button>
+                    </div>
+                  )}
+
+                  {/* 3. NEW PASSWORD STEP */}
+                  {loginTab === 'reset' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                      <p className="text-sm text-[#8B7D6B] mb-4 text-center">Almost done! Create a new password.</p>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">New Password</label>
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                      </div>
+                      <button onClick={handleResetPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Update Password</button>
+                    </div>
+                  )}
+
+                </div>
+
+                <p className="text-[10px] text-[#B0A395] text-center mt-8 leading-relaxed px-4">
+                  By continuing, you agree to our 
+                  <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Terms of Service</button> 
+                  and 
+                  <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Privacy Policy</button>.
+                </p>
               </div>
-
-              <p className="text-[10px] text-[#B0A395] text-center mt-8 leading-relaxed px-4">
-                By continuing, you agree to our 
-                <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Terms of Service</button> 
-                and 
-                <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Privacy Policy</button>.
-              </p>
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* TERMS AND CONDITIONS / PRIVACY POLICY */}
-      {pg === 'terms' && (
+        )}
+        
+        {pg === 'terms' && (
           <div className="max-w-4xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
             <button 
               onClick={() => go('home')} 
@@ -2381,7 +2344,7 @@ function App() {
 
               <div className="bg-[#FAF6F1] p-8 rounded-2xl border border-[#E8DFD3] text-center">
                 <p className="text-sm italic text-[#8B7D6B]">
-                  Questions regarding our terms? Contact us at our email <strong>beadedbyunknown@gmail.com</strong>
+                  Questions regarding our terms? Contact us at support@beadedbyunknown.com
                 </p>
               </div>
             </div>
@@ -2390,7 +2353,6 @@ function App() {
 
       </main>
 
-      {/* MOBILE BOTTOM NAV */}
       {pg !== 'checkout' && pg !== 'confirmation' && (
         <nav className="md:hidden fixed bottom-0 w-full bg-white border-t border-[#E8DFD3] flex z-40 pb-safe">
           {[
@@ -2411,7 +2373,6 @@ function App() {
         </nav>
       )}
 
-      {/* MOBILE HAMBURGER MENU */}
       {menuOpen && (
         <div className="md:hidden fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} />
@@ -2429,7 +2390,6 @@ function App() {
         </div>
       )}
 
-      {/* RESPONSIVE CART DRAWER */}
       {cartOpen && (
         <div className="fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} />
@@ -2545,7 +2505,6 @@ function App() {
         </div>
       )}
 
-      {/* QUICK VIEW MODAL */}
       {qvId && (() => {
         const p = P.find(item => (item._id || item.id || item.name) === qvId);
         if (!p) return null;
@@ -2634,7 +2593,6 @@ function App() {
         );
       })()}
 
-      {/* SEARCH OVERLAY */}
       {searchOpen && (
         <div className="fixed inset-0 z-[80] bg-[#FAF6F1] md:bg-[#3E2F1C]/40 md:backdrop-blur-sm flex flex-col">
           <div className="hidden md:block absolute inset-0" onClick={() => { setSearchOpen(false); setSearchQ(''); }} />

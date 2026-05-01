@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const util = require('util');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const { upload } = require('./cloudinary');
 
 const User = require('./models/User');
@@ -179,10 +180,8 @@ app.get('/api/user/orders', verifyToken, async (req, res) => {
   }
 });
 
-const nodemailer = require('nodemailer');
-
 // =====================================================================
-// PASSWORD RESET ROUTES
+// PASSWORD RESET & OTP ROUTES
 // =====================================================================
 
 const transporter = nodemailer.createTransport({
@@ -200,7 +199,6 @@ app.post('/api/forgot-password', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
     user.resetOtp = otp;
     user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
     await user.save();
@@ -209,7 +207,7 @@ app.post('/api/forgot-password', async (req, res) => {
       from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Password Reset Code',
-      html: `<h3>Your Password Reset Code</h3><p>Your OTP is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`
+      html: `<h3>Your Password Reset Code</h3><p>Your OTP is: <strong style="font-size: 24px; letter-spacing: 5px;">${otp}</strong></p><p>This code expires in 10 minutes.</p>`
     });
 
     res.json({ message: 'OTP sent to email' });
@@ -225,11 +223,10 @@ app.post('/api/verify-otp', async (req, res) => {
     const user = await User.findOne({ 
       email, 
       resetOtp: otp, 
-      resetOtpExpire: { $gt: Date.now() } // Checks if OTP hasn't expired
+      resetOtpExpire: { $gt: Date.now() } 
     });
 
     if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
-
     res.json({ message: 'OTP verified' });
   } catch (error) {
     res.status(500).json({ error: 'Verification failed' });
@@ -240,7 +237,6 @@ app.post('/api/reset-password', async (req, res) => {
   try {
     const { email, newPassword } = req.body;
     const user = await User.findOne({ email });
-    
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const salt = await bcrypt.genSalt(10);
@@ -418,7 +414,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     let lineItems = cart.map((item) => ({
       currency: 'PHP',
-      amount: Math.round(item.price * 100),
+      amount: Math.round(item.price * 100), 
       name: item.name,
       quantity: item.qty,
       description: item.mat || 'Handcrafted Bracelet',
@@ -432,25 +428,24 @@ app.post('/api/create-checkout-session', async (req, res) => {
         'Visayas': 120,
         'Mindanao': 130
       };
-      shippingFee = shippingRates[shippingRegion] || 85;
+      shippingFee = shippingRates[shippingRegion] || 85; 
     }
 
     if (shippingFee > 0) {
       lineItems.push({
         currency: 'PHP',
-        amount: shippingFee * 100,
+        amount: shippingFee * 100, 
         name: 'Shipping Fee',
         quantity: 1,
         description: `J&T Express Delivery (${shippingRegion})`
       });
     }
 
-    // =========================================================
-    // 1 PESO TESTING MODE
-    // It will overwrite the real cart items with a single 1 PHP item.
-    // =========================================================
-    
     /*
+    // =========================================================
+    // 🛠️ 1 PESO TESTING MODE
+    // To test for 1 peso, uncomment the block below. 
+    // =========================================================
     lineItems = [{
       currency: 'PHP',
       amount: 100, // 100 centavos = 1 Peso
@@ -617,13 +612,16 @@ app.get('/api/bestsellers', async (req, res) => {
 });
 
 // =====================================================================
-// STORE SETTINGS (Top Banner)
+// STORE SETTINGS & DYNAMIC CATEGORIES
 // =====================================================================
 app.get('/api/settings', async (req, res) => {
   try {
     let settings = await Settings.findOne();
     if (!settings) {
-      settings = await Settings.create({ topBannerText: 'WELCOME' });
+      settings = await Settings.create({ 
+        topBannerText: 'WELCOME',
+        categories: ['Plastic', 'Gemstone', 'Glass']
+      });
     }
     res.json(settings);
   } catch (error) {
@@ -642,13 +640,17 @@ app.put('/api/admin/settings', async (req, res) => {
         topBannerText: req.body.topBannerText,
         featureOne: req.body.featureOne,
         featureTwo: req.body.featureTwo,
-        featureThree: req.body.featureThree
+        featureThree: req.body.featureThree,
+        theme: req.body.theme,
+        categories: req.body.categories || ['Plastic', 'Gemstone', 'Glass']
       });
     } else {
-      settings.topBannerText = req.body.topBannerText;
-      settings.featureOne = req.body.featureOne;
-      settings.featureTwo = req.body.featureTwo;
-      settings.featureThree = req.body.featureThree;
+      if (req.body.topBannerText) settings.topBannerText = req.body.topBannerText;
+      if (req.body.featureOne) settings.featureOne = req.body.featureOne;
+      if (req.body.featureTwo) settings.featureTwo = req.body.featureTwo;
+      if (req.body.featureThree) settings.featureThree = req.body.featureThree;
+      if (req.body.theme) settings.theme = req.body.theme;
+      if (req.body.categories) settings.categories = req.body.categories;
     }
     await settings.save();
     res.json(settings);
