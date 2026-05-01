@@ -7,7 +7,7 @@
 
 > A production-ready, full-stack e-commerce platform for handcrafted, intentional bead jewelry. Features a custom jewelry builder, secure payments via PayMongo, and a bespoke headless CMS admin dashboard.
 
-**[🔗 View Live Demo](#)** *(Add your Vercel link here once deployed)*
+**[🔗 View Live Demo](#)**
 
 ---
 
