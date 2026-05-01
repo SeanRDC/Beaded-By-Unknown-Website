@@ -531,7 +531,7 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
 
       await newOrder.save();
       console.log(`💰 NEW SALE RECORDED: ₱${newOrder.amountPaid}`);
-      
+
       try {
         await transporter.sendMail({
           from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
@@ -566,12 +566,10 @@ app.get('/api/admin/orders', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
   }
-
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().sort({ createdAt: -1 }).limit(50);
     res.json(orders);
   } catch (error) {
-    console.error("Backend error fetching orders:", error);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
