@@ -449,11 +449,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
       });
     }
 
-    /*
-    // =========================================================
-    // 🛠️ 1 PESO TESTING MODE
-    // To test for 1 peso, uncomment the block below. 
-    // =========================================================
+/*
+    // 1 PESO TESTING MODE
+
     lineItems = [{
       currency: 'PHP',
       amount: 100, // 100 centavos = 1 Peso
@@ -461,7 +459,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       quantity: 1,
       description: 'Testing PayMongo integration'
     }];
-    */
+*/ 
 
     const encodedKey = Buffer.from(process.env.PAYMONGO_SECRET_KEY).toString('base64');
     const paymongoResponse = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
