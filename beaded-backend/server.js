@@ -336,13 +336,52 @@ app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { na
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { cart, checkoutForm, shippingRegion } = req.body;
-    const lineItems = cart.map((item) => ({
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+    let lineItems = cart.map((item) => ({
       currency: 'PHP',
       amount: Math.round(item.price * 100),
       name: item.name,
       quantity: item.qty,
       description: item.mat || 'Handcrafted Bracelet',
     }));
+
+    let shippingFee = 0;
+    if (subtotal < 500) {
+      const shippingRates = {
+        'Metro Manila': 85,
+        'Luzon': 100,
+        'Visayas': 120,
+        'Mindanao': 130
+      };
+      shippingFee = shippingRates[shippingRegion] || 85;
+    }
+
+    if (shippingFee > 0) {
+      lineItems.push({
+        currency: 'PHP',
+        amount: shippingFee * 100,
+        name: 'Shipping Fee',
+        quantity: 1,
+        description: `J&T Express Delivery (${shippingRegion})`
+      });
+    }
+
+    // =========================================================
+    // 🛠️ 1 PESO TESTING MODE
+    // It will overwrite the real cart items with a single 1 PHP item.
+    // =========================================================
+    
+    /*
+    lineItems = [{
+      currency: 'PHP',
+      amount: 100, // 100 centavos = 1 Peso
+      name: 'Test Order (1 Peso)',
+      quantity: 1,
+      description: 'Testing PayMongo integration'
+    }];
+    */
 
     const encodedKey = Buffer.from(process.env.PAYMONGO_SECRET_KEY).toString('base64');
     const paymongoResponse = await fetch('https://api.paymongo.com/v1/checkout_sessions', {
