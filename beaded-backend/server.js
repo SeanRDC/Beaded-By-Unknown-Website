@@ -8,6 +8,8 @@ const util = require('util');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 const { upload } = require('./cloudinary');
+const rateLimit = require('express-rate-limit');
+
 
 const User = require('./models/User');
 const Product = require('./models/Product');
@@ -215,6 +217,12 @@ app.post('/api/forgot-password', async (req, res) => {
     console.error('Forgot Password Error:', error);
     res.status(500).json({ error: 'Failed to send OTP' });
   }
+});
+
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 1000, 
+  max: 2, 
+  message: { error: 'Too many requests. Please wait a minute.' }
 });
 
 app.post('/api/verify-otp', async (req, res) => {
@@ -523,6 +531,29 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
 
       await newOrder.save();
       console.log(`💰 NEW SALE RECORDED: ₱${newOrder.amountPaid}`);
+      
+      try {
+        await transporter.sendMail({
+          from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+          to: newOrder.customerEmail,
+          subject: 'Order Confirmed - Beaded by Unknown',
+          html: `
+            <div style="font-family: sans-serif; color: #3E2F1C; max-w-md: 600px; margin: 0 auto;">
+              <h2 style="color: #A0522D;">Thank you for your order, ${newOrder.customerName}!</h2>
+              <p>We have received your payment of <strong>₱${newOrder.amountPaid}</strong> and are now preparing your handcrafted pieces in our studio.</p>
+              <div style="background-color: #FAF6F1; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0;"><strong>Shipping to:</strong></p>
+                <p style="margin: 0;">${newOrder.shippingAddress.street}, Brgy. ${newOrder.shippingAddress.barangay}, ${newOrder.shippingAddress.city}</p>
+              </div>
+              <p>Because each piece is made to order, please allow 7-14 days for crafting and delivery. We will notify you once it ships!</p>
+              <p>With intention,<br/><strong>Beaded by Unknown</strong></p>
+            </div>
+          `
+        });
+        console.log('✉️ Confirmation email sent to', newOrder.customerEmail);
+      } catch (mailErr) {
+        console.error('Failed to send confirmation email:', mailErr);
+      }
     }
     res.status(200).send('Webhook received');
   } catch (error) {
