@@ -161,6 +161,10 @@ function App() {
   const [isProfileSaved, setIsProfileSaved] = useState(true);
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [otpTimer, setOtpTimer] = useState(600);
 
   // Settings & Misc
   const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN');
@@ -367,6 +371,20 @@ function App() {
   // --- HANDLERS ---
 
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
+
+  // optTimer below flash
+    useEffect(() => {
+    let interval;
+    if (loginTab === 'otp' && otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (loginTab === 'otp' && otpTimer === 0) {
+      flash('OTP expired. Please request a new one.', 'error');
+      setLoginTab('forgot');
+    }
+    return () => clearInterval(interval);
+  }, [loginTab, otpTimer, flash]);
   
   const go = useCallback((p, data) => { 
     setPg(p); 
@@ -486,10 +504,10 @@ function App() {
 
   const handleAuth = async (type) => {
     if (type === 'register' && (!authFirstName || !authLastName || !authEmail || !authPassword)) {
-      alert("Please fill in all fields."); return;
+      return flash("Please fill in all fields.", "error"); 
     }
     if (type === 'signin' && (!authEmail || !authPassword)) {
-      alert("Please enter your email and password."); return;
+      return flash("Please enter your email and password.", "error"); 
     }
 
     const endpoint = type === 'register' ? '/api/register' : '/api/login';
@@ -506,7 +524,7 @@ function App() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(`Error: ${data.error}`); 
+        flash(data.error, "error"); // 👈 POPUP INSTEAD OF ALERT
       } else {
         localStorage.setItem('beaded_token', data.token);
         setLogged(data.user); 
@@ -516,8 +534,66 @@ function App() {
         flash(`Welcome back, ${data.user.firstName}!`, 'success');
       }
     } catch (err) {
-      alert('Cannot connect to the server.');
+      flash('Cannot connect to the server.', 'error');
     }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return flash("Please enter your email.", "error");
+    try {
+      const res = await fetch('http://localhost:4242/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOtpTimer(600); // 👈 RESET TIMER TO 10 MINS
+        flash('OTP sent to your email!', 'success');
+        setLoginTab('otp'); 
+      } else {
+        flash(data.error, "error");
+      }
+    } catch (err) { flash('Server error.', 'error'); }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpCode) return flash("Please enter the OTP.", "error");
+    try {
+      const res = await fetch('http://localhost:4242/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, otp: otpCode })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        flash('Code verified!', 'success');
+        setLoginTab('reset'); 
+      } else {
+        flash(data.error, "error");
+      }
+    } catch (err) { flash('Server error.', 'error'); }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword) return flash("Please enter a new password.", "error");
+    try {
+      const res = await fetch('http://localhost:4242/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        flash('Your password has been changed! Please log in.', 'success'); // 👈 SUCCESS POPUP
+        setLoginTab('signin'); 
+        setForgotEmail('');
+        setOtpCode('');
+        setNewPassword('');
+      } else {
+        flash(data.error, "error");
+      }
+    } catch (err) { flash('Server error.', 'error'); }
   };
 
   const handleGoogleLogin = async () => {
@@ -551,6 +627,12 @@ function App() {
   };
 
   // --- SUB-COMPONENTS & RENDER HELPERS ---
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   const stars = (rt) => Array.from({ length: 5 }, (_, i) => (
     <Star key={i} className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < Math.floor(rt) ? 'fill-[#C9A96E] text-[#C9A96E]' : 'text-[#E8DFD3]'}`} />
@@ -608,6 +690,20 @@ function App() {
 
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
+
+      {/* GLOBAL TOAST NOTIFICATION UI */}
+      {toast && (
+        <div className={`fixed top-24 md:top-32 right-4 md:right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-8 duration-300 font-medium text-sm border-l-4 ${
+          toast.t === 'error' ? 'bg-white border-red-500 text-red-700' : 
+          toast.t === 'success' ? 'bg-white border-green-500 text-green-700' : 
+          'bg-white border-[#A0522D] text-[#3E2F1C]'
+        }`}>
+          {toast.t === 'error' ? <X className="w-5 h-5 text-red-500" /> : 
+            toast.t === 'success' ? <Check className="w-5 h-5 text-green-500" /> : 
+            <Sparkles className="w-5 h-5 text-[#A0522D]" />}
+          {toast.m}
+        </div>
+      )}
 
       {/* DYNAMIC THEME ENGINE */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -2154,25 +2250,71 @@ function App() {
                   </div>
                 )}
                 
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
-                  <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                </div>
+                {(loginTab === 'signin' || loginTab === 'register') && (
+                  <>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
+                      <input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
 
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Password</label>
-                    {loginTab === 'signin' && <button className="text-[10px] font-bold uppercase tracking-widest text-[#A0522D] hover:underline">Forgot?</button>}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Password</label>
+                        {loginTab === 'signin' && (
+                          <button onClick={() => setLoginTab('forgot')} className="text-[10px] font-bold uppercase tracking-widest text-[#A0522D] hover:underline">Forgot?</button>
+                        )}
+                      </div>
+                      <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+
+                    <button 
+                      onClick={() => handleAuth(loginTab)} 
+                      className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
+                    >
+                      {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+                    </button>
+                  </>
+                )}
+
+                {loginTab === 'forgot' && (
+                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter your email and we'll send you a 6-digit code.</p>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">Email Address</label>
+                      <input value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="hello@example.com" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+                    <button onClick={handleForgotPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Send Code</button>
+                    <button onClick={() => setLoginTab('signin')} className="w-full mt-4 text-xs font-bold text-[#8B7D6B] uppercase tracking-widest hover:text-[#3E2F1C]">Back to Sign In</button>
                   </div>
-                  <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
-                </div>
+                )}
 
-                <button 
-                  onClick={() => handleAuth(loginTab)} 
-                  className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
-                >
-                  {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
-                </button>
+                {loginTab === 'otp' && (
+                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Enter the 6-digit code sent to {forgotEmail}.</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">6-Digit Code</label>
+                        <span className={`text-[10px] font-bold tracking-widest ${otpTimer < 60 ? 'text-red-500 animate-pulse' : 'text-[#A0522D]'}`}>
+                          {formatTime(otpTimer)}
+                        </span>
+                      </div>
+                      <input value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="123456" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center text-lg tracking-[0.5em] font-bold transition-all" maxLength="6" />
+                    </div>
+                    <button onClick={handleVerifyOtp} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Verify Code</button>
+                  </div>
+                )}
+
+                {loginTab === 'reset' && (
+                  <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                    <p className="text-sm text-[#8B7D6B] mb-4 text-center">Almost done! Create a new password.</p>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">New Password</label>
+                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
+                    </div>
+                    <button onClick={handleResetPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Update Password</button>
+                  </div>
+                )}
+
               </div>
 
               <p className="text-[10px] text-[#B0A395] text-center mt-8 leading-relaxed px-4">
@@ -2239,7 +2381,7 @@ function App() {
 
               <div className="bg-[#FAF6F1] p-8 rounded-2xl border border-[#E8DFD3] text-center">
                 <p className="text-sm italic text-[#8B7D6B]">
-                  Questions regarding our terms? Contact us at support@beadedbyunknown.com
+                  Questions regarding our terms? Contact us at our email <strong>beadedbyunknown@gmail.com</strong>
                 </p>
               </div>
             </div>

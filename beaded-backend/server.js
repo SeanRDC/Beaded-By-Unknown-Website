@@ -179,6 +179,83 @@ app.get('/api/user/orders', verifyToken, async (req, res) => {
   }
 });
 
+const nodemailer = require('nodemailer');
+
+// =====================================================================
+// PASSWORD RESET ROUTES
+// =====================================================================
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    await transporter.sendMail({
+      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Password Reset Code',
+      html: `<h3>Your Password Reset Code</h3><p>Your OTP is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`
+    });
+
+    res.json({ message: 'OTP sent to email' });
+  } catch (error) {
+    console.error('Forgot Password Error:', error);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+app.post('/api/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ 
+      email, 
+      resetOtp: otp, 
+      resetOtpExpire: { $gt: Date.now() } // Checks if OTP hasn't expired
+    });
+
+    if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
+
+    res.json({ message: 'OTP verified' });
+  } catch (error) {
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
+    await user.save();
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
 // =====================================================================
 // CATALOG & PRODUCT ROUTES
 // =====================================================================
@@ -369,7 +446,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 
     // =========================================================
-    // 🛠️ 1 PESO TESTING MODE
+    // 1 PESO TESTING MODE
     // It will overwrite the real cart items with a single 1 PHP item.
     // =========================================================
     

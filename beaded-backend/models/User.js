@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
   wishlist: { type: Array, default: [] },
   cart: { type: Array, default: [] },
   orders: { type: Array, default: [] },
+  resetOtp: { type: String, default: null },
+  resetOtpExpire: { type: Date, default: null },
   shippingAddress: { type: Object, default: {} } 
 }, { timestamps: true });
 
