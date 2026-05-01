@@ -1,37 +1,28 @@
 require('dotenv').config();
-const util = require('util');
-const Blog = require('./models/Blog');
-const Review = require('./models/Review');
-const Settings = require('./models/Settings');
-const Product = require('./models/Product');
-const Order = require('./models/Order');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('./models/User');
-const { upload } = require('./cloudinary');
+const util = require('util');
 const multer = require('multer');
+const { upload } = require('./cloudinary');
+
+const User = require('./models/User');
+const Product = require('./models/Product');
+const Order = require('./models/Order');
+const Settings = require('./models/Settings');
+const Review = require('./models/Review');
+const Blog = require('./models/Blog');
 
 const app = express();
 
-// Middleware
+// =====================================================================
+// MIDDLEWARE & CONFIGURATION
+// =====================================================================
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
 
-// =====================================================================
-// 1. MONGODB CONNECTION
-// =====================================================================
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('📦 Connected to MongoDB Atlas'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// =====================================================================
-// 2. AUTHENTICATION & USER ROUTES
-// =====================================================================
-
-// Security tool to verify logged-in users
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Access denied' });
@@ -43,6 +34,21 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const uploadFields = upload.fields([
+  { name: 'primaryImage', maxCount: 1 },
+  { name: 'secondaryImage', maxCount: 1 }
+]);
+
+// =====================================================================
+// MONGODB CONNECTION
+// =====================================================================
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('📦 Connected to MongoDB Atlas'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// =====================================================================
+// AUTHENTICATION & USER ROUTES
+// =====================================================================
 app.post('/api/register', async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -69,7 +75,6 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Invalid email or password' });
 
-    // Prevent manual login if they created their account with Google
     if (user.password === 'google-auth-no-password') {
       return res.status(400).json({ error: 'Please sign in with Google.' });
     }
@@ -111,7 +116,7 @@ app.get('/api/user/me', verifyToken, async (req, res) => {
         firstName: user.firstName, 
         lastName: user.lastName, 
         email: user.email, 
-        phone: user.phone, // 👈 ADDED THIS
+        phone: user.phone,
         points: user.points,
         shippingAddress: user.shippingAddress
       }, 
@@ -135,15 +140,13 @@ app.post('/api/user/sync', verifyToken, async (req, res) => {
   }
 });
 
-// --- UPDATE USER PROFILE & ADDRESS ---
 app.put('/api/user/profile', verifyToken, async (req, res) => {
   try {
-    // 👈 Added phone to req.body
     const { firstName, lastName, phone, shippingAddress } = req.body; 
     
     const updatedUser = await User.findByIdAndUpdate(
       req.user.userId, 
-      { firstName, lastName, phone, shippingAddress }, // 👈 Added phone here
+      { firstName, lastName, phone, shippingAddress },
       { returnDocument: 'after' }
     );
 
@@ -163,16 +166,12 @@ app.put('/api/user/profile', verifyToken, async (req, res) => {
   }
 });
 
-// --- FETCH ORDERS FOR LOGGED-IN USER ---
 app.get('/api/user/orders', verifyToken, async (req, res) => {
   try {
-    // 1. Find the user based on their secure token
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
     
-    // 2. Find all orders that match this user's email, sorted by newest first
     const userOrders = await Order.find({ customerEmail: user.email }).sort({ createdAt: -1 });
-    
     res.json(userOrders);
   } catch (error) {
     console.error("🔥 Fetch User Orders Error:", error);
@@ -181,10 +180,8 @@ app.get('/api/user/orders', verifyToken, async (req, res) => {
 });
 
 // =====================================================================
-// 2.1 CATALOG & ADMIN ROUTES
+// CATALOG & PRODUCT ROUTES
 // =====================================================================
-
-// PUBLIC: Get all products to display on the website
 app.get('/api/products', async (req, res) => {
   try {
     const products = await Product.find();
@@ -194,13 +191,10 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// SECRET ADMIN: Add a new product
 app.post('/api/admin/products', async (req, res) => {
-  // Check the secret key from the headers
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
   }
-  
   try {
     const newProduct = new Product(req.body);
     await newProduct.save();
@@ -210,13 +204,11 @@ app.post('/api/admin/products', async (req, res) => {
   }
 });
 
-// SECRET ADMIN: Update an existing product
 app.put('/api/admin/products/:id', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
   }
   try {
-    // findByIdAndUpdate replaces the old data with the new req.body
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(updatedProduct);
   } catch (err) {
@@ -225,7 +217,6 @@ app.put('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// SECRET ADMIN: Delete a product
 app.delete('/api/admin/products/:id', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Intruder alert: Invalid admin key' });
@@ -239,12 +230,111 @@ app.delete('/api/admin/products/:id', async (req, res) => {
   }
 });
 
+app.post('/api/products', uploadFields, async (req, res) => {
+  try {
+    const primaryUrl = req.files['primaryImage'] ? req.files['primaryImage'][0].path : null;
+    const secondaryUrl = req.files['secondaryImage'] ? req.files['secondaryImage'][0].path : null;
+
+    if (!primaryUrl) {
+      return res.status(400).json({ error: "Primary image is required and failed to upload." });
+    }
+
+    const newProduct = new Product({
+      name: req.body.name,
+      price: req.body.price,
+      cat: req.body.cat,
+      img: primaryUrl,
+      img2: secondaryUrl,
+      rating: 5,
+      reviews: 0
+    });
+
+    await newProduct.save();
+    res.status(201).json({ message: "Success!", product: newProduct });
+    
+  } catch (err) {
+    console.log("❌--- CRITICAL ERROR START ---❌");
+    console.log(util.inspect(err, { showHidden: false, depth: null, colors: true }));
+    console.log("❌--- CRITICAL ERROR END ---❌");
+    res.status(500).json({ error: err.message || "Internal Server Error" });
+  }
+});
+
+app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'secondaryImage', maxCount: 1 }]), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    console.log(`Received request to update product ${productId}. Handling files...`);
+
+    const existingProduct = await Product.findById(productId);
+    if (!existingProduct) {
+      console.error(`Product ${productId} not found during update.`);
+      return res.status(404).json({ status: "Bad", message: "Product not found" });
+    }
+
+    let primaryImageUrl = existingProduct.img;
+    let secondaryImageUrl = existingProduct.img2;
+
+    if (req.files && req.files.image && req.files.image[0]) {
+      try {
+        console.log("New primary image detected. Uploading to Cloudinary...");
+        if (!req.files.image[0].path) { throw new Error("Multer failed to provide primary file path.")}
+        
+        const result = await cloudinary.uploader.upload(req.files.image[0].path, {
+          folder: 'beaded_by_unknown',
+        });
+        primaryImageUrl = result.secure_url;
+        console.log("Primary image upload success.");
+      } catch (cloudErr) {
+        console.error("Cloudinary Primary Upload Failed:", cloudErr);
+      }
+    } else {
+      console.log("No new primary image uploaded. Retaining existing image URL.");
+    }
+
+    if (req.files && req.files.secondaryImage && req.files.secondaryImage[0]) {
+      try {
+        console.log("New secondary image detected. Uploading to Cloudinary...");
+        if (!req.files.secondaryImage[0].path) { throw new Error("Multer failed to provide secondary file path.")}
+
+        const result2 = await cloudinary.uploader.upload(req.files.secondaryImage[0].path, {
+          folder: 'beaded_by_unknown',
+        });
+        secondaryImageUrl = result2.secure_url;
+        console.log("Secondary image upload success.");
+      } catch (cloudErr2) {
+        console.error("Cloudinary Secondary Upload Failed:", cloudErr2);
+      }
+    } else {
+      console.log("No new secondary image uploaded. Retaining existing secondary image URL.");
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      {
+        ...req.body,
+        img: primaryImageUrl,
+        img2: secondaryImageUrl,
+        colors: req.body.colors ? req.body.colors.split(',') : (existingProduct.colors || []), 
+        rating: req.body.rating || existingProduct.rating,
+        reviews: req.body.reviews || existingProduct.reviews
+      },
+      { new: true, returnDocument: 'after', runValidators: true } 
+    );
+
+    console.log(`Product ${productId} updated successfully.`);
+    res.json({ status: "OK", message: "Product updated successfully.", product: updatedProduct });
+
+  } catch (err) {
+    console.error("Error during product update (PUT route):", err);
+    res.status(500).json({ status: "Bad", message: "Product update failed on server.", error: err.message });
+  }
+});
+
 // =====================================================================
-// 3. PAYMONGO ROUTES
+// PAYMONGO & ORDER ROUTES
 // =====================================================================
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
-    // We now receive the checkoutForm and shippingRegion from the frontend!
     const { cart, checkoutForm, shippingRegion } = req.body;
     const lineItems = cart.map((item) => ({
       currency: 'PHP',
@@ -272,7 +362,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
             description: 'Beaded by Unknown Order',
-            // THIS IS NEW: We hide the address in the metadata so PayMongo remembers it
             metadata: {
               customer_name: `${checkoutForm.firstName} ${checkoutForm.lastName}`,
               customer_email: checkoutForm.email,
@@ -296,20 +385,16 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// =====================================================================
-// PAYMONGO WEBHOOK (Listens for successful payments)
-// =====================================================================
 app.post('/api/webhooks/paymongo', async (req, res) => {
   try {
     const event = req.body.data;
     
     if (event.attributes.type === 'checkout_session.payment.paid') {
       const session = event.attributes.data.attributes;
-      const metadata = session.metadata || {}; // Grab the metadata we hid earlier
+      const metadata = session.metadata || {};
       
       const newOrder = new Order({
         checkoutSessionId: event.attributes.data.id,
-        // Use the metadata first, fallback to PayMongo billing info if needed
         customerName: metadata.customer_name || session.billing?.name || 'Guest',
         customerEmail: metadata.customer_email || session.billing?.email || 'No Email',
         contactNumber: metadata.contact_number || 'No Number',
@@ -334,43 +419,13 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
     res.status(500).send('Webhook failed');
   }
 });
-// =====================================================================
-// ADMIN STATS ROUTE (Sends real data to your dashboard)
-// =====================================================================
-app.get('/api/admin/stats', async (req, res) => {
-  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
-    return res.status(403).json({ error: 'Invalid admin key' });
-  }
-  
-  try {
-    const orders = await Order.find();
-    
-    // Calculate total revenue by adding up all amountPaid values
-    const totalRevenue = orders.reduce((sum, order) => sum + order.amountPaid, 0);
-    
-    res.json({
-      revenue: totalRevenue,
-      totalOrders: orders.length
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch stats' });
-  }
-});
 
-const uploadFields = upload.fields([
-  { name: 'primaryImage', maxCount: 1 },
-  { name: 'secondaryImage', maxCount: 1 }
-]);
-
-// --- SECURE ROUTE: Fetch all orders for the Admin Dashboard ---
 app.get('/api/admin/orders', async (req, res) => {
-  // 1. Check the secret key
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
   }
 
   try {
-    // 2. Fetch all orders from MongoDB, sorted by newest first
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -379,7 +434,6 @@ app.get('/api/admin/orders', async (req, res) => {
   }
 });
 
-// --- SECURE ROUTE: Update Order Status ---
 app.patch('/api/admin/orders/:id/status', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
@@ -389,8 +443,8 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
     const { status } = req.body;
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
-      { status }, // Updates the status (e.g., to "Shipped")
-      { new: true } // Returns the updated document
+      { status },
+      { new: true }
     );
     
     if (!updatedOrder) return res.status(404).json({ error: 'Order not found' });
@@ -402,142 +456,56 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
 });
 
 // =====================================================================
-// CLOUDINARY IMAGE UPLOAD ROUTES
+// DASHBOARD STATS & ALGORITHMS
 // =====================================================================
-app.post('/api/products', uploadFields, async (req, res) => {
+app.get('/api/admin/stats', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  
   try {
-    const primaryUrl = req.files['primaryImage'] ? req.files['primaryImage'][0].path : null;
-    const secondaryUrl = req.files['secondaryImage'] ? req.files['secondaryImage'][0].path : null;
-
-    if (!primaryUrl) {
-      return res.status(400).json({ error: "Primary image is required and failed to upload." });
-    }
-
-    const newProduct = new Product({
-      name: req.body.name,
-      price: req.body.price,
-      cat: req.body.cat,
-      img: primaryUrl,
-      img2: secondaryUrl,
-      rating: 5,
-      reviews: 0
+    const orders = await Order.find();
+    const totalRevenue = orders.reduce((sum, order) => sum + order.amountPaid, 0);
+    
+    res.json({
+      revenue: totalRevenue,
+      totalOrders: orders.length
     });
-
-    await newProduct.save();
-    res.status(201).json({ message: "Success!", product: newProduct });
-    
-  } catch (err) {
-    console.log("❌--- CRITICAL ERROR START ---❌");
-    // This line is the magic fix for [object Object]
-    console.log(util.inspect(err, { showHidden: false, depth: null, colors: true }));
-    console.log("❌--- CRITICAL ERROR END ---❌");
-    
-    res.status(500).json({ error: err.message || "Internal Server Error" });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
-app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'secondaryImage', maxCount: 1 }]), async (req, res) => {
+app.get('/api/bestsellers', async (req, res) => {
   try {
-    const productId = req.params.id;
-    console.log(`Received request to update product ${productId}. Handling files...`);
-
-    // 1. First, fetch the existing product from the DB. This is crucial for retention.
-    const existingProduct = await Product.findById(productId);
-    if (!existingProduct) {
-      console.error(`Product ${productId} not found during update.`);
-      return res.status(404).json({ status: "Bad", message: "Product not found" });
-    }
-
-    // 2. Initialize our image URL variables with the EXISTING data as fallbacks.
-    let primaryImageUrl = existingProduct.img;
-    let secondaryImageUrl = existingProduct.img2; // (Using img2 matching Turn Turn 12 Product schema)
-
-    // 3. Handle NEW Primary Image ('image'): Check if a NEW file was uploaded.
-    if (req.files && req.files.image && req.files.image[0]) {
-      try {
-        console.log("New primary image detected. Uploading to Cloudinary...");
-        // Ensure path exists (Multer on Turn Turn 6 setup creates this)
-        if (!req.files.image[0].path) { throw new Error("Multer failed to provide primary file path.")}
-        
-        const result = await cloudinary.uploader.upload(req.files.image[0].path, {
-          folder: 'beaded_by_unknown', // Organize in folder
-        });
-        primaryImageUrl = result.secure_url; // Update our variable with the NEW url
-        console.log("Primary image upload success.");
-      } catch (cloudErr) {
-        console.error("Cloudinary Primary Upload Failed:", cloudErr);
-        // Fallback to old image URL if upload fails, or abort if desired
-        // For now, we continue with existingProduct.img
-      }
-    } else {
-      console.log("No new primary image uploaded. Retaining existing image URL.");
-    }
-
-    // 4. Handle NEW Secondary Image ('secondaryImage'): Check if a NEW file was uploaded.
-    if (req.files && req.files.secondaryImage && req.files.secondaryImage[0]) {
-      try {
-        console.log("New secondary image detected. Uploading to Cloudinary...");
-        if (!req.files.secondaryImage[0].path) { throw new Error("Multer failed to provide secondary file path.")}
-
-        const result2 = await cloudinary.uploader.upload(req.files.secondaryImage[0].path, {
-          folder: 'beaded_by_unknown',
-        });
-        secondaryImageUrl = result2.secure_url; // Update our variable with the NEW url
-        console.log("Secondary image upload success.");
-      } catch (cloudErr2) {
-        console.error("Cloudinary Secondary Upload Failed:", cloudErr2);
-        // Fallback to old image URL if upload fails.
-      }
-    } else {
-      console.log("No new secondary image uploaded. Retaining existing secondary image URL.");
-    }
-
-    // 5. Update the product in the database using new text fields and whichever
-    //    image URLs we decided on above (new ones or retained old ones).
-    
-    // We update using findByIdAndUpdate and use the fix from Turn Turn 33 context to clear DeprecationWarnings.
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      {
-        ...req.body, // spread other text fields
-        img: primaryImageUrl, // Must exist (ensured by fallback logic)
-        img2: secondaryImageUrl, // Use the fallback
-        // secure colors array processing (Fix from Turn Turn Turn 8 context)
-        colors: req.body.colors ? req.body.colors.split(',') : (existingProduct.colors || []), 
-        rating: req.body.rating || existingProduct.rating,
-        reviews: req.body.reviews || existingProduct.reviews
+    const topSellingItems = await Order.aggregate([
+      { $unwind: "$items" },
+      { 
+        $group: { 
+          _id: "$items.name",
+          totalSold: { $sum: "$items.quantity" }
+        } 
       },
-      // returnDocument: 'after' ensures DeprecationWarnings Turn Turn Turn 32 context are gone.
-      { new: true, returnDocument: 'after', runValidators: true } 
-    );
+      { $sort: { totalSold: -1 } },
+      { $limit: 4 }
+    ]);
 
-    console.log(`Product ${productId} updated successfully.`);
-    res.json({ status: "OK", message: "Product updated successfully.", product: updatedProduct });
+    const topNames = topSellingItems.map(item => item._id);
+    const bestsellers = await Product.find({ name: { $in: topNames } });
 
-  } catch (err) {
-    console.error("Error during product update (PUT route):", err);
-    // Generic catch-all for validation errors or connection issues.
-    res.status(500).json({ status: "Bad", message: "Product update failed on server.", error: err.message });
+    res.json(bestsellers);
+  } catch (error) {
+    console.error("Bestseller Algo Error:", error);
+    res.status(500).json({ error: 'Failed to calculate bestsellers' });
   }
-});
-
-// =====================================================================
-// SERVER STARTUP
-// =====================================================================
-const PORT = process.env.PORT || 4242;
-app.listen(PORT, () => {
-  console.log(`🚀 Master Backend running on http://localhost:${PORT}`);
 });
 
 // =====================================================================
 // STORE SETTINGS (Top Banner)
 // =====================================================================
-
-// GET: Public route for the storefront to read the banner
 app.get('/api/settings', async (req, res) => {
   try {
     let settings = await Settings.findOne();
-    // If no settings exist yet, create a default one
     if (!settings) {
       settings = await Settings.create({ topBannerText: 'WELCOME' });
     }
@@ -547,7 +515,6 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-// PUT: Admin route to update the banner and features
 app.put('/api/admin/settings', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
@@ -577,18 +544,15 @@ app.put('/api/admin/settings', async (req, res) => {
 // =====================================================================
 // COMMUNITY LOVE (Reviews)
 // =====================================================================
-
-// GET: Storefront reads all reviews
 app.get('/api/reviews', async (req, res) => {
   try {
-    const reviews = await Review.find().sort({ createdAt: -1 }); // Newest first
+    const reviews = await Review.find().sort({ createdAt: -1 });
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
 
-// POST: Admin adds a new review
 app.post('/api/admin/reviews', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
@@ -602,7 +566,6 @@ app.post('/api/admin/reviews', async (req, res) => {
   }
 });
 
-// DELETE: Admin removes a review
 app.delete('/api/admin/reviews/:id', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
     return res.status(403).json({ error: 'Invalid admin key' });
@@ -616,41 +579,8 @@ app.delete('/api/admin/reviews/:id', async (req, res) => {
 });
 
 // =====================================================================
-// SMART BESTSELLERS ALGORITHM
-// =====================================================================
-app.get('/api/bestsellers', async (req, res) => {
-  try {
-    // 1. Ask MongoDB to calculate the top selling items from the Orders collection
-    const topSellingItems = await Order.aggregate([
-      { $unwind: "$items" }, // Break apart orders that have multiple items
-      { 
-        $group: { 
-          _id: "$items.name", // Group them together by the product name
-          totalSold: { $sum: "$items.quantity" } // Add up the quantities
-        } 
-      },
-      { $sort: { totalSold: -1 } }, // Sort descending (highest sales at the top)
-      { $limit: 4 } // Only keep the top 4
-    ]);
-
-    // 2. Extract just the names of the winning products
-    const topNames = topSellingItems.map(item => item._id);
-
-    // 3. Fetch the full product details (images, prices, etc.) for those specific names
-    const bestsellers = await Product.find({ name: { $in: topNames } });
-
-    res.json(bestsellers);
-  } catch (error) {
-    console.error("Bestseller Algo Error:", error);
-    res.status(500).json({ error: 'Failed to calculate bestsellers' });
-  }
-});
-
-// =====================================================================
 // JOURNAL / BLOG ROUTES
 // =====================================================================
-
-// GET: Storefront reads all blog posts
 app.get('/api/blogs', async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 });
@@ -660,7 +590,6 @@ app.get('/api/blogs', async (req, res) => {
   }
 });
 
-// POST: Admin creates a new blog post
 app.post('/api/admin/blogs', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
   try {
@@ -672,7 +601,6 @@ app.post('/api/admin/blogs', async (req, res) => {
   }
 });
 
-// PUT: Admin edits an existing blog post
 app.put('/api/admin/blogs/:id', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
   try {
@@ -683,7 +611,6 @@ app.put('/api/admin/blogs/:id', async (req, res) => {
   }
 });
 
-// DELETE: Admin removes a blog post
 app.delete('/api/admin/blogs/:id', async (req, res) => {
   if (req.headers.admin_secret !== process.env.ADMIN_SECRET) return res.status(403).json({ error: 'Invalid key' });
   try {
@@ -694,3 +621,10 @@ app.delete('/api/admin/blogs/:id', async (req, res) => {
   }
 });
 
+// =====================================================================
+// SERVER STARTUP
+// =====================================================================
+const PORT = process.env.PORT || 4242;
+app.listen(PORT, () => {
+  console.log(`🚀 Master Backend running on http://localhost:${PORT}`);
+});

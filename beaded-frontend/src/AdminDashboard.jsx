@@ -2,24 +2,45 @@ import { useState, useEffect } from 'react';
 import { LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail } from 'lucide-react';
 
 export default function AdminDashboard() {
+  
+  // --- STATE VARIABLES ---
+
+  // UI & Layout State
   const [activeTab, setActiveTab] = useState('overview'); 
+  const [serverStatus, setServerStatus] = useState('checking'); 
+  const [adminName, setAdminName] = useState(localStorage.getItem('beaded_admin_name') || 'Iyesha');
   const [secretKey, setSecretKey] = useState('');
   const [status, setStatus] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editBlogId, setEditBlogId] = useState(null);
+  
+  // Pop up state
+  const [popup, setPopup] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    isConfirm: false,
+    onConfirm: null
+  });
+
+  // Data State
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState({ revenue: 0, totalOrders: 0 });
-  const [editId, setEditId] = useState(null);
-  
-  const [serverStatus, setServerStatus] = useState('checking'); 
+  const [reviews, setReviews] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [customOrders, setCustomOrders] = useState([]);
 
-  const [adminName, setAdminName] = useState(localStorage.getItem('beaded_admin_name') || 'Iyesha');
+  // Forms State
+  const [reviewForm, setReviewForm] = useState({ author: '', text: '', rating: 5 });
+  const [blogForm, setBlogForm] = useState({ 
+    title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' 
+  });
+  const [product, setProduct] = useState({
+    name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L'
+  });
 
-  // Function to toggle between you two and save it to the device!
-  const toggleAdminName = () => {
-    const newName = adminName === 'Iyesha' ? 'Sean' : 'Iyesha';
-    setAdminName(newName);
-    localStorage.setItem('beaded_admin_name', newName);
-  };
-  
   // Settings State
   const [bannerText, setBannerText] = useState('WELCOME');
   const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
@@ -27,54 +48,8 @@ export default function AdminDashboard() {
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
   const [siteTheme, setSiteTheme] = useState(localStorage.getItem('beaded_theme') || 'brown');
 
-  const handleThemeChange = (theme) => {
-    setSiteTheme(theme);
-    localStorage.setItem('beaded_theme', theme);
-  };
-  
-  // Community Reviews State
-  const [reviews, setReviews] = useState([]);
-  const [reviewForm, setReviewForm] = useState({ author: '', text: '', rating: 5 });
+  // --- FETCHERS ---
 
-  const [product, setProduct] = useState({
-    name: '', price: '', img: '', img2: '', cat: 'Gemstone', mat: '', tag: '', colors: '', sizes: 'S, M, L'
-  });
-
-  // Blog states
-  const [blogs, setBlogs] = useState([]);
-  const [editBlogId, setEditBlogId] = useState(null);
-  const [blogForm, setBlogForm] = useState({ 
-    title: '', ex: '', content: '', cat: 'Journal', time: '5 min', img: '' 
-  });
-
-  // Pop up state
-const [popup, setPopup] = useState({
-  isOpen: false,
-  title: '',
-  message: '',
-  isConfirm: false,
-  onConfirm: null
-});
-
-  // Orders State
-  const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [customOrders, setCustomOrders] = useState([]);
-
-  useEffect(() => {
-      // Safe fetch that won't crash if the backend route isn't built yet!
-      fetch('http://localhost:4242/api/custom-orders')
-        .then(res => {
-          if (!res.ok) throw new Error('Backend route not ready');
-          return res.json();
-        })
-        .then(data => setCustomOrders(data))
-        .catch(err => console.log('Custom orders waiting on backend setup.'));
-    }, []);
-
-const closePopup = () => setPopup({ ...popup, isOpen: false });
-
-// 1. PUBLIC DATA: Fetches products, blogs, and reviews (No key needed)
   const fetchAllData = async () => {
     try {
       const prodRes = await fetch('http://localhost:4242/api/products');
@@ -102,7 +77,6 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     }
   };
 
-  // 2. PUBLIC DATA: Fetches your top banner and features
   const fetchSettings = async () => {
     try {
       const res = await fetch('http://localhost:4242/api/settings');
@@ -116,21 +90,17 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     } catch (err) {}
   };
 
-  // 3. SECURE DATA: Fetches dashboard stats (REQUIRES KEY)
   const fetchStats = async () => { 
-    // STRICT GUARD: If the key is empty, stop right here so we don't get a 403!
     if (!secretKey) return; 
-
     try {
       const res = await fetch(`http://localhost:4242/api/admin/stats`, {
         headers: {
-          'admin_secret': secretKey // Pulls directly from your component's state
+          'admin_secret': secretKey
         }
       });
-      
       if (res.ok) {
         const data = await res.json();
-        setStats(data); // Make sure you actually save the data!
+        setStats(data);
       }
     } catch (err) {
       console.error("Stats fetch error:", err);
@@ -139,12 +109,10 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
 
   const fetchOrders = async () => {
     if (!secretKey) return; 
-    
     try {
       const res = await fetch(`http://localhost:4242/api/admin/orders`, {
         headers: { 'admin_secret': secretKey }
       });
-      
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -153,6 +121,43 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
       console.error("Orders fetch error:", err);
     }
   };
+
+  // --- EFFECTS ---
+
+  useEffect(() => {
+    fetch('http://localhost:4242/api/custom-orders')
+      .then(res => {
+        if (!res.ok) throw new Error('Backend route not ready');
+        return res.json();
+      })
+      .then(data => setCustomOrders(data))
+      .catch(err => console.log('Custom orders waiting on backend setup.'));
+  }, []);
+
+  useEffect(() => {
+    fetchAllData();
+    fetchSettings();
+  }, []); 
+
+  useEffect(() => {
+    fetchStats();
+    fetchOrders();
+  }, [secretKey]); 
+
+  // --- HANDLERS ---
+
+  const toggleAdminName = () => {
+    const newName = adminName === 'Iyesha' ? 'Sean' : 'Iyesha';
+    setAdminName(newName);
+    localStorage.setItem('beaded_admin_name', newName);
+  };
+
+  const handleThemeChange = (theme) => {
+    setSiteTheme(theme);
+    localStorage.setItem('beaded_theme', theme);
+  };
+
+  const closePopup = () => setPopup({ ...popup, isOpen: false });
 
   const updateOrderStatus = async (orderId, newStatus) => {
     if (!secretKey) return;
@@ -167,7 +172,7 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
       });
       
       if (res.ok) {
-        fetchOrders(); // Refresh the list to show the new status
+        fetchOrders(); 
       } else {
         alert("Failed to update status");
       }
@@ -176,38 +181,21 @@ const closePopup = () => setPopup({ ...popup, isOpen: false });
     }
   };
 
-  // --- THE TRIGGERS (useEffect) ---
-
-  // Trigger 1: Load public data the exact moment the dashboard opens
-  useEffect(() => {
-    fetchAllData();
-    fetchSettings();
-  }, []); // Empty brackets mean this runs ONCE when the page loads
-
-  // Trigger 2: Load the secure stats ONLY when the secretKey is available
-  useEffect(() => {
-    fetchStats();
-    fetchOrders();
-  }, [secretKey]); // This tells React: "Run this whenever the secretKey changes"
-
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const formData = new FormData();
     formData.append('name', product.name);
     formData.append('price', product.price);
     formData.append('cat', product.cat);
-    formData.append('mat', product.mat || ''); // Added Material
-    formData.append('tag', product.tag || ''); // Added Tag
+    formData.append('mat', product.mat || ''); 
+    formData.append('tag', product.tag || '');
 
-    // Append Primary Image OR pass the existing URL back to the server
     if (product.imgFile) {
       formData.append('primaryImage', product.imgFile);
     } else if (editId) {
       formData.append('existingPrimaryImage', product.img);
     }
 
-    // Append Secondary Image OR pass the existing URL back
     if (product.secondaryImgFile) {
       formData.append('secondaryImage', product.secondaryImgFile);
     } else if (editId) {
@@ -270,8 +258,6 @@ const handleSubmit = async (e) => {
         setTimeout(() => { setStatus(''); }, 2000);
       } else { setStatus(`❌ Error updating.`); }
     } catch (err) { setStatus('❌ Server error.'); }
-
-    
   };
 
   const handleReviewSubmit = async (e) => {
@@ -323,8 +309,7 @@ const handleSubmit = async (e) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-const handleDelete = (id, type = 'product') => {
-    // 1. Missing Secret Key Alert
+  const handleDelete = (id, type = 'product') => {
     if (!secretKey) {
       return setPopup({
         isOpen: true,
@@ -335,15 +320,12 @@ const handleDelete = (id, type = 'product') => {
       });
     }
 
-    // 2. The Confirmation Dialog
     setPopup({
       isOpen: true,
-      // Capitalize the first letter for a clean title (e.g., "Delete Product")
       title: `Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`, 
       message: `Are you sure you want to delete this ${type} permanently? This action cannot be undone.`,
       isConfirm: true,
       
-      // 3. The Actual Delete Logic (Runs ONLY if they click Confirm)
       onConfirm: async () => {
         try {
           let url = `http://localhost:4242/api/admin/products/${id}`;
@@ -356,9 +338,8 @@ const handleDelete = (id, type = 'product') => {
           });
           
           if (res.ok) {
-            fetchAllData(); // Refresh the list so the item disappears
+            fetchAllData();
           } else {
-            // Optional: Show an error if the backend rejected it
             setPopup({
               isOpen: true,
               title: 'Error',
@@ -368,7 +349,6 @@ const handleDelete = (id, type = 'product') => {
             });
           }
         } catch (err) { 
-          // 4. Server Error Alert
           setPopup({
             isOpen: true,
             title: 'Server Error',
@@ -382,10 +362,7 @@ const handleDelete = (id, type = 'product') => {
   };
 
   const handleEditClick = (p) => {
-    // 1. Tell the system we are in "Edit Mode" for this specific ID
     setEditId(p._id);
-    
-    // 2. Populate the form with the existing product's data
     setProduct({
       name: p.name || '',
       price: p.price || '',
@@ -396,16 +373,15 @@ const handleDelete = (id, type = 'product') => {
       tag: p.tag || '',
       colors: p.colors || [],
       sizes: p.sizes || ['S', 'M', 'L'],
-      imgFile: null, // Ensure file inputs are empty
+      imgFile: null, 
       secondaryImgFile: null
     });
 
-    // 3. Switch the view to the product form tab
     setActiveTab('form');
-    
-    // 4. Smoothly scroll to the top so the user sees the form immediately
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // --- SUB-COMPONENTS & HELPERS ---
 
   const NavButton = ({ id, icon: Icon, label }) => (
     <button 
@@ -413,7 +389,6 @@ const handleDelete = (id, type = 'product') => {
         setActiveTab(id); 
         if(id === 'form') { 
           setEditId(null); 
-          // THE FIX: colors is now an empty array [], sizes is an array of strings
           setProduct({ 
             name: '', 
             price: '', 
@@ -437,7 +412,6 @@ const handleDelete = (id, type = 'product') => {
     </button>
   );
 
-  // ⭐ Smart Star Rating Generator (Handles Half Stars!)
   const renderStars = (rating) => {
     const num = parseFloat(rating) || 5;
     const fullStars = Math.floor(num);
@@ -446,25 +420,19 @@ const handleDelete = (id, type = 'product') => {
 
     return (
       <div className="flex items-center text-[#C9A96E] text-xs">
-        {/* 1. Full Stars */}
         {[...Array(fullStars)].map((_, i) => <span key={`full-${i}`}>★</span>)}
-        
-        {/* 2. Half Star (Uses CSS overflow to chop a gold star in half over a grey star!) */}
         {hasHalfStar && (
           <span className="relative inline-block">
             <span className="text-[#E8DFD3]">★</span> 
             <span className="absolute left-0 top-0 overflow-hidden w-1/2 text-[#C9A96E]">★</span> 
           </span>
         )}
-        
-        {/* 3. Empty Stars */}
         {[...Array(Math.max(0, emptyStars))].map((_, i) => <span key={`empty-${i}`} className="text-[#E8DFD3]">★</span>)}
         <span className="text-[#8B7D6B] font-medium ml-1.5">{num.toFixed(1)}</span>
       </div>
     );
   };
 
-// 📈 Refined, Lean Sparkline Logic
   const getSparklineData = () => {
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -478,34 +446,32 @@ const handleDelete = (id, type = 'product') => {
         .reduce((sum, o) => sum + (o.amountPaid || 0), 0);
     });
 
-    // Dynamic baseline 20 expansion
     const maxVal = Math.max(...revenueData, 20); 
     
-    // Calculate coordinates with extra padding for smaller dots
     const points = revenueData.map((val, i) => ({
       x: i * (300 / 6),
-      y: 60 - (val / maxVal * 45) - 10 // Increased padding top/bottom
+      y: 60 - (val / maxVal * 45) - 10 
     }));
 
-    // Generate a Smooth Cubic Bezier Curve Path
     let smoothPath = `M ${points[0].x},${points[0].y}`;
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i];
       const p1 = points[i + 1];
-      const cpX = p0.x + (p1.x - p0.x) / 2; // Control point halfway horizontally
+      const cpX = p0.x + (p1.x - p0.x) / 2; 
       smoothPath += ` C ${cpX},${p0.y} ${cpX},${p1.y} ${p1.x},${p1.y}`;
     }
 
-    // areaPath removed here
     return { points, max: maxVal, smoothPath };
   };
 
   const chart = getSparklineData();
 
+  // --- RENDER ---
+
   return (
     <div className="h-screen w-full flex flex-col md:flex-row bg-[#FAF6F1] text-[#3E2F1C] font-sans overflow-hidden">
 
-{/* 🌸 DYNAMIC THEME ENGINE 🌸 */}
+      {/* DYNAMIC THEME ENGINE */}
       <style dangerouslySetInnerHTML={{__html: `
         :root {
           --primary: ${siteTheme === 'pink' ? '#D88A9A' : '#A0522D'};
@@ -537,7 +503,7 @@ const handleDelete = (id, type = 'product') => {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavButton id="overview" icon={LayoutDashboard} label="Overview & Sales" />
           <NavButton id="orders" icon={ShoppingBag} label="Orders" />
-          <NavButton id="custom" icon={Palette} label="Custom Orders" /> {/* 👈 ADDED DESKTOP TAB */}
+          <NavButton id="custom" icon={Palette} label="Custom Orders" /> 
           <NavButton id="inventory" icon={Package} label="Inventory Catalog" />
           <NavButton id="form" icon={Plus} label={editId ? 'Edit Product' : 'Add Product'} />
           <NavButton id="journal" icon={BookOpen} label="Journal Editor" /> 
@@ -548,20 +514,18 @@ const handleDelete = (id, type = 'product') => {
 
       <div className="flex-1 flex flex-col h-full relative overflow-hidden min-w-0">
         
-<header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
+        <header className="bg-white border-b border-[#E8DFD3] px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shrink-0 z-10">
           
-          {/* Mobile Greeting - Clickable! */}
           <h2 onClick={toggleAdminName} className="text-lg font-bold md:hidden cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
             Hello, {adminName} ✨
           </h2>
           
-          {/* Desktop Greeting - Clickable! */}
           <h2 onClick={toggleAdminName} className="hidden md:flex items-center text-xl cursor-pointer select-none" style={{ fontFamily: 'Playfair Display, serif' }}>
             Hello, {adminName} ✨
             <span className="text-[#8B7D6B] text-sm ml-3 font-sans font-normal tracking-wide hidden lg:inline-block border-l border-[#E8DFD3] pl-3 cursor-default">
               {activeTab === 'overview' && 'Business Overview'}
               {activeTab === 'orders' && 'Order Management'}
-              {activeTab === 'custom' && 'Custom Designs'} {/* 👈 Added Text Display */}
+              {activeTab === 'custom' && 'Custom Designs'}
               {activeTab === 'inventory' && 'Catalog Management'}
               {activeTab === 'form' && (editId ? 'Edit Details' : 'Create New Product')}
               {activeTab === 'community' && 'Manage Reviews'}
@@ -598,7 +562,7 @@ const handleDelete = (id, type = 'product') => {
               {/* --- OVERVIEW TAB --- */}
               {activeTab === 'overview' && (
                 <div className="animate-in fade-in duration-300 w-full space-y-6">
-                  {/* Top Stats Cards */}
+                  
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <div className="p-6 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
                       <div className="flex justify-between items-start mb-4">
@@ -625,7 +589,6 @@ const handleDelete = (id, type = 'product') => {
                     </div>
                   </div>
 
-                  {/* 📊 LEAN, MINIMALIST SALES TREND GRAPH */}
                   <div className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                       <div>
@@ -638,38 +601,32 @@ const handleDelete = (id, type = 'product') => {
                     </div>
 
                     <div className="relative w-full h-40 md:h-60 flex gap-4">
-                      {/* Y-Axis Labels */}
                       <div className="flex flex-col justify-between text-[9px] font-bold text-[#B0A395] uppercase h-full py-1 pb-6 shrink-0">
                         <span>₱{chart.max.toLocaleString()}</span>
                         <span>₱{(chart.max / 2).toLocaleString()}</span>
                         <span>₱0</span>
                       </div>
 
-                      {/* The Graph Area */}
                       <div className="flex-1 relative border-l border-b border-[#E8DFD3] bg-[#FAF6F1]/30">
                         <svg viewBox="0 -5 300 75" className="w-full h-full" preserveAspectRatio="none">
-                          
-                          {/* Minimalist Grid System */}
                           <line x1="0" y1="10" x2="300" y2="10" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
                           <line x1="0" y1="35" x2="300" y2="35" stroke="#F0EBE4" strokeWidth="0.5" strokeDasharray="3 3" />
 
-                          {/* The Main Smooth Line (Thin & Fine) */}
                           <path
                             d={chart.smoothPath}
                             fill="none"
                             stroke="#A0522D"
-                            strokeWidth="1.25" // VERY Thin, Lean line
+                            strokeWidth="1.25" 
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           />
 
-                          {/* Data Points (Smaller & Clean) */}
                           {chart.points.map((p, i) => (
                             <circle 
                               key={i} 
                               cx={p.x} 
                               cy={p.y} 
-                              r="1.75" // Minimalist dots
+                              r="1.75" 
                               fill="white" 
                               stroke="#A0522D" 
                               strokeWidth="1.25" 
@@ -707,7 +664,6 @@ const handleDelete = (id, type = 'product') => {
                       customOrders.map(order => (
                         <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6">
                           
-                          {/* Info Column */}
                           <div className="flex-1 space-y-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -721,7 +677,6 @@ const handleDelete = (id, type = 'product') => {
                               </span>
                             </div>
 
-                            {/* Build Specs */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
                               <div>
                                 <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
@@ -742,7 +697,6 @@ const handleDelete = (id, type = 'product') => {
                             </div>
                           </div>
 
-                          {/* Material Breakdown Column */}
                           <div className="w-full md:w-72 bg-[#Fdfbf9] p-5 rounded-xl border border-[#E8DFD3]">
                             <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3">Material Breakdown</p>
                             
@@ -755,7 +709,6 @@ const handleDelete = (id, type = 'product') => {
                               <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
                               <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
                                 {order.beads && (() => {
-                                  // This perfectly counts and groups duplicates so you don't read a list of 20 identical lines!
                                   const counts = order.beads.reduce((acc, b) => ({...acc, [b]: (acc[b] || 0) + 1}), {});
                                   return Object.entries(counts).map(([bead, count]) => (
                                     <div key={bead} className="flex justify-between py-0.5">
@@ -810,7 +763,7 @@ const handleDelete = (id, type = 'product') => {
                       </table>
                     </div>
                   )}
-                  {/* Mobile Inventory */}
+
                   <div className="md:hidden divide-y divide-[#E8DFD3] border border-[#E8DFD3] rounded-xl">
                     {products.map(p => (
                       <div key={p._id} className="p-4 flex gap-4 items-center">
@@ -834,7 +787,6 @@ const handleDelete = (id, type = 'product') => {
                 <div className="animate-in fade-in duration-300 relative w-full">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     
-                    {/* Row 1: Name & Price */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Product Name</label>
@@ -846,7 +798,6 @@ const handleDelete = (id, type = 'product') => {
                       </div>
                     </div>
 
-                    {/* Row 2: Category & Primary Image */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Category</label>
@@ -860,7 +811,6 @@ const handleDelete = (id, type = 'product') => {
                       </div>
                     </div>
 
-                    {/* Row 3: Secondary Image (Full Width) */}
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Secondary Image (Hover/Detail)</label>
                       <input type="file" accept="image/*" onChange={(e) => setProduct({...product, secondaryImgFile: e.target.files[0]})} className="w-full text-sm text-[#8B7D6B] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8DFD3] file:text-[#3E2F1C] file:font-medium hover:file:bg-[#D1CBC3] file:cursor-pointer transition-colors" />
@@ -870,7 +820,6 @@ const handleDelete = (id, type = 'product') => {
                       {editId ? 'Save Changes' : 'Add to Catalog'}
                     </button>
 
-                    {/* 🚨 SUCCESS MESSAGE MOVED BELOW THE BUTTON 🚨 */}
                     {status && (
                       <div className="mt-4 p-3 bg-[#E8DFD3] text-[#3E2F1C] rounded-xl text-sm font-bold tracking-wide text-center animate-in fade-in duration-300">
                         {status}
@@ -936,7 +885,6 @@ const handleDelete = (id, type = 'product') => {
                 <div className="animate-in fade-in duration-300 relative w-full">
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                     
-                    {/* Write/Edit Form */}
                     <div className="xl:col-span-1">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -983,7 +931,6 @@ const handleDelete = (id, type = 'product') => {
                       {status && status.includes('Article') && <div className="mt-4 text-sm text-center text-[#A0522D] font-bold">{status}</div>}
                     </div>
 
-                    {/* Live Articles List */}
                     <div className="xl:col-span-1">
                       <h3 className="text-xl mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Live Articles ({blogs.length})</h3>
                       {blogs.length === 0 ? (
@@ -1038,7 +985,6 @@ const handleDelete = (id, type = 'product') => {
                     <div className="p-6 bg-[#FAF6F1] border border-[#E8DFD3] rounded-xl mt-4 mb-6">
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Global Website Theme</label>
                         <div className="flex gap-4">
-                          {/* 👇 UPDATED ONCLICK 👇 */}
                           <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#E8DFD3]' : 'border-transparent bg-white'}`}>Brown</button>
                           <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5]' : 'border-transparent bg-white'}`}>Pink</button>
                         </div>
@@ -1066,11 +1012,10 @@ const handleDelete = (id, type = 'product') => {
                     orders.map((order) => (
                       <div 
                         key={order._id} 
-                        onClick={() => setSelectedOrder(order)} // Makes the card clickable!
+                        onClick={() => setSelectedOrder(order)} 
                         className="bg-white p-5 rounded-xl shadow-sm border border-[#E8DFD3] flex flex-col gap-4 cursor-pointer hover:border-[#A0522D] transition-colors"
                       >
                         
-                        {/* Order Header: Customer & Status */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#E8DFD3] pb-4 gap-2">
                           <div>
                             <h3 className="font-bold text-[#3E2F1C]">{order.customerName}</h3>
@@ -1085,7 +1030,6 @@ const handleDelete = (id, type = 'product') => {
                               {order.status}
                             </span>
 
-                            {/* Action Buttons for Fulfillment */}
                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                               {order.status === 'Paid' && (
                                 <button 
@@ -1107,13 +1051,11 @@ const handleDelete = (id, type = 'product') => {
                           </div>
                         </div>
 
-                        {/* Order Items Summary */}
                         <div className="text-sm text-[#3E2F1C]">
                           <span className="font-bold text-[#8B7D6B] mr-2">Items:</span> 
                           {order.items?.map(i => `${i.quantity}x ${i.name}`).join(', ')}
                         </div>
                         
-                        {/* Date Footer */}
                         <div className="text-[10px] text-right text-[#8B7D6B] uppercase tracking-widest">
                           Ordered: {new Date(order.createdAt).toLocaleDateString()}
                         </div>
@@ -1121,7 +1063,6 @@ const handleDelete = (id, type = 'product') => {
                     ))
                   )}
 
-                  {/* CUSTOMER DETAILS MODAL */}
                   {selectedOrder && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedOrder(null)}>
                       <div className="w-full max-w-lg bg-[#FAF6F1] rounded-2xl p-6 md:p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
@@ -1134,7 +1075,6 @@ const handleDelete = (id, type = 'product') => {
                         </h3>
 
                         <div className="space-y-6">
-                          {/* Contact Section */}
                           <div>
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Customer Info</h4>
                             <p className="text-sm text-[#3E2F1C] font-medium">{selectedOrder.customerName}</p>
@@ -1142,7 +1082,6 @@ const handleDelete = (id, type = 'product') => {
                             <p className="text-sm text-[#3E2F1C]">{selectedOrder.contactNumber || 'No Phone Provided'}</p>
                           </div>
 
-                          {/* Shipping Section */}
                           <div>
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Shipping Address</h4>
                             {selectedOrder.shippingAddress && selectedOrder.shippingAddress.street ? (
@@ -1156,7 +1095,6 @@ const handleDelete = (id, type = 'product') => {
                             )}
                           </div>
 
-                          {/* Items Section */}
                           <div>
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Items Purchased</h4>
                             <div className="bg-white rounded-lg border border-[#E8DFD3] divide-y divide-[#E8DFD3]">
@@ -1177,8 +1115,6 @@ const handleDelete = (id, type = 'product') => {
                 </div>
               )}
 
-          {/* FLOATING ACTION BUTTON (Mobile Only) */}
-          {/* It ONLY shows up when the user is explicitly viewing the product list */}
           {activeTab === 'inventory' && (
             <button 
               onClick={() => setActiveTab('form')} 
@@ -1191,7 +1127,6 @@ const handleDelete = (id, type = 'product') => {
           </div>
         </main>
 
-        {/* 👈 NEW SCROLLABLE MOBILE BOTTOM NAVIGATION */}
         <nav className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-[#E8DFD3] flex overflow-x-auto p-2 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 scrollbar-hide">
           <div className="flex w-full justify-start sm:justify-around gap-2 px-1">
             <NavButton id="overview" icon={LayoutDashboard} label="Overview" />
@@ -1204,11 +1139,9 @@ const handleDelete = (id, type = 'product') => {
           </div>
         </nav>
         
-        {/* --- UNIVERSAL CUSTOM POP-UP (MODAL) --- */}
       {popup.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           
-          {/* Modal Box - Responsive for Mobile & PC */}
           <div className="w-full max-w-sm bg-[#FAF6F1] rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-bold text-[#3E2F1C] mb-2">
               {popup.title}
@@ -1218,7 +1151,6 @@ const handleDelete = (id, type = 'product') => {
             </p>
             
             <div className="flex gap-3 justify-end">
-              {/* Only show Cancel button if it's a confirmation */}
               {popup.isConfirm && (
                 <button 
                   onClick={closePopup} 

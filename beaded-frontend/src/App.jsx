@@ -9,27 +9,6 @@ import studio3 from './assets/studio-3.png';
 import studio4 from './assets/studio-4.png';
 import customPromoImg from './assets/custom-1.png';
 
-/* DEFAULT VALUES AND ITEMS
-const P = [
-  { id: 1, name: 'Sunstone Serenity', price: 38, img: 'https://images.unsplash.com/photo-1766560359154-c28794703384?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxvcmFuZ2UlMjBjcnlzdGFsJTIwYmVhZCUyMGJyYWNlbGV0JTIwaGFuZG1hZGV8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHdlYXJpbmclMjBiZWFkJTIwYnJhY2VsZXQlMjBjbG9zZXVwfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#A0522D', '#E8DFD3'], cat: 'Gemstone', rating: 4.8, reviews: 124, mat: 'Natural Sunstone', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
-  { id: 2, name: 'Moonlit Whisper', price: 42, img: 'https://images.unsplash.com/photo-1774096399392-e89c66ed8512?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHBlYXJsJTIwYnJhY2VsZXQlMjBlbGVnYW50fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1763739906638-5b50dbef6005?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxkZWxpY2F0ZSUyMHdoaXRlJTIwYnJhY2VsZXQlMjBqZXdlbHJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#FFFFFF', '#E8DFD3', '#C9A96E'], cat: 'Pearl', rating: 4.9, reviews: 89, mat: 'Freshwater Pearl', sizes: ['S', 'M', 'L'], tag: 'New' },
-  { id: 3, name: 'Earth Root', price: 34, img: 'https://images.unsplash.com/photo-1634833132196-fcbb1594e665?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxicm93biUyMHdvb2RlbiUyMGJlYWQlMjBicmFjZWxldHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1773666030429-d36d2a684d07?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b29kZW4lMjBiZWFkcyUyMG9uJTIwbGluZW4lMjBjbG90aHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#3E2F1C', '#8B7D6B', '#A0522D'], cat: 'Wood', rating: 4.7, reviews: 156, mat: 'Sandalwood', sizes: ['S', 'M', 'L', 'XL'], tag: '' },
-  { id: 4, name: 'Ocean Drift', price: 45, img: 'https://images.unsplash.com/photo-1645412665918-fa13253d06c6?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibHVlJTIwdHVycXVvaXNlJTIwc3RvbmUlMjBicmFjZWxldHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1771003230302-7251df0f9d97?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx0dXJxdW9pc2UlMjBicmFjZWxldCUyMGRyaWZ0d29vZHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#5B8FA8', '#7A8B6F', '#E8DFD3'], cat: 'Gemstone', rating: 4.6, reviews: 98, mat: 'Turquoise', sizes: ['S', 'M', 'L'], tag: '' },
-  { id: 5, name: 'Golden Hour', price: 52, img: 'https://images.unsplash.com/photo-1758995116383-f51775896add?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxnb2xkJTIwYmVhZCUyMGJyYWNlbGV0JTIwbHV4dXJ5fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1705326452395-1d35e6add570?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxnb2xkJTIwYnJhY2VsZXQlMjBzdGFjayUyMHdyaXN0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#C9A96E', '#3E2F1C', '#A0522D'], cat: 'Metal', rating: 4.9, reviews: 201, mat: '14K Gold Filled', sizes: ['S', 'M', 'L'], tag: 'Popular' },
-  { id: 6, name: 'Forest Floor', price: 36, img: 'https://images.unsplash.com/photo-1642477216634-3e290a057efa?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGphZGUlMjBzdG9uZSUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1704617767820-46fa501698eb?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGJyYWNlbGV0JTIwb24lMjBtb3NzfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#7A8B6F', '#3E2F1C', '#C9A96E'], cat: 'Gemstone', rating: 4.5, reviews: 67, mat: 'Green Jade', sizes: ['S', 'M', 'L'], tag: '' },
-  { id: 7, name: 'Blush Dream', price: 40, img: 'https://images.unsplash.com/photo-1652500965593-58e2b71d3cdc?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxwaW5rJTIwcm9zZSUyMHF1YXJ0eiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1762762938024-6d69c11d8c0a?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxyb3NlJTIwcXVhcnR6JTIwamV3ZWxyeSUyMGZlbWluaW5lfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#D4A0A0', '#E8DFD3', '#C9A96E'], cat: 'Gemstone', rating: 4.8, reviews: 143, mat: 'Rose Quartz', sizes: ['S', 'M', 'L'], tag: 'Bestseller' },
-  { id: 8, name: 'Midnight Stone', price: 48, img: 'https://images.unsplash.com/photo-1559555698-cc683c339bdb?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMG9ueXglMjBiZWFkJTIwYnJhY2VsZXR8ZW58MHx8fHwxNzc0ODg2Njk3fDA&ixlib=rb-4.1.0&w=400&h=400&fit=crop', img2: 'https://images.unsplash.com/photo-1767049603596-79204ada5273?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxibGFjayUyMHN0b25lJTIwYnJhY2VsZXQlMjBkYXJrfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=400&h=400&fit=crop', colors: ['#2C2C2C', '#3E2F1C', '#C9A96E'], cat: 'Gemstone', rating: 4.7, reviews: 112, mat: 'Black Onyx', sizes: ['S', 'M', 'L', 'XL'], tag: '' },
-];
-*/
-
-/* Default blogs
-const blogs = [
-  { id: 1, title: 'The Art of Intentional Adornment', ex: 'How choosing your daily bracelet can become a mindful ritual.', cat: 'Style Guide', date: 'Dec 15, 2024', time: '5 min', img: 'https://images.unsplash.com/photo-1763400312910-ed908d5f5714?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGhhbmRzJTIwbWVkaXRhdGlvbiUyMGJyYWNlbGV0fGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
-  { id: 2, title: 'Behind the Beads: Sourcing Stones', ex: 'A journey to the mines where we find our beautiful gemstones.', cat: 'Behind the Scenes', date: 'Dec 8, 2024', time: '7 min', img: 'https://images.unsplash.com/photo-1762921010575-2fcdb3c36ca1?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMGdlbXN0b25lcyUyMGNyeXN0YWxzfGVufDB8fHx8MTc3NDg4NjY5N3ww&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
-  { id: 3, title: 'Caring for Handmade Jewelry', ex: 'Simple tips to keep your bracelets beautiful for years.', cat: 'Care Tips', date: 'Dec 1, 2024', time: '4 min', img: 'https://images.unsplash.com/photo-1520781359717-3eb98461c9fe?ixid=M3w4NDcxNjh8MHwxfHNlYXJjaHwxfHxqZXdlbHJ5JTIwY2xlYW5pbmclMjBjbG90aHxlbnwwfHx8fDE3NzQ4ODY2OTd8MA&ixlib=rb-4.1.0&w=600&h=400&fit=crop' },
-];
-*/
-
 // Master Color Reference Map
 const cMap = {
   'Dark Blue': '#00008B', 'Navy Blue': '#000080', 'Light Blue': '#ADD8E6', 'Sky Blue': '#87CEEB', 'Blue': '#0000FF',
@@ -38,12 +17,13 @@ const cMap = {
   'White': '#FFFFFF', 'Dirty White': '#F5F5DC', 'Black': '#000000', 'Gray': '#808080', 'Brown': '#8B4513'
 };
 
-// Helper function to build collections quickly
+// Helper function to build collections
 const buildBeads = (id, type, size, price, colorNames) => ({
   id, type, size, price, name: `${type} (${size}mm)`,
   colors: colorNames.map(n => ({ name: n, hex: cMap[n] || '#CCCCCC' }))
 });
 
+// Bead Collections
 const beadCollections = [
   buildBeads('rs3', 'Regular Seed', 3, 0.5, ['Dark Blue', 'Light Blue', 'Pink', 'Dark Green', 'Light Green', 'White', 'Black', 'Yellow', 'Red', 'Purple']),
   buildBeads('gs3', 'Glass Seed', 3, 0.5, ['White', 'Dirty White', 'Orange', 'Pink', 'Purple', 'Blue', 'Light Green', 'Green', 'Gray', 'Black']),
@@ -67,26 +47,23 @@ const beadCollections = [
   buildBeads('ip12', 'Imitation Pearl', 12, 4, ['Dirty White', 'White']),
 ];
 
+// String Options
 const strOpts = [
   { id: 's1', name: 'Stretchable Nylon', color: '#E8DFD3', price: 8, desc: 'Durable elastic core. Easy to slip on and off daily.' }, 
   { id: 's2', name: 'Nylon String with Lock', color: '#B0A395', price: 6, desc: 'Non-stretch string secured with a premium metal clasp.' }
 ];
 
+// Charm Options
 const charmOpts = [
-  // Cats (Image 1)
   { id: 'c1', name: 'Black Cat', em: '🐈‍⬛', price: 10 },
   { id: 'c2', name: 'Pink Cat', em: '🐱', price: 10 },
   { id: 'c3', name: 'Teal Cat', em: '😸', price: 10 },
-
-  // Black & Gold Theme (Image 2)
   { id: 'c4', name: 'Black Whale Tail', em: '🐋', price: 10 },
   { id: 'c5', name: 'Open Heart', em: '♡', price: 10 },
   { id: 'c6', name: 'Vintage Key', em: '🗝️', price: 10 },
   { id: 'c7', name: 'Black Flower', em: '✿', price: 10 },
   { id: 'c8', name: 'Crescent Moon', em: '🌙', price: 10 },
   { id: 'c9', name: 'Solid Heart', em: '🖤', price: 10 },
-
-  // Pink & Gold Theme (Image 3)
   { id: 'c10', name: 'Pink Flower', em: '🌸', price: 10 },
   { id: 'c11', name: 'Starfish', em: '⭐', price: 10 },
   { id: 'c12', name: 'Pink Whale', em: '🐳', price: 10 },
@@ -95,49 +72,141 @@ const charmOpts = [
   { id: 'c15', name: 'Flamingo', em: '🦩', price: 10 },
   { id: 'c16', name: 'Hand Fan', em: '🪭', price: 10 },
   { id: 'c17', name: 'Rose', em: '🌹', price: 10 },
-
-  // Teal Theme (Image 4)
   { id: 'c18', name: 'Teal Butterfly', em: '🦋', price: 10 },
   { id: 'c19', name: 'Teal Whale Tail', em: '🌊', price: 10 },
-
-  // Green Theme (Image 5)
   { id: 'c20', name: 'Wine Glass', em: '🍷', price: 10 },
   { id: 'c21', name: 'Green Mermaid', em: '🧜‍♀️', price: 5 },
   { id: 'c22', name: 'Cactus', em: '🌵', price: 10 },
   { id: 'c23', name: 'Green Leaf', em: '🍃', price: 10 },
-
-  // Bronze & Miscellaneous (Images 6 & 7)
   { id: 'c24', name: 'Fish Bone', em: '🐟', price: 10 },
   { id: 'c25', name: 'Strawberry', em: '🍓', price: 10 },
   { id: 'c26', name: 'Lucky Bunny', em: '🐰', price: 10 },
   { id: 'c27', name: 'Lightning Bolt', em: '⚡', price: 10 },
   { id: 'c28', name: 'Palm Tree', em: '🌴', price: 10 },
-
-  // Colorful (Image 8)
   { id: 'c29', name: 'Rainbow', em: '🌈', price: 10 },
   { id: 'c30', name: 'Happy Cloud', em: '☁️', price: 10 },
   { id: 'c31', name: 'Rainbow Flower', em: '🌻', price: 10 }
 ];
 
 function App() {
-  const [cEmail, setCEmail] = useState('');
+  // --- STATE VARIABLES ---
+  
+  // UI & Layout State
   const [pg, setPg] = useState('home');
-  const [P, setP] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [qvId, setQvId] = useState(null);
   const [sgOpen, setSgOpen] = useState(false);
-  const [selProd, setSelProd] = useState(P[0]);
+  const [scrolled, setScrolled] = useState(false);
+  const [toast, setToast] = useState(null);
   const [activeImg, setActiveImg] = useState('');
-  const [cart, setCart] = useState([]);
-
-  // 🌸 Global Theme State
+  const [activeStudioImg, setActiveStudioImg] = useState(0);
   const [appTheme, setAppTheme] = useState(localStorage.getItem('beaded_theme') || 'brown');
+  
+  // Navigation & Tabs
+  const [loginTab, setLoginTab] = useState('signin');
+  const [acctTab, setAcctTab] = useState('overview');
+  const [cStep, setCStep] = useState(1);
+  const [chkStep, setChkStep] = useState(1);
 
-  // Listen for theme changes from the Admin Dashboard in real-time!
+  // Data & Filters
+  const [P, setP] = useState([]);
+  const [bestsellers, setBestsellers] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [selProd, setSelProd] = useState(P[0]);
+  const [selBlog, setSelBlog] = useState(null);
+  const [qvId, setQvId] = useState(null);
+  const [searchQ, setSearchQ] = useState('');
+  const [cat, setCat] = useState('All');
+  const [sort, setSort] = useState('Featured');
+  const [selectedCat, setSelectedCat] = useState('All');
+  
+  // Customizer State
+  const [sBeads, setSBeads] = useState([]);
+  const [sBeadCol, setSBeadCol] = useState(beadCollections[7]);
+  const [wristSize, setWristSize] = useState(6.5);
+  const [sStr, setSStr] = useState(strOpts[0]);
+  const [sCharms, setSCharms] = useState([]);
+  const [cName, setCName] = useState('');
+  const [sLockColor, setSLockColor] = useState('Gold');
+  const [sBeadSize, setSBeadSize] = useState('4mm');
+
+  // Shopping & Checkout
+  const [cart, setCart] = useState([]);
+  const [wish, setWish] = useState([]);
+  const [qty, setQty] = useState(1);
+  const [selSz, setSelSz] = useState('M');
+  const [selColor, setSelColor] = useState(0);
+  const [acc, setAcc] = useState('description');
+  const [shippingRegion, setShippingRegion] = useState('Metro Manila');
+  const [checkoutForm, setCheckoutForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '', 
+    street: '', barangay: '', city: '', province: '', postalCode: ''
+  });
+
+  // User & Authentication
+  const [logged, setLogged] = useState(false);
+  const [email, setEmail] = useState('');
+  const [cEmail, setCEmail] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
+  const [profileForm, setProfileForm] = useState({
+    firstName: '', lastName: '', phone: '', street: '', barangay: '', city: '', province: '', postalCode: '', region: 'Metro Manila'
+  });
+  const [isProfileSaved, setIsProfileSaved] = useState(true);
+  const [myOrders, setMyOrders] = useState([]);
+  const [orderFilter, setOrderFilter] = useState('All');
+
+  // Settings & Misc
+  const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN');
+  const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
+  const [featureTwo, setFeatureTwo] = useState('Handmade');
+  const [featureThree, setFeatureThree] = useState('Ethically sourced');
+  const [chatIn, setChatIn] = useState('');
+  const [chatMsgs, setChatMsgs] = useState([{ from: 'bot', text: 'Hi! Welcome to beadedbyunknown 👋' }]);
+  const [gAmt, setGAmt] = useState(50);
+  const r = useRef(null);
+
+  // --- DERIVED STATE & MEMOS ---
+  
+  const studioImages = [studio1, studio2, studio3, studio4];
+  
+  const shippingRates = {
+    'Metro Manila': 85,
+    'Luzon': 100,
+    'Visayas': 120,
+    'Mindanao': 130
+  };
+  const currentShippingFee = shippingRates[shippingRegion];
+  
+  const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
+  const finalTotal = (cTotal || 0) + currentShippingFee;
+  const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
+  
+  const filtered = useMemo(() => { 
+    if (!P || P.length === 0) return [];
+    let f = [...P]; 
+    if (cat !== 'All') f = f.filter(p => p.cat === cat); 
+    if (sort === 'Price: Low') f.sort((a, b) => a.price - b.price); 
+    if (sort === 'Price: High') f.sort((a, b) => b.price - a.price); 
+    return f; 
+  }, [cat, sort, P]);
+
+  const searchResults = useMemo(() => {
+    if (!searchQ.trim()) return [];
+    const q = searchQ.toLowerCase();
+    return P.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || (p.mat && p.mat.toLowerCase().includes(q)));
+  }, [searchQ, P]);
+
+  const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
+
+  // --- EFFECTS ---
+
   useEffect(() => {
     const handleStorageChange = () => {
       setAppTheme(localStorage.getItem('beaded_theme') || 'brown');
@@ -145,62 +214,7 @@ function App() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-  const [wish, setWish] = useState([]);
-  const [scrolled, setScrolled] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [searchQ, setSearchQ] = useState('');
-  const [loginTab, setLoginTab] = useState('signin');
-  const [acctTab, setAcctTab] = useState('overview');
-  const [cat, setCat] = useState('All');
-  const [sort, setSort] = useState('Featured');
-  const [cStep, setCStep] = useState(1);
-  const [sBeads, setSBeads] = useState([]);
-  const [sBeadCol, setSBeadCol] = useState(beadCollections[7]); // Defaults to Jade 8mm
-  const [wristSize, setWristSize] = useState(6.5); // Defaults to Medium (6.5 inches)
-  const [sStr, setSStr] = useState(strOpts[0]);
-  const [sCharms, setSCharms] = useState([]);
-  const [cName, setCName] = useState('');
-  const [chkStep, setChkStep] = useState(1);
-  const [selColor, setSelColor] = useState(0);
-  const [selSz, setSelSz] = useState('M');
-  const [qty, setQty] = useState(1);
-  const [acc, setAcc] = useState('description');
-  const [logged, setLogged] = useState(false);
-  const [email, setEmail] = useState('');
-  const [chatIn, setChatIn] = useState('');
-  const [chatMsgs, setChatMsgs] = useState([{ from: 'bot', text: 'Hi! Welcome to beadedbyunknown 👋' }]);
-  const [gAmt, setGAmt] = useState(50);
-  const r = useRef(null);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authFirstName, setAuthFirstName] = useState('');
-  const [authLastName, setAuthLastName] = useState('');
-  const [reviews, setReviews] = useState([]);
-  const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
-  const [featureTwo, setFeatureTwo] = useState('Handmade');
-  const [featureThree, setFeatureThree] = useState('Ethically sourced');
-  const [bestsellers, setBestsellers] = useState([]);
-  const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN'); // Default fallback
-  const [blogs, setBlogs] = useState([]);
-  const [selBlog, setSelBlog] = useState(null);
-  const [activeStudioImg, setActiveStudioImg] = useState(0);
-  const studioImages = [studio1, studio2, studio3, studio4];
-  const [selectedCat, setSelectedCat] = useState('All');
-  const [checkoutForm, setCheckoutForm] = useState({
-    firstName: '', lastName: '', email: '', phone: '', 
-    street: '', barangay: '', city: '', province: '', postalCode: ''
-  });
-  const [myOrders, setMyOrders] = useState([]);
-  const [orderFilter, setOrderFilter] = useState('All');
-  const [sBeadSize, setSBeadSize] = useState('4mm');
-// 1. The State Variables
-  const [profileForm, setProfileForm] = useState({
-    firstName: '', lastName: '', phone: '', street: '', barangay: '', city: '', province: '', postalCode: '', region: 'Metro Manila'
-  });
-  const [isProfileSaved, setIsProfileSaved] = useState(true);
-  const [sLockColor, setSLockColor] = useState('Gold');
 
-  // 2. The Auto-Fill Logic (Runs when they log in)
   useEffect(() => {
     if (logged) {
       setProfileForm({
@@ -218,57 +232,11 @@ function App() {
     }
   }, [logged]);
 
-  // 3. The Typing Handler (Updates state AND unlocks the button)
-  const handleProfileChange = (field, value) => {
-    setProfileForm(prev => ({ ...prev, [field]: value }));
-    setIsProfileSaved(false); // The moment they type, the button unlocks!
-  };
-
-  // 👈 NEW: This function updates the form AND unlocks the save button
-const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('beaded_token');
-    if (!token) return;
-
-    try {
-      const res = await fetch('http://localhost:4242/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          firstName: profileForm.firstName,
-          lastName: profileForm.lastName,
-          phone: profileForm.phone, // 👈 Added phone
-          shippingAddress: {
-            street: profileForm.street,
-            barangay: profileForm.barangay,
-            city: profileForm.city,
-            province: profileForm.province, // 👈 THE FIX! Province is now sent to the backend
-            postalCode: profileForm.postalCode,
-            region: profileForm.region
-          }
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setLogged(data.user); 
-        setIsProfileSaved(true); // 👈 Locks the button back to "Saved"
-        flash('Settings saved successfully!', 'success');
-      } else {
-        flash('Failed to save settings.', 'error');
-      }
-    } catch (err) {
-      flash('Server connection error.', 'error');
-    }
-  };
-
-  // Catch PayMongo Redirects
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       setPg('confirmation');
-      setCart([]); // Clear the cart because they bought it!
-      // Clean up the URL so it doesn't keep triggering if they refresh
+      setCart([]);
       window.history.replaceState(null, '', window.location.pathname);
     } else if (urlParams.get('canceled') === 'true') {
       flash('Payment was canceled or failed.', 'info');
@@ -276,7 +244,6 @@ const handleUpdateProfile = async (e) => {
     }
   }, []);
 
-  // Fetch user orders when they open the "Orders" tab in their account
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (logged && token && acctTab === 'orders') {
@@ -290,29 +257,19 @@ const handleUpdateProfile = async (e) => {
       .catch(err => console.error("Failed to fetch user orders:", err));
     }
   }, [logged, acctTab]);
-  
-  // This effect runs every time the 'pg' (page) state changes
+
   useEffect(() => {
-    // 1. Find the favicon link tag in the head
     const favicon = document.querySelector("link[rel~='icon']");
-
     if (pg === 'admin') {
-      // SETTINGS FOR ADMIN PAGE
       document.title = "BBU | Admin Dashboard";
-      if (favicon) {
-        favicon.href = "/admin-icon.png";
-      }
+      if (favicon) favicon.href = "/admin-icon.png";
     } else {
-      // SETTINGS FOR THE MAIN STORE
       document.title = "Beaded by Unknown";
-      if (favicon) {
-        favicon.href = "/Beaded-logo.png";
-      }
+      if (favicon) favicon.href = "/Beaded-logo.png";
     }
-  }, [pg]); // The [pg] tells React: "Run this only when the page changes"
+  }, [pg]);
 
   useEffect(() => {
-    // Automatically switch images every 3.5 seconds
     const interval = setInterval(() => {
       setActiveStudioImg((prev) => (prev + 1) % 4);
     }, 7000);
@@ -320,28 +277,23 @@ const handleUpdateProfile = async (e) => {
   }, []);
 
   useEffect(() => {
-  fetch('http://localhost:4242/api/blogs')
-    .then(res => res.json())
-    .then(data => { if (Array.isArray(data)) setBlogs(data); })
-    .catch(err => console.error("Failed to load blogs:", err));
-}, []);
+    fetch('http://localhost:4242/api/blogs')
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setBlogs(data); })
+      .catch(err => console.error("Failed to load blogs:", err));
+  }, []);
 
   useEffect(() => {
-    // Fetch the calculated bestsellers from our new algorithm
     fetch('http://localhost:4242/api/bestsellers')
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setBestsellers(data);
-      })
+      .then(data => { if (Array.isArray(data)) setBestsellers(data); })
       .catch(err => console.error("Failed to load bestsellers:", err));
   }, []);
 
   useEffect(() => {
     fetch('http://localhost:4242/api/reviews')
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setReviews(data);
-      })
+      .then(data => { if (Array.isArray(data)) setReviews(data); })
       .catch(err => console.error("Failed to load reviews:", err));
   }, []);
 
@@ -359,8 +311,6 @@ const handleUpdateProfile = async (e) => {
       .catch(err => console.error("Failed to load settings:", err));
   }, []);
   
-  // Auto-login check
-  // 1. Auto-login & Fetch Data on Refresh
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (token && !logged) {
@@ -381,10 +331,8 @@ const handleUpdateProfile = async (e) => {
     }
   }, []);
 
-  // 2. Auto-Sync to Database (Only runs when you actually change the cart/wishlist)
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
-    // Prevent syncing empty arrays immediately on first load before the database responds
     if (logged && token && (cart.length > 0 || wish.length > 0)) {
       fetch('http://localhost:4242/api/user/sync', {
         method: 'POST',
@@ -392,56 +340,93 @@ const handleUpdateProfile = async (e) => {
         body: JSON.stringify({ cart, wishlist: wish })
       }).catch(err => console.error("Sync error:", err));
     }
-  }, [cart, wish]); // Only triggers when cart or wishlist states change
+  }, [cart, wish]);
 
-  // 3. Fetch Products from MongoDB
   useEffect(() => {
-  fetch('http://localhost:4242/api/products')
-    .then(res => res.json())
-    .then(data => {
-       // Only set P if data is actually an array
-       if (Array.isArray(data)) {
-         setP(data);
-         if (data.length > 0 && !selProd) setSelProd(data[0]);
-       } else {
-         console.error("Backend sent an error:", data);
-         setP([]); // Keep it as an empty array so .slice() doesn't crash
-       }
-    })
-    .catch(err => {
-      console.error("Failed to load catalog:", err);
-      setP([]); // Keep it as an empty array on network failure
-    });
-}, []);
+    fetch('http://localhost:4242/api/products')
+      .then(res => res.json())
+      .then(data => {
+         if (Array.isArray(data)) {
+           setP(data);
+           if (data.length > 0 && !selProd) setSelProd(data[0]);
+         } else {
+           setP([]);
+         }
+      })
+      .catch(err => {
+        setP([]);
+      });
+  }, []);
 
-   // Scroll handler for desktop transparent 
   useEffect(() => {
     const handleS = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleS);
     return () => window.removeEventListener('scroll', handleS);
   }, []);
 
+  // --- HANDLERS ---
+
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
+  
   const go = useCallback((p, data) => { 
     setPg(p); 
     if (p === 'product' && data) {
       setSelProd(data); 
-      setActiveImg(data.img); // 👈 NEW: Resets to primary image when opening a product
+      setActiveImg(data.img);
     }
     if (p === 'blog-post' && data) setSelBlog(data);
     setMenuOpen(false); 
     window.scrollTo({top: 0, behavior: 'smooth'}); 
   }, []);
 
+  const handleProfileChange = (field, value) => {
+    setProfileForm(prev => ({ ...prev, [field]: value }));
+    setIsProfileSaved(false);
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('beaded_token');
+    if (!token) return;
+
+    try {
+      const res = await fetch('http://localhost:4242/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          firstName: profileForm.firstName,
+          lastName: profileForm.lastName,
+          phone: profileForm.phone,
+          shippingAddress: {
+            street: profileForm.street,
+            barangay: profileForm.barangay,
+            city: profileForm.city,
+            province: profileForm.province,
+            postalCode: profileForm.postalCode,
+            region: profileForm.region
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setLogged(data.user); 
+        setIsProfileSaved(true);
+        flash('Settings saved successfully!', 'success');
+      } else {
+        flash('Failed to save settings.', 'error');
+      }
+    } catch (err) {
+      flash('Server connection error.', 'error');
+    }
+  };
+
   const addCart = useCallback((p) => {
-    // 1. Establish the ultimate fallback ID
     const uniqueId = p._id || p.id || p.name;
     const selectedSize = selSz || 'M';
 
     setCart(prev => { 
-      // 2. Check if the exact product AND size exists
       const ex = prev.find(i => (i._id || i.id || i.name) === uniqueId && i.sz === selectedSize); 
-      
       if (ex) {
         return prev.map(i => 
           (i._id || i.id || i.name) === uniqueId && i.sz === selectedSize 
@@ -451,7 +436,6 @@ const handleUpdateProfile = async (e) => {
       }
       return [...prev, { ...p, _id: uniqueId, id: uniqueId, qty: qty, sz: selectedSize }]; 
     });
-    
     setCartOpen(true); 
     flash('Added to cart!', 'success');
   }, [qty, selSz, flash]);
@@ -466,7 +450,6 @@ const handleUpdateProfile = async (e) => {
   }, []);
 
   const togWish = useCallback((productOrId) => { 
-    // Safely handles if you pass the whole product (p) or just the ID from the UI
     const uniqueId = typeof productOrId === 'object' 
       ? (productOrId._id || productOrId.id || productOrId.name) 
       : productOrId;
@@ -481,58 +464,11 @@ const handleUpdateProfile = async (e) => {
     }); 
   }, [flash]);
 
-  const cTotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart]);
-
-    // Your new J&T Express Shipping States
-  const [shippingRegion, setShippingRegion] = useState('Metro Manila');
-  const shippingRates = {
-    'Metro Manila': 85,
-    'Luzon': 100,
-    'Visayas': 120,
-    'Mindanao': 130
-  };
-  const currentShippingFee = shippingRates[shippingRegion];
-  
-  // Ensure cTotal exists in your code before this line!
-  const finalTotal = (cTotal || 0) + currentShippingFee;
-  const cCount = useMemo(() => cart.reduce((s, i) => s + i.qty, 0), [cart]);
-  const filtered = useMemo(() => { 
-    if (!P || P.length === 0) return [];
-
-    let f = [...P]; 
-    
-    if (cat !== 'All') {
-      f = f.filter(p => p.cat === cat); 
-    }
-    
-    if (sort === 'Price: Low') {
-      f.sort((a, b) => a.price - b.price); 
-    }
-    if (sort === 'Price: High') {
-      f.sort((a, b) => b.price - a.price); 
-    }
-    
-    return f; 
-  }, [cat, sort, P]); // <-- Notice P is now right here!
-  // Live Search Filtering
-  const searchResults = useMemo(() => {
-    if (!searchQ.trim()) return [];
-    const q = searchQ.toLowerCase();
-    // Searches by product name, category, or material
-    return P.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      p.cat.toLowerCase().includes(q) || 
-      (p.mat && p.mat.toLowerCase().includes(q))
-    );
-  }, [searchQ, P]);
-  const custT = useMemo(() => 12 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0), [sBeads, sStr, sCharms]);
-
   const handleCheckout = async () => {
     try {
       const response = await fetch('http://localhost:4242/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Add checkoutForm and shippingRegion to the payload!
         body: JSON.stringify({ cart, checkoutForm, shippingRegion }),
       });
       const data = await response.json();
@@ -613,33 +549,46 @@ const handleUpdateProfile = async (e) => {
       flash('Google sign-in failed.', 'error');
     }
   };
-  
+
+  // --- SUB-COMPONENTS & RENDER HELPERS ---
+
   const stars = (rt) => Array.from({ length: 5 }, (_, i) => (
     <Star key={i} className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < Math.floor(rt) ? 'fill-[#C9A96E] text-[#C9A96E]' : 'text-[#E8DFD3]'}`} />
   ));
 
-// Responsive Product Card
+  const renderStars = (rating) => {
+    const num = parseFloat(rating) || 5;
+    const fullStars = Math.floor(num);
+    const hasHalfStar = num % 1 !== 0;
+    const emptyStars = 5 - Math.ceil(num);
+
+    return (
+      <div className="flex items-center text-[#C9A96E] text-xs">
+        {[...Array(fullStars)].map((_, i) => <span key={`full-${i}`}>★</span>)}
+        {hasHalfStar && (
+          <span className="relative inline-block">
+            <span className="text-[#E8DFD3]">★</span> 
+            <span className="absolute left-0 top-0 overflow-hidden w-1/2 text-[#C9A96E]">★</span> 
+          </span>
+        )}
+        {[...Array(Math.max(0, emptyStars))].map((_, i) => <span key={`empty-${i}`} className="text-[#E8DFD3]">★</span>)}
+      </div>
+    );
+  };
+
   const Card = ({ p }) => {
     const [h, setH] = useState(false);
-    
-    // 👈 The Bulletproof ID Check!
     const uniqueId = p._id || p.id || p.name;
     
     return (
       <div className="group cursor-pointer" onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} onClick={() => go('product', p)}>
         <div className="relative aspect-square overflow-hidden rounded-xl bg-[#F0EBE4] mb-2 md:mb-3">
-          {/* Safe image swap if img2 doesn't exist */}
           <img src={h && p.img2 ? p.img2 : p.img} alt={p.name} className="w-full h-full object-cover transition-all duration-500" />
-          
           {p.tag && <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-[#3E2F1C] text-[#FAF6F1] text-[9px] md:text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 md:px-3 md:py-1">{p.tag}</span>}
-          
-          {/* Desktop Hover Actions */}
           <div className={`hidden md:flex absolute inset-0 bg-[#3E2F1C]/10 items-end justify-center pb-4 gap-2 transition-opacity duration-300 ${h ? 'opacity-100' : 'opacity-0'}`}>
             <button onClick={(e) => { e.stopPropagation(); addCart(p); }} className="bg-[#FAF6F1] text-[#3E2F1C] text-xs tracking-wider uppercase px-5 py-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200 font-medium">Add</button>
             <button onClick={(e) => { e.stopPropagation(); setQvId(uniqueId); }} className="bg-[#FAF6F1] text-[#3E2F1C] p-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200"><Eye className="w-4 h-4" /></button>
           </div>
-          
-          {/* 👈 UPDATED WISHLIST BUTTON FOR CARDS */}
           <button onClick={(e) => { e.stopPropagation(); togWish(p); }} className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
             <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${wish.includes(uniqueId) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} />
           </button>
@@ -655,45 +604,19 @@ const handleUpdateProfile = async (e) => {
     );
   };
 
-  // ⭐ Smart Star Rating Generator (Handles Half Stars!)
-  const renderStars = (rating) => {
-    const num = parseFloat(rating) || 5;
-    const fullStars = Math.floor(num);
-    const hasHalfStar = num % 1 !== 0;
-    const emptyStars = 5 - Math.ceil(num);
-
-    return (
-      <div className="flex items-center text-[#C9A96E] text-xs">
-        {/* 1. Full Stars */}
-        {[...Array(fullStars)].map((_, i) => <span key={`full-${i}`}>★</span>)}
-        
-        {/* 2. Half Star */}
-        {hasHalfStar && (
-          <span className="relative inline-block">
-            <span className="text-[#E8DFD3]">★</span> 
-            <span className="absolute left-0 top-0 overflow-hidden w-1/2 text-[#C9A96E]">★</span> 
-          </span>
-        )}
-        
-        {/* 3. Empty Stars */}
-        {[...Array(Math.max(0, emptyStars))].map((_, i) => <span key={`empty-${i}`} className="text-[#E8DFD3]">★</span>)}
-      </div>
-    );
-  };
+  // --- RENDER ---
 
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
 
-{/* 🌸 DYNAMIC THEME ENGINE 🌸 */}
+      {/* DYNAMIC THEME ENGINE */}
       <style dangerouslySetInnerHTML={{__html: `
         :root {
-          /* Automatically switches between Pink and Brown variables */
           --primary: ${appTheme === 'pink' ? '#D88A9A' : '#A0522D'};
           --dark: ${appTheme === 'pink' ? '#5C434A' : '#3E2F1C'};
           --bg-light: ${appTheme === 'pink' ? '#FFF5F7' : '#FAF6F1'};
         }
         
-        /* Only overrides hardcoded Tailwind hexes if Pink mode is active */
         ${appTheme === 'pink' ? `
         .bg-\\[\\#A0522D\\] { background-color: var(--primary) !important; }
         .text-\\[\\#A0522D\\] { color: var(--primary) !important; }
@@ -716,38 +639,33 @@ const handleUpdateProfile = async (e) => {
           </div>
           <nav className="max-w-[1440px] mx-auto px-4 md:px-8 lg:px-10 py-3 md:py-4 flex items-center justify-between">
             
-            {/* Mobile Menu Icon (Now waits for TRUE mobile size - 768px) */}
+            {/* Mobile Menu Icon */}
             <div className="flex-1 md:hidden">
               <button onClick={() => setMenuOpen(true)} className="p-1 text-[#3E2F1C]"><Menu className="w-5 h-5" /></button>
             </div>
             
-            {/* Desktop Left Nav (Visible on iPads and up) */}
+            {/* Desktop Left Nav */}
             <div className="hidden md:flex items-center gap-4 xl:gap-8 flex-1 justify-start">
               <button onClick={() => go('collection')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Shop</button>
               <button onClick={() => go('customizer')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Customize</button>
               <button onClick={() => go('about')} className="text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Our Story</button>
             </div>
 
-            {/* Center Logo - Swaps to image on Tablets/Laptops to save space! */}
+            {/* Center Logo */}
             <div className="flex-shrink-0 flex justify-center mx-2 lg:mx-4">
               <button onClick={() => go('home')} className="flex items-center justify-center">
-                
-                {/* 1. TEXT LOGO: Only shows on Large (Desktop) Screens */}
                 <span className="hidden lg:block text-[22px] tracking-[0.2em] text-[#3E2F1C] uppercase" style={{ fontFamily: 'Playfair Display, serif' }}>
                   beadedbyunknown
                 </span>
-                
-                {/* 2. IMAGE LOGO: Shows on Medium (Tablet) and Small (Mobile) Screens */}
                 <img 
                   src="/Beaded-logo.png" 
                   alt="Beaded By Unknown" 
                   className="block lg:hidden h-7 md:h-8 w-auto object-contain" 
                 />
-
               </button>
             </div>
 
-            {/* Desktop Right Nav & Mobile Cart (Visible on iPads and up) */}
+            {/* Desktop Right Nav & Mobile Cart */}
             <div className="flex items-center justify-end gap-4 xl:gap-5 flex-1">
               <button onClick={() => go('blog')} className="hidden md:block text-[12px] xl:text-[13px] tracking-[0.15em] text-[#3E2F1C] hover:text-[#A0522D] transition-colors font-medium uppercase">Journal</button>
               <button onClick={() => setSearchOpen(true)} className="hidden md:block text-[#3E2F1C] hover:text-[#A0522D] transition-colors"><Search className="w-[18px] h-[18px]" /></button>
@@ -859,7 +777,6 @@ const handleUpdateProfile = async (e) => {
                             alt={product.name} 
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
-                          {/* Optional Hover Image Logic */}
                           {product.img2 && (
                             <img 
                               src={product.img2} 
@@ -867,7 +784,6 @@ const handleUpdateProfile = async (e) => {
                               className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                             />
                           )}
-                          {/* Automatic Bestseller Badge */}
                           <div className="absolute top-3 left-3 bg-[#3E2F1C] text-white text-[9px] uppercase tracking-widest px-2.5 py-1">
                             Top Rated
                           </div>
@@ -905,7 +821,6 @@ const handleUpdateProfile = async (e) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4">
                 {reviews.map(review => (
                   <div key={review._id} className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3] text-center">
-                    {/* The new star function, wrapped in a flex-center container! */}
                     <div className="flex justify-center mb-4 scale-110 origin-center">
                       {renderStars(review.rating)}
                     </div>
@@ -936,12 +851,9 @@ const handleUpdateProfile = async (e) => {
                       Discover Our Process
                     </button>
                   </div>
-                  {/* Image Carousel Column */}
                   <div className="flex-1 w-full relative">
                     {/* STACKED AUTO-CAROUSEL */}
                     <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
-                      
-                      {/* The 4 Images Stacked */}
                       {studioImages.map((img, idx) => (
                         <img
                           key={idx}
@@ -952,8 +864,6 @@ const handleUpdateProfile = async (e) => {
                           }`}
                         />
                       ))}
-
-                      {/* Elegant Dot Indicators */}
                       <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
                         {studioImages.map((_, idx) => (
                           <button 
@@ -966,7 +876,6 @@ const handleUpdateProfile = async (e) => {
                         ))}
                       </div>
                     </div>
-                    {/* Decorative Background Square */}
                     <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
                   </div>
                 </div>
@@ -1000,7 +909,6 @@ const handleUpdateProfile = async (e) => {
                   ))}
                 </div>
 
-                {/* Show a "Read All" button if there are more than 3 articles */}
                 {blogs.length > 3 && (
                   <div className="text-center mt-10">
                     <button onClick={() => go('blog')} className="text-sm uppercase tracking-widest font-bold border-b border-[#3E2F1C] pb-1 hover:text-[#A0522D] hover:border-[#A0522D] transition-colors">
@@ -1013,12 +921,9 @@ const handleUpdateProfile = async (e) => {
 
             {/* FOOTER */}
             <footer className="bg-[#3E2F1C] text-[#FAF6F1] py-16 mt-auto">
-              {/* FIX: Changed to [2fr_1fr_1fr_1fr] to give the brand column more room */}
               <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 border-b border-[#5A4A38] pb-12 mb-8">
                 
-                {/* Column 1: Brand & Socials */}
                 <div className="space-y-6">
-                  {/* FIX: Flex container aligns logo and brand name side-by-side */}
                   <div className="flex items-center gap-3">
                     <img src="/Beaded-logo.png" alt="Beaded by Unknown Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
                     <h2 className="text-lg md:text-xl tracking-[0.2em] uppercase font-serif">BEADEDBYUNKNOWN</h2>
@@ -1027,9 +932,7 @@ const handleUpdateProfile = async (e) => {
                     Handcrafted bead bracelets made with intention in Portland.
                   </p>
                   
-                  {/* SOCIAL ICONS (Raw SVG) */}
                   <div className="flex gap-5 pt-2">
-                    {/* Instagram SVG */}
                     <a href="https://www.instagram.com/beeeaded_/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Follow us on Instagram">
                       <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -1038,7 +941,6 @@ const handleUpdateProfile = async (e) => {
                       </svg>
                     </a>
 
-                    {/* LinkedIn SVG */}
                     <a href="https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Site Developer">
                       <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
@@ -1049,7 +951,6 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 </div>
 
-                {/* Column 2: Shop */}
                 <div>
                   <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Shop</h3>
                   <ul className="space-y-4 text-sm text-[#D1CBC3]">
@@ -1058,7 +959,6 @@ const handleUpdateProfile = async (e) => {
                   </ul>
                 </div>
 
-                {/* Column 3: Help */}
                 <div>
                   <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">Help</h3>
                   <ul className="space-y-4 text-sm text-[#D1CBC3]">
@@ -1069,7 +969,6 @@ const handleUpdateProfile = async (e) => {
                   </ul>
                 </div>
 
-                {/* Column 4: About */}
                 <div>
                   <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-white">About</h3>
                   <ul className="space-y-4 text-sm text-[#D1CBC3]">
@@ -1080,7 +979,6 @@ const handleUpdateProfile = async (e) => {
 
               </div>
 
-              {/* Bottom Copyright Strip */}
               <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-[#D1CBC3] text-xs gap-4">
                 <p>© 2026 beadedbyunknown</p>
                 <p>Developed by Sean Rhani Dela Cruz</p>
@@ -1190,12 +1088,9 @@ const handleUpdateProfile = async (e) => {
                   What started with a single strand has grown into a dedicated practice of hand-stringing every bead with care. Using durable materials and a meticulous eye for detail, we craft more than just jewelry; we create small, handmade companions for your daily journey.
                 </p>
               </div>
-              {/* Image Carousel Column */}
                   <div className="flex-1 w-full relative">
                     {/* STACKED AUTO-CAROUSEL */}
                     <div className="aspect-[4/5] bg-[#E8DFD3] rounded-2xl overflow-hidden relative z-10 shadow-xl border border-[#E8DFD3]">
-                      
-                      {/* The 4 Images Stacked */}
                       {studioImages.map((img, idx) => (
                         <img
                           key={idx}
@@ -1206,8 +1101,6 @@ const handleUpdateProfile = async (e) => {
                           }`}
                         />
                       ))}
-
-                      {/* Elegant Dot Indicators */}
                       <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
                         {studioImages.map((_, idx) => (
                           <button 
@@ -1220,7 +1113,6 @@ const handleUpdateProfile = async (e) => {
                         ))}
                       </div>
                     </div>
-                    {/* Decorative Background Square */}
                     <div className="absolute -bottom-6 -right-6 w-full h-full bg-[#F0EBE4] border border-[#E8DFD3] rounded-2xl z-0 hidden md:block"></div>
                   </div>
             </div>
@@ -1238,7 +1130,6 @@ const handleUpdateProfile = async (e) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
-             {/* This automatically loops through the "blogs" array at the top of your file! */}
               {blogs.map((post) => (
                 <div key={post._id || post.id} className="group cursor-pointer" onClick={() => go('blog-post', post)}>
                   <div className="aspect-square bg-[#FAF6F1] rounded-xl mb-5 overflow-hidden">
@@ -1260,12 +1151,10 @@ const handleUpdateProfile = async (e) => {
         )}
 
         {/* SINGLE BLOG POST READING VIEW */}
-        
         {pg === 'blog-post' && selBlog && (
           <div className="bg-white min-h-screen">
             <div className="max-w-[800px] mx-auto px-5 md:px-8 pt-8 md:pt-16 pb-24 animate-in fade-in duration-500">
               
-              {/* Back Navigation */}
               <button 
                 onClick={() => go('blog')} 
                 className="text-xs text-[#8B7D6B] mb-8 hover:text-[#A0522D] flex items-center gap-1 transition-colors font-medium uppercase tracking-widest"
@@ -1273,7 +1162,6 @@ const handleUpdateProfile = async (e) => {
                 <ChevronLeft className="w-3.5 h-3.5" /> Back to Journal
               </button>
 
-              {/* Article Header */}
               <div className="text-center mb-10 md:mb-16">
                 <div className="flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] text-[#A0522D] font-bold mb-6">
                   <span>{selBlog.cat || 'Journal'}</span>
@@ -1290,14 +1178,11 @@ const handleUpdateProfile = async (e) => {
                 )}
               </div>
 
-              {/* Hero Image */}
               <div className="w-full aspect-[16/9] md:aspect-[2/1] rounded-2xl overflow-hidden bg-[#FAF6F1] mb-12 shadow-sm border border-[#F0EBE4]">
                 <img src={selBlog.img} alt={selBlog.title} className="w-full h-full object-cover" />
               </div>
 
-              {/* Article Body Content */}
               <div className="max-w-none text-[#3E2F1C] leading-loose space-y-6">
-                {/* This part takes your text and keeps the paragraphs you typed in Admin */}
                 {(selBlog.content || '').split('\n').map((paragraph, idx) => (
                   paragraph.trim() && (
                     <p key={idx} className="text-base md:text-lg">
@@ -1307,7 +1192,6 @@ const handleUpdateProfile = async (e) => {
                 ))}
               </div>
 
-              {/* End of Post Footer */}
               <div className="mt-20 pt-10 border-t border-[#E8DFD3] flex flex-col items-center">
                 <p className="text-xs uppercase tracking-widest text-[#8B7D6B] mb-6">End of Story</p>
                 <button 
@@ -1353,8 +1237,6 @@ const handleUpdateProfile = async (e) => {
         {/* PRODUCT DETAIL */}
         {pg === 'product' && (() => {
           const p = selProd;
-          
-          // Bulletproof size parsing to fix any selection/mapping issues!
           const productSizes = Array.isArray(p.sizes) && p.sizes.length > 0 
             ? p.sizes 
             : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : ['S', 'M', 'L']);
@@ -1367,26 +1249,23 @@ const handleUpdateProfile = async (e) => {
                 
                 {/* --- IMAGE GALLERY SECTION --- */}
                 <div>
-                  {/* MAIN LARGE IMAGE */}
                   <div className="aspect-square md:rounded-xl overflow-hidden bg-[#F0EBE4]">
                     <img 
-                      src={activeImg || p.img} // 👈 Displays the clicked image, defaults to primary
+                      src={activeImg || p.img} 
                       alt={p.name} 
                       className="w-full h-full object-cover transition-opacity duration-300" 
                     />
                   </div>
                   
-                  {/* THUMBNAIL SELECTORS */}
-                  {/* Removed 'hidden' so mobile users can select images too! */}
                   <div className="grid grid-cols-4 gap-3 mt-3 md:mt-4 px-5 md:px-0">
                     {[p.img, p.img2].filter(Boolean).map((im, i) => (
                       <div 
                         key={i} 
-                        onClick={() => setActiveImg(im)} // 👈 Changes the main image on click
+                        onClick={() => setActiveImg(im)} 
                         className={`aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
                           (activeImg || p.img) === im 
-                            ? 'border-[#A0522D] opacity-100' // Highlighted state
-                            : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#E8DFD3]' // Inactive state
+                            ? 'border-[#A0522D] opacity-100' 
+                            : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#E8DFD3]' 
                         }`}
                       >
                         <img src={im} alt="" className="w-full h-full object-cover" />
@@ -1425,11 +1304,9 @@ const handleUpdateProfile = async (e) => {
                     </div>
                   </div>
 
-                  {/* Desktop Add to Cart */}
                   <button onClick={() => addCart(p)} className="hidden md:block w-full bg-[#A0522D] text-[#FAF6F1] text-sm tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] transition-colors font-semibold mb-3">Add to Cart — ₱{p.price * qty}</button>
 
                   <div className="flex gap-3 mb-6 md:mb-8">
-                    {/* 👈 UPDATED WISHLIST BUTTON HERE */}
                     <button onClick={() => togWish(p)} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Heart className={`w-4 h-4 md:w-5 md:h-5 ${wish.includes(p._id || p.id) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} /> <span className="hidden md:inline">{wish.includes(p._id || p.id) ? 'Saved' : 'Wishlist'}</span></button>
                     <button onClick={() => go('customizer')} className="flex-1 md:flex-none md:w-full border border-[#E8DFD3] text-sm py-3 flex items-center justify-center gap-2 hover:bg-[#F0EBE4] transition-colors"><Palette className="w-4 h-4 md:w-5 md:h-5 text-[#3E2F1C]" /> <span className="hidden md:inline">Customize</span></button>
                   </div>
@@ -1446,7 +1323,6 @@ const handleUpdateProfile = async (e) => {
                 </div>
               </div>
 
-              {/* Mobile Sticky Add to Cart */}
               <div className="md:hidden sticky bottom-0 bg-white border-t border-[#E8DFD3] p-4 flex items-center gap-3 z-30">
                 <span className="text-lg font-bold text-[#3E2F1C]">₱{p.price * qty}</span>
                 <button onClick={() => addCart(p)} className="flex-1 bg-[#A0522D] text-[#FAF6F1] text-xs tracking-[0.1em] uppercase py-3.5 font-semibold">Add to Cart</button>
@@ -1455,36 +1331,24 @@ const handleUpdateProfile = async (e) => {
           );
         })()}
 
-
-{/* CUSTOMIZER */}
+        {/* CUSTOMIZER */}
         {pg === 'customizer' && (() => {
-          // 🧮 Advanced Dynamic Scaling & Math
           const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-          
-          // Math: Circumference in mm = Inches * 25.4
           const circumference_mm = wristSize * 25.4;
-          // Ideal Beads = Total length / Bead Diameter
           const idealCount = Math.max(5, Math.floor(circumference_mm / sBeadCol.size));
           const beadDiff = idealCount - sBeads.length;
-
-          // Visualizer scaling
           const baseRadius = isMobile ? 90 : 120;
           const scale = Math.min(1.3, Math.max(0.7, wristSize / 6.5));
           const radius = baseRadius * scale;
-          
           const getFullStringName = () => sStr?.name + (sStr?.id === 's2' ? ` (${sLockColor})` : '');
-          
-          // BASE SETTING 25 ADDED HERE
           const totalCost = 25 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0);
 
           return (
             <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
-              {/* Desktop Progress Bar */}
               <div className="hidden md:flex items-center gap-0 mb-10">{['Bead Type','String Beads','String Options','Charm','Wrist Fit','Review'].map((s, i) => (
                 <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[var(--primary)]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[var(--primary)] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 5 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[var(--primary)]' : 'bg-[#E8DFD3]'}`} />}</div>
               ))}</div>
 
-              {/* Mobile Progress Bar */}
               <div className="md:hidden flex gap-1 mb-6">
                 {['Type', 'Beads', 'String', 'Charm', 'Wrist', 'Review'].map((s, i) => (
                   <div key={i} className="flex-1">
@@ -1495,13 +1359,11 @@ const handleUpdateProfile = async (e) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-12">
-                {/* LEFT COLUMN: Visual Preview Card */}
                 <div className="md:col-span-2 order-1 md:order-none">
                   <div className="md:sticky md:top-32">
                     <div className="aspect-square rounded-2xl bg-white border border-[#E8DFD3] flex items-center justify-center p-6 md:p-8 shadow-sm relative overflow-hidden">
                       <div className="absolute inset-0 bg-[var(--bg-light)] opacity-50 pointer-events-none"></div>
                       
-                      {/* THE STRING */}
                       <div 
                         className="rounded-full flex items-center justify-center relative shadow-inner bg-transparent transition-all duration-500"
                         style={{ 
@@ -1515,7 +1377,6 @@ const handleUpdateProfile = async (e) => {
                           <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-3 h-5 rounded-sm shadow-sm z-0 border border-black/10 transition-colors duration-300" style={{ backgroundColor: sLockColor === 'Gold' ? '#C9A96E' : '#E5E7EB' }}/>
                         )}
                         
-                        {/* THE BEADS */}
                         {sBeads.map((b, i) => { 
                           const beadPx = Math.max(8, sBeadCol.size * 2.5); 
                           const offset = beadPx / 2;
@@ -1531,7 +1392,6 @@ const handleUpdateProfile = async (e) => {
                           ); 
                         })}
 
-                        {/* THE CHARM */}
                         {sCharms.map((c) => {
                           const charmPx = isMobile ? 32 : 40;
                           const offset = charmPx / 2;
@@ -1547,7 +1407,6 @@ const handleUpdateProfile = async (e) => {
                       </div>
                     </div>
                     
-                    {/* Real Time Receipt */}
                     <div className="mt-4 p-5 bg-white rounded-xl border border-[#E8DFD3] shadow-sm">
                       <div className="flex justify-between items-center mb-2"><span className="text-sm font-bold text-[#8B7D6B]">Live Total</span><span className="text-xl font-bold text-[var(--dark)]">₱{totalCost}</span></div>
                       <div className="flex flex-col gap-1 border-t border-[#E8DFD3] pt-3 mt-3 text-xs text-[#8B7D6B]">
@@ -1562,7 +1421,6 @@ const handleUpdateProfile = async (e) => {
 
                 <div className="md:col-span-3 order-2 md:order-none">
                   
-                  {/* STEP 1: BEAD TYPE & SIZE */}
                   {cStep === 1 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Choose Bead Collection</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
@@ -1575,7 +1433,6 @@ const handleUpdateProfile = async (e) => {
                     </div>
                   </div>}
 
-                  {/* STEP 2: STRINGING THE BEADS (COLORS) */}
                   {cStep === 2 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Design Your Pattern</h2>
                     <p className="text-sm text-[#8B7D6B] mb-6">Click colors to string them. For a {wristSize}" wrist, you need approx <strong className="text-[var(--primary)]">{idealCount} beads</strong>.</p>
@@ -1606,7 +1463,6 @@ const handleUpdateProfile = async (e) => {
                     )}
                   </div>}
                   
-                  {/* STEP 3: STRING OPTIONS */}
                   {cStep === 3 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>String Options</h2>
                     <div className="flex flex-col gap-3 md:gap-4 mb-6">
@@ -1653,7 +1509,6 @@ const handleUpdateProfile = async (e) => {
                     )}
                   </div>}
 
-                  {/* STEP 4: ADD CHARM */}
                   {cStep === 4 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Charm</h2>
                     <p className="text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center charm</p>
@@ -1672,7 +1527,6 @@ const handleUpdateProfile = async (e) => {
                     </div>
                   </div>}
 
-                  {/* STEP 5: CUSTOM WRIST INPUT & SMART FILL */}
                   {cStep === 5 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Wrist Measurement</h2>
                     <p className="text-sm text-[#8B7D6B] mb-6">Measure tightly around your wrist with a tape measure. Enter your exact size in inches. We will adjust the gaps automatically.</p>
@@ -1707,7 +1561,6 @@ const handleUpdateProfile = async (e) => {
                     </div>
                   </div>}
                   
-                  {/* STEP 6: REVIEW */}
                   {cStep === 6 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Review & Submit</h2>
                     <div className="bg-[#F0EBE4] rounded-lg p-4 md:p-6 mb-4 md:mb-6">
@@ -1776,7 +1629,6 @@ const handleUpdateProfile = async (e) => {
                     </button>
                   </div>}
                   
-                  {/* NAVIGATION */}
                   <div className="flex justify-between mt-8 pt-6 border-t border-[#E8DFD3]">
                     {cStep > 1 ? <button onClick={() => setCStep(cStep - 1)} className="text-sm font-bold text-[#8B7D6B]">Back</button> : <div/>}
                     {cStep < 6 && (
@@ -1800,18 +1652,16 @@ const handleUpdateProfile = async (e) => {
           );
         })()}
 
-{/* ACCOUNT, WISHLIST, ETC */}
+        {/* ACCOUNT, WISHLIST, ETC */}
         {pg === 'wishlist' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-300">
             
-            {/* 1. THE HEADER */}
             <div className="flex justify-between items-end mb-1 md:mb-2 border-b border-[#E8DFD3] pb-4">
               <div>
                 <h2 className="text-[28px] md:text-[40px] text-[#3E2F1C]" style={{ fontFamily: 'Playfair Display, serif' }}>Wishlist</h2>
                 <p className="text-xs md:text-sm text-[#8B7D6B] mt-1">{wish.length} items</p>
               </div>
               
-              {/* CLEAR WISHLIST BUTTON */}
               {wish.length > 0 && (
                 <button 
                   onClick={() => { setWish([]); flash('Wishlist cleared', 'info'); }} 
@@ -1822,11 +1672,9 @@ const handleUpdateProfile = async (e) => {
               )}
             </div>
             
-            {/* 2. THE PRODUCT GRID */}
             <div className="mt-8">
               {wish.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                  {/* Bulletproof ID filter and key */}
                   {P.filter(p => wish.includes(p._id || p.id || p.name)).map(p => <Card key={p._id || p.id || p.name} p={p} />)}
                 </div>
               ) : (
@@ -1847,12 +1695,11 @@ const handleUpdateProfile = async (e) => {
           {pg === 'checkout' && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20 animate-in fade-in duration-500">
             
-            {/* 👈 THE NEW RETURN BUTTON */}
             <button 
               onClick={() => { 
-                go('collection'); // Send them back to the shop
-                setCartOpen(true); // Pop the cart open for them
-                setChkStep(1); // Reset checkout step just in case
+                go('collection'); 
+                setCartOpen(true); 
+                setChkStep(1); 
               }} 
               className="text-[10px] md:text-xs text-[#8B7D6B] mb-6 hover:text-[#A0522D] flex items-center gap-1 transition-colors font-medium uppercase tracking-widest"
             >
@@ -1874,39 +1721,32 @@ const handleUpdateProfile = async (e) => {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-16">
               <div className="md:col-span-3 order-2 md:order-1">
                 
-                {/* STEP 1: INFORMATION */}
                 {chkStep === 1 && (
                   <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Contact & Shipping</h2>
                     
-                    {/* Wrapping the inputs in a form enables native "required" validation */}
                     <form onSubmit={(e) => { e.preventDefault(); setChkStep(2); }}>
                       <div className="space-y-4">
                         
-                        {/* Contact Info */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <input type="email" required value={checkoutForm.email} onChange={(e) => setCheckoutForm({...checkoutForm, email: e.target.value})} placeholder="Email Address" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                           <input type="tel" required value={checkoutForm.phone} onChange={(e) => setCheckoutForm({...checkoutForm, phone: e.target.value})} placeholder="Mobile Number (e.g. 0917...)" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
-                        {/* Name */}
                         <div className="grid grid-cols-2 gap-4">
                           <input required value={checkoutForm.firstName} onChange={(e) => setCheckoutForm({...checkoutForm, firstName: e.target.value})} placeholder="First name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                           <input required value={checkoutForm.lastName} onChange={(e) => setCheckoutForm({...checkoutForm, lastName: e.target.value})} placeholder="Last name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
-                        {/* Split Address Fields */}
                         <input required value={checkoutForm.street} onChange={(e) => setCheckoutForm({...checkoutForm, street: e.target.value})} placeholder="House/Unit No., Building, Street Name" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         <input required value={checkoutForm.barangay} onChange={(e) => setCheckoutForm({...checkoutForm, barangay: e.target.value})} placeholder="Barangay / Village" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         
-                        {/* City, Province, Postal */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <input required value={checkoutForm.city} onChange={(e) => setCheckoutForm({...checkoutForm, city: e.target.value})} placeholder="City/Municipality" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                           <input required value={checkoutForm.province} onChange={(e) => setCheckoutForm({...checkoutForm, province: e.target.value})} placeholder="Province" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                           <input required value={checkoutForm.postalCode} onChange={(e) => setCheckoutForm({...checkoutForm, postalCode: e.target.value})} placeholder="Postal Code" className="w-full px-4 py-3.5 bg-white border border-[#E8DFD3] text-sm placeholder:text-[#B0A395] outline-none focus:border-[#A0522D] rounded-lg" />
                         </div>
                         
-                        {/* Region Dropdown */}
                         <div className="relative">
                           <select 
                             value={shippingRegion} 
@@ -1929,7 +1769,6 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 )}
 
-                {/* STEP 2: SHIPPING */}
                 {chkStep === 2 && (
                   <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Shipping Method</h2>
@@ -1961,7 +1800,6 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 )}
 
-                {/* STEP 3: PAYMENT */}
                 {chkStep === 3 && (
                   <div className="animate-in slide-in-from-right-4 duration-300">
                     <h2 className="text-[20px] md:text-[24px] mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>Payment</h2>
@@ -1983,12 +1821,10 @@ const handleUpdateProfile = async (e) => {
                 )}
               </div>
 
-{/* RIGHT COLUMN: ORDER SUMMARY */}
               <div className="md:col-span-2 order-1 md:order-2">
                 <div className="bg-[#FAF6F1] p-6 rounded-xl md:sticky md:top-32 border border-[#E8DFD3] md:border-none">
                   <h3 className="text-sm font-semibold tracking-wider uppercase mb-4 text-[#3E2F1C]">Order Summary</h3>
                   
-                  {/* Safe map check just in case cart is undefined */}
                   {(!cart || cart.length === 0) ? (
                     <p className="text-sm text-[#8B7D6B] italic mb-4">Your cart is empty.</p>
                   ) : (
@@ -2012,7 +1848,6 @@ const handleUpdateProfile = async (e) => {
                       <span>₱{cTotal || 0}</span>
                     </div>
                     
-                    {/* 👈 UPDATED SHIPPING DISPLAY */}
                     <div className="flex justify-between text-sm text-[#8B7D6B] items-center">
                       <span>Shipping ({shippingRegion})</span>
                       <span className={currentShippingFee === 0 ? "text-[#7A8B6F] font-bold tracking-widest uppercase text-[10px] bg-[#F0EBE4] px-2 py-1 rounded" : ""}>
@@ -2036,7 +1871,6 @@ const handleUpdateProfile = async (e) => {
         {pg === 'account' && logged && (
           <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
             <div className="flex flex-col md:flex-row gap-8 md:gap-12">
-              {/* Sidebar Navigation */}
               <div className="w-full md:w-64 space-y-1">
                 <h2 className="text-2xl mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>My Account</h2>
                 {['Overview', 'Orders', 'Settings'].map(tab => (
@@ -2062,10 +1896,8 @@ const handleUpdateProfile = async (e) => {
                 </button>
               </div>
 
-              {/* Main Content Area */}
               <div className="flex-1 bg-white rounded-2xl p-6 md:p-10 border border-[#E8DFD3]">
                 
-                {/* --- OVERVIEW TAB --- */}
                 {acctTab === 'overview' && (
                   <div>
                     <div className="flex items-center gap-4 mb-8 pb-8 border-b border-[#F0EBE4]">
@@ -2085,7 +1917,6 @@ const handleUpdateProfile = async (e) => {
                           <span className="text-xs font-bold uppercase tracking-widest">Recent Orders</span>
                         </div>
                         
-                        {/* Dynamically check if there are orders to display here too */}
                         {myOrders && myOrders.length > 0 ? (
                           <>
                             <p className="text-sm text-[#3E2F1C] mb-2">You have {myOrders.length} order(s).</p>
@@ -2102,13 +1933,11 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 )}
 
-                {/* --- ORDERS TAB --- */}
                 {acctTab === 'orders' && (
                   <div className="animate-in fade-in duration-300">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-[#F0EBE4] pb-4">
                       <h3 className="text-xl font-semibold text-[#3E2F1C]">Order History</h3>
                       
-                      {/* E-commerce Order Filters */}
                       <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                         {['All', 'Preparing', 'Shipped', 'Delivered'].map(f => (
                           <button 
@@ -2141,7 +1970,6 @@ const handleUpdateProfile = async (e) => {
                           .map(order => (
                           <div key={order._id} className="border border-[#E8DFD3] rounded-xl p-5 hover:border-[#A0522D] transition-colors bg-white shadow-sm">
                             
-                            {/* Order Header */}
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-[#F0EBE4] pb-4">
                               <div className="flex gap-8">
                                 <div>
@@ -2164,7 +1992,6 @@ const handleUpdateProfile = async (e) => {
                               </div>
                             </div>
                             
-                            {/* Items List */}
                             <div className="space-y-3">
                               {order.items?.map((item, idx) => (
                                 <div key={idx} className="flex justify-between items-center text-sm">
@@ -2180,7 +2007,6 @@ const handleUpdateProfile = async (e) => {
                           </div>
                         ))}
                         
-                        {/* Fallback if filter is empty */}
                         {myOrders.filter(o => orderFilter === 'All' ? true : (orderFilter === 'Preparing' ? o.status === 'Paid' : o.status === orderFilter)).length === 0 && (
                            <div className="text-center py-8 text-[#8B7D6B] text-sm">
                              No orders found with status: {orderFilter}.
@@ -2191,13 +2017,11 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 )}
 
-                {/* --- SETTINGS TAB --- */}
                 {acctTab === 'settings' && (
                   <div className="animate-in fade-in duration-300 w-full max-w-2xl">
                     <h3 className="text-xl font-semibold text-[#3E2F1C] mb-6 border-b border-[#F0EBE4] pb-4">Account Settings</h3>
                     
                     <form onSubmit={handleUpdateProfile} className="space-y-8">
-                      {/* Personal Information */}
                       <div>
                         <h4 className="text-sm font-bold uppercase tracking-widest text-[#8B7D6B] mb-4">Personal Information</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2223,7 +2047,6 @@ const handleUpdateProfile = async (e) => {
                         </div>
                       </div>
 
-                      {/* Default Shipping Address */}
                       <div className="pt-6 border-t border-[#F0EBE4]">
                         <h4 className="text-sm font-bold uppercase tracking-widest text-[#8B7D6B] mb-4">Default Shipping Address</h4>
                         <p className="text-xs text-[#8B7D6B] mb-4">Save your address to breeze through checkout next time.</p>
@@ -2267,21 +2090,17 @@ const handleUpdateProfile = async (e) => {
           </div>
         )}
 
-
         {/* LOGIN MODAL */}
-{loginOpen && (
+        {loginOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-6">
-          {/* Backdrop with subtle blur */}
           <div className="absolute inset-0 bg-[#3E2F1C]/40 backdrop-blur-sm" onClick={() => setLoginOpen(false)} />
           
           <div className="relative w-full max-w-[440px] bg-white rounded-[2rem] shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-300">
-            {/* Close Button */}
             <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 p-2 text-[#8B7D6B] hover:bg-[#FAF6F1] rounded-full transition-colors z-10">
               <X className="w-5 h-5" />
             </button>
             
             <div className="p-8 md:p-10">
-              {/* Header */}
               <div className="text-center mb-8">
                 <h3 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                   {loginTab === 'signin' ? 'Welcome Back' : 'Create Account'}
@@ -2291,7 +2110,6 @@ const handleUpdateProfile = async (e) => {
                 </p>
               </div>
               
-              {/* Tab Switcher (Pill Style) */}
               <div className="flex p-1 bg-[#FAF6F1] rounded-full mb-8">
                 <button 
                   onClick={() => setLoginTab('signin')} 
@@ -2307,7 +2125,6 @@ const handleUpdateProfile = async (e) => {
                 </button>
               </div>
 
-              {/* Social Login */}
               <div className="space-y-3 mb-8">
                 <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 py-3 border-2 border-[#E8DFD3] rounded-xl text-sm font-semibold text-[#3E2F1C] hover:bg-[#FAF6F1] hover:border-[#3E2F1C] transition-all">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -2317,14 +2134,12 @@ const handleUpdateProfile = async (e) => {
                 </button>
               </div>
 
-              {/* Divider */}
               <div className="flex items-center gap-4 mb-8">
                 <div className="flex-1 h-px bg-[#E8DFD3]" />
                 <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#B0A395]">Or use email</span>
                 <div className="flex-1 h-px bg-[#E8DFD3]" />
               </div>
 
-              {/* Form Fields */}
               <div className="space-y-4">
                 {loginTab === 'register' && (
                   <div className="grid grid-cols-2 gap-4">
@@ -2360,7 +2175,6 @@ const handleUpdateProfile = async (e) => {
                 </button>
               </div>
 
-              {/* Bottom Policy Link */}
               <p className="text-[10px] text-[#B0A395] text-center mt-8 leading-relaxed px-4">
                 By continuing, you agree to our 
                 <button onClick={() => { setLoginOpen(false); go('terms'); }} className="text-[#A0522D] font-bold hover:underline mx-1">Terms of Service</button> 
@@ -2373,8 +2187,7 @@ const handleUpdateProfile = async (e) => {
       )}
       
       {/* TERMS AND CONDITIONS / PRIVACY POLICY */}
-      
-        {pg === 'terms' && (
+      {pg === 'terms' && (
           <div className="max-w-4xl mx-auto px-5 md:px-8 py-16 md:py-24 animate-in fade-in duration-500">
             <button 
               onClick={() => go('home')} 
@@ -2387,7 +2200,6 @@ const handleUpdateProfile = async (e) => {
             <p className="text-[#8B7D6B] mb-12 border-b border-[#E8DFD3] pb-8">Last Updated: April 2026</p>
 
             <div className="space-y-12 text-[#3E2F1C]">
-              {/* Data Usage */}
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">1. Data Collection & Usage</h2>
                 <p className="leading-relaxed mb-4 text-sm md:text-base">
@@ -2400,7 +2212,6 @@ const handleUpdateProfile = async (e) => {
                 </ul>
               </section>
 
-              {/* Handmade Nature */}
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">2. Product Disclaimer</h2>
                 <p className="leading-relaxed text-sm md:text-base">
@@ -2408,7 +2219,6 @@ const handleUpdateProfile = async (e) => {
                 </p>
               </section>
 
-              {/* Shipping */}
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">3. Shipping & Orders</h2>
                 <p className="leading-relaxed text-sm md:text-base">
@@ -2420,7 +2230,6 @@ const handleUpdateProfile = async (e) => {
                 </p>
               </section>
 
-              {/* Intellectual Property */}
               <section>
                 <h2 className="text-lg font-bold uppercase tracking-widest mb-4">4. Intellectual Property</h2>
                 <p className="leading-relaxed text-sm md:text-base">
@@ -2484,7 +2293,6 @@ const handleUpdateProfile = async (e) => {
           <div className="absolute inset-0 bg-black/30" onClick={() => setCartOpen(false)} />
           <div className="absolute right-0 top-0 bottom-0 w-full max-w-[340px] md:max-w-[420px] bg-white shadow-2xl flex flex-col">
             
-            {/* 👈 UPDATED HEADER WITH CLEAR CART BUTTON */}
             <div className="flex items-center justify-between px-5 md:px-6 py-4 md:py-5 border-b border-[#E8DFD3]">
               <div className="flex items-center gap-4">
                 <h3 className="text-lg font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Cart ({cCount})</h3>
@@ -2510,7 +2318,6 @@ const handleUpdateProfile = async (e) => {
                 </div>
               ) : (
                 cart.map(it => {
-                  // 👈 ADDED SAFETY CHECK FOR ID IN CART MAP
                   const uniqueId = it._id || it.id || it.name;
                   return (
                     <div key={uniqueId} className="flex gap-3 md:gap-4 py-3 md:py-4 border-b border-[#E8DFD3]">
@@ -2523,14 +2330,12 @@ const handleUpdateProfile = async (e) => {
                             <p className="text-sm font-medium truncate">{it.name}</p>
                             <p className="text-[10px] md:text-xs text-[#8B7D6B]">Size {it.sz}</p>
                           </div>
-                          {/* 👈 UPDATED ID REFERENCE HERE */}
                           <button onClick={() => rmCart(uniqueId)} className="p-1 text-[#B0A395] hover:text-[#B85C5C]">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         <div className="flex items-center justify-between mt-1.5 md:mt-2">
                           <div className="inline-flex items-center border border-[#E8DFD3] rounded">
-                            {/* 👈 UPDATED ID REFERENCES HERE */}
                             <button onClick={() => updQty(uniqueId, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Minus className="w-3 h-3" /></button>
                             <span className="w-7 h-7 flex items-center justify-center text-[11px] md:text-xs font-medium border-x border-[#E8DFD3]">{it.qty}</span>
                             <button onClick={() => updQty(uniqueId, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-[#F0EBE4]"><Plus className="w-3 h-3" /></button>
@@ -2568,7 +2373,6 @@ const handleUpdateProfile = async (e) => {
                     setCartOpen(false); 
                     setChkStep(1); 
                     
-                    // PRE-FILL FORM WITH SAVED DATA!
                     if (logged) {
                       setCheckoutForm(prev => ({
                         ...prev,
@@ -2601,24 +2405,19 @@ const handleUpdateProfile = async (e) => {
 
       {/* QUICK VIEW MODAL */}
       {qvId && (() => {
-        // Find the exact product based on our bulletproof ID logic
         const p = P.find(item => (item._id || item.id || item.name) === qvId);
-        if (!p) return null; // Safety check
+        if (!p) return null;
         
-        // Ensure sizes are formatted correctly
         const productSizes = Array.isArray(p.sizes) && p.sizes.length > 0 
           ? p.sizes 
           : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : ['S', 'M', 'L']);
 
         return (
           <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 md:p-6">
-            {/* Darkened Backdrop */}
             <div className="absolute inset-0 bg-[#3E2F1C]/50 backdrop-blur-sm" onClick={() => setQvId(null)} />
             
-            {/* Modal Container */}
             <div className="relative w-full max-w-[850px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px]">
               
-              {/* Close Button */}
               <button 
                 onClick={() => setQvId(null)} 
                 className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm hover:bg-white text-[#3E2F1C] rounded-full transition-colors z-20 shadow-sm"
@@ -2626,13 +2425,11 @@ const handleUpdateProfile = async (e) => {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Left: Product Image */}
               <div className="w-full md:w-1/2 aspect-square md:aspect-auto bg-[#F0EBE4] relative shrink-0">
                 <img src={p.img} alt={p.name} className="w-full h-full object-cover md:absolute md:inset-0" />
                 {p.tag && <span className="absolute top-4 left-4 bg-[#3E2F1C] text-[#FAF6F1] text-[10px] tracking-[0.15em] uppercase px-3 py-1 z-10">{p.tag}</span>}
               </div>
 
-              {/* Right: Product Details */}
               <div className="w-full md:w-1/2 p-6 md:p-10 overflow-y-auto flex flex-col bg-[#FAF6F1] md:bg-white">
                 <h2 className="text-[24px] md:text-[32px] text-[#3E2F1C] mb-2 leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h2>
                 <p className="text-xl font-bold text-[#3E2F1C] mb-4 border-b border-[#E8DFD3] pb-4">₱{p.price}</p>
@@ -2641,7 +2438,6 @@ const handleUpdateProfile = async (e) => {
                   Handcrafted {p.mat || 'quality'} beads. A beautiful piece designed to bring intention and grounded energy to your daily journey.
                 </p>
 
-                {/* Size Selector */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B]">Select Size</p>
@@ -2659,7 +2455,6 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 </div>
 
-                {/* Quantity */}
                 <div className="mb-8">
                   <p className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] mb-3">Quantity</p>
                   <div className="inline-flex items-center border border-[#E8DFD3] bg-white">
@@ -2669,12 +2464,11 @@ const handleUpdateProfile = async (e) => {
                   </div>
                 </div>
 
-                {/* Bottom Actions */}
                 <div className="mt-auto flex flex-col gap-3 pt-4">
                   <button 
                     onClick={() => { 
                       addCart(p); 
-                      setQvId(null); // Closes the modal automatically after adding!
+                      setQvId(null); 
                     }} 
                     className="w-full bg-[#A0522D] text-[#FAF6F1] text-xs tracking-[0.15em] uppercase py-4 hover:bg-[#8B4526] font-semibold transition-colors shadow-md"
                   >
@@ -2684,7 +2478,7 @@ const handleUpdateProfile = async (e) => {
                   <button 
                     onClick={() => { 
                       setQvId(null); 
-                      go('product', p); // Routes them to the full page if they want to read more
+                      go('product', p); 
                     }} 
                     className="w-full border border-[#E8DFD3] bg-white text-[#3E2F1C] text-xs tracking-[0.15em] uppercase py-4 hover:bg-[#F0EBE4] font-semibold transition-colors"
                   >
@@ -2701,13 +2495,11 @@ const handleUpdateProfile = async (e) => {
       {/* SEARCH OVERLAY */}
       {searchOpen && (
         <div className="fixed inset-0 z-[80] bg-[#FAF6F1] md:bg-[#3E2F1C]/40 md:backdrop-blur-sm flex flex-col">
-          {/* Close background area for desktop */}
           <div className="hidden md:block absolute inset-0" onClick={() => { setSearchOpen(false); setSearchQ(''); }} />
           
           <div className="relative w-full bg-white md:rounded-b-3xl shadow-2xl flex-shrink-0 animate-in slide-in-from-top-4 duration-300">
             <div className="max-w-[800px] mx-auto px-5 md:px-8 py-4 md:py-8">
               
-              {/* Search Input */}
               <div className="flex items-center gap-3 md:gap-4 border-b-2 border-[#3E2F1C] pb-3 mb-2 md:mb-6 transition-colors">
                 <Search className="w-5 h-5 md:w-6 md:h-6 text-[#3E2F1C]" />
                 <input 
@@ -2722,7 +2514,6 @@ const handleUpdateProfile = async (e) => {
                 </button>
               </div>
 
-              {/* Search Results Area */}
               {searchQ.trim() && (
                 <div className="max-h-[65vh] overflow-y-auto pt-2 pb-6 md:pb-2">
                   {searchResults.length > 0 ? (
