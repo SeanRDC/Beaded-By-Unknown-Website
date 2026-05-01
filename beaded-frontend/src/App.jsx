@@ -655,6 +655,32 @@ const handleUpdateProfile = async (e) => {
     );
   };
 
+  // ⭐ Smart Star Rating Generator (Handles Half Stars!)
+  const renderStars = (rating) => {
+    const num = parseFloat(rating) || 5;
+    const fullStars = Math.floor(num);
+    const hasHalfStar = num % 1 !== 0;
+    const emptyStars = 5 - Math.ceil(num);
+
+    return (
+      <div className="flex items-center text-[#C9A96E] text-xs">
+        {/* 1. Full Stars */}
+        {[...Array(fullStars)].map((_, i) => <span key={`full-${i}`}>★</span>)}
+        
+        {/* 2. Half Star */}
+        {hasHalfStar && (
+          <span className="relative inline-block">
+            <span className="text-[#E8DFD3]">★</span> 
+            <span className="absolute left-0 top-0 overflow-hidden w-1/2 text-[#C9A96E]">★</span> 
+          </span>
+        )}
+        
+        {/* 3. Empty Stars */}
+        {[...Array(Math.max(0, emptyStars))].map((_, i) => <span key={`empty-${i}`} className="text-[#E8DFD3]">★</span>)}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden bg-[#FAF6F1] font-sans text-[#3E2F1C]">
 
@@ -863,7 +889,7 @@ const handleUpdateProfile = async (e) => {
                 <div className="p-6 md:p-16 flex flex-col justify-center">
                   <p className="text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em] text-[#A0522D] uppercase mb-2 md:mb-3 font-medium">Make it yours</p>
                   <h2 className="text-[22px] md:text-[36px] text-[#3E2F1C] mb-2 md:mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Design Your Own</h2>
-                  <p className="text-sm md:text-base text-[#5A4A3A] mb-5 md:mb-8">Choose from 20+ natural stones, pick your string, add meaningful charms.</p>
+                  <p className="text-sm md:text-base text-[#5A4A3A] mb-5 md:mb-8">Choose from various bead types, add meaningful charms.</p>
                   <div className="flex flex-wrap md:flex-nowrap gap-4 md:gap-6 mb-5 md:mb-8">
                     {[{ i: <Gem className="w-4 h-4 md:w-5 md:h-5" />, l: 'Beads' }, { i: <Layers className="w-4 h-4 md:w-5 md:h-5" />, l: 'String' }, { i: <Sparkles className="w-4 h-4 md:w-5 md:h-5" />, l: 'Charms' }].map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 md:gap-2"><div className="w-7 h-7 md:w-9 md:h-9 rounded-full bg-[#FAF6F1] flex items-center justify-center text-[#A0522D]">{s.i}</div><span className="text-xs md:text-sm text-[#3E2F1C] font-medium">{s.l}</span></div>
@@ -879,7 +905,11 @@ const handleUpdateProfile = async (e) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4">
                 {reviews.map(review => (
                   <div key={review._id} className="bg-[#FAF6F1] p-6 rounded-xl border border-[#E8DFD3] text-center">
-                    <p className="text-[#C9A96E] text-lg mb-4">{'★'.repeat(review.rating)}</p>
+                    {/* The new star function, wrapped in a flex-center container! */}
+                    <div className="flex justify-center mb-4 scale-110 origin-center">
+                      {renderStars(review.rating)}
+                    </div>
+                    
                     <p className="text-sm italic text-[#8B7D6B] mb-4">"{review.text}"</p>
                     <p className="text-xs uppercase tracking-widest font-bold">- {review.author}</p>
                   </div>

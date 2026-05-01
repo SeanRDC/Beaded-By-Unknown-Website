@@ -437,6 +437,33 @@ const handleDelete = (id, type = 'product') => {
     </button>
   );
 
+  // ⭐ Smart Star Rating Generator (Handles Half Stars!)
+  const renderStars = (rating) => {
+    const num = parseFloat(rating) || 5;
+    const fullStars = Math.floor(num);
+    const hasHalfStar = num % 1 !== 0;
+    const emptyStars = 5 - Math.ceil(num);
+
+    return (
+      <div className="flex items-center text-[#C9A96E] text-xs">
+        {/* 1. Full Stars */}
+        {[...Array(fullStars)].map((_, i) => <span key={`full-${i}`}>★</span>)}
+        
+        {/* 2. Half Star (Uses CSS overflow to chop a gold star in half over a grey star!) */}
+        {hasHalfStar && (
+          <span className="relative inline-block">
+            <span className="text-[#E8DFD3]">★</span> 
+            <span className="absolute left-0 top-0 overflow-hidden w-1/2 text-[#C9A96E]">★</span> 
+          </span>
+        )}
+        
+        {/* 3. Empty Stars */}
+        {[...Array(Math.max(0, emptyStars))].map((_, i) => <span key={`empty-${i}`} className="text-[#E8DFD3]">★</span>)}
+        <span className="text-[#8B7D6B] font-medium ml-1.5">{num.toFixed(1)}</span>
+      </div>
+    );
+  };
+
 // 📈 Refined, Lean Sparkline Logic
   const getSparklineData = () => {
     const last7Days = [...Array(7)].map((_, i) => {
@@ -870,7 +897,7 @@ const handleDelete = (id, type = 'product') => {
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-2">Rating (1-5)</label>
-                          <input type="number" min="1" max="5" required value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[#A0522D] text-sm" />
+                          <input type="number" min="1" max="5" step="0.5" required value={reviewForm.rating} onChange={(e) => setReviewForm({...reviewForm, rating: parseFloat(e.target.value) || ''})} className="w-full px-4 py-2.5 bg-white border border-[#E8DFD3] rounded-lg outline-none focus:border-[var(--primary)] text-sm" />
                         </div>
                         <button type="submit" className="w-full bg-[#3E2F1C] text-white py-3 rounded-lg font-bold tracking-widest uppercase hover:bg-[#A0522D] text-xs">
                           Publish Review
@@ -888,7 +915,7 @@ const handleDelete = (id, type = 'product') => {
                               <div>
                                 <div className="flex items-center gap-2 mb-2">
                                   <span className="font-bold text-sm">{r.author}</span>
-                                  <span className="text-[#C9A96E] text-xs">{'★'.repeat(r.rating)}</span>
+                                  {renderStars(r.rating)}
                                 </div>
                                 <p className="text-sm text-[#8B7D6B] leading-relaxed">"{r.text}"</p>
                               </div>
@@ -1012,8 +1039,8 @@ const handleDelete = (id, type = 'product') => {
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Global Website Theme</label>
                         <div className="flex gap-4">
                           {/* 👇 UPDATED ONCLICK 👇 */}
-                          <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#E8DFD3]' : 'border-transparent bg-white'}`}>🤎 Brown/Earth</button>
-                          <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5]' : 'border-transparent bg-white'}`}>🌸 Pink/Rose</button>
+                          <button type="button" onClick={() => handleThemeChange('brown')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'brown' ? 'border-[#3E2F1C] bg-[#E8DFD3]' : 'border-transparent bg-white'}`}>Brown</button>
+                          <button type="button" onClick={() => handleThemeChange('pink')} className={`flex-1 py-3 rounded-lg border-2 font-bold ${siteTheme === 'pink' ? 'border-[#D88A9A] bg-[#FFF0F5]' : 'border-transparent bg-white'}`}>Pink</button>
                         </div>
                       </div>
                     
