@@ -71,7 +71,7 @@ const charmOpts = [
   { id: 'c18', name: 'Teal Butterfly', em: '🦋', price: 10 },
   { id: 'c19', name: 'Teal Whale Tail', em: '🌊', price: 10 },
   { id: 'c20', name: 'Wine Glass', em: '🍷', price: 10 },
-  { id: 'c21', name: 'Green Mermaid', em: '🧜‍♀️', price: 5 },
+  { id: 'c21', name: 'Green Mermaid', em: '🧜‍♀️', price: 10 },
   { id: 'c22', name: 'Cactus', em: '🌵', price: 10 },
   { id: 'c23', name: 'Green Leaf', em: '🍃', price: 10 },
   { id: 'c24', name: 'Fish Bone', em: '🐟', price: 10 },
@@ -122,11 +122,12 @@ function App() {
   // Customizer State
   const [sBeads, setSBeads] = useState([]);
   const [sBeadCol, setSBeadCol] = useState(beadCollections[7]);
-  const [wristSize, setWristSize] = useState(6.5);
+  const [wristSize, setWristSize] = useState(16.5);
   const [sStr, setSStr] = useState(strOpts[0]);
   const [sCharms, setSCharms] = useState([]);
   const [cName, setCName] = useState('');
   const [sLockColor, setSLockColor] = useState('Gold');
+  const [sExtender, setSExtender] = useState(false);
 
   // Shopping & Checkout
   const [cart, setCart] = useState([]);
@@ -166,6 +167,7 @@ function App() {
   const [featureTwo, setFeatureTwo] = useState('Handmade');
   const [featureThree, setFeatureThree] = useState('Ethically sourced');
   const [shopCategories, setShopCategories] = useState(['Plastic', 'Gemstone', 'Glass']);
+  const [products, setProducts] = useState([]);
 
   // --- DERIVED STATE & MEMOS ---
   
@@ -208,6 +210,13 @@ function App() {
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
 
   // --- EFFECTS ---
+  useEffect(() => {
+    fetch('http://localhost:4242/api/products')
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.log('Error fetching live products:', err));
+  }, []);
+
   useEffect(() => {
     let interval;
     if (loginTab === 'otp' && otpTimer > 0) {
@@ -641,29 +650,52 @@ function App() {
     );
   };
 
-  const Card = ({ p }) => {
+const Card = ({ p }) => {
     const [h, setH] = useState(false);
     const uniqueId = p._id || p.id || p.name;
+    const isSoldOut = p.isAvailable === false; 
     
     return (
-      <div className="group cursor-pointer" onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} onClick={() => go('product', p)}>
+      <div 
+        className={`group ${isSoldOut ? 'cursor-default' : 'cursor-pointer'}`} 
+        onMouseEnter={() => setH(true)} 
+        onMouseLeave={() => setH(false)} 
+        onClick={() => !isSoldOut && go('product', p)} 
+      >
         <div className="relative aspect-square overflow-hidden rounded-xl bg-[#F0EBE4] mb-2 md:mb-3">
-          <img src={h && p.img2 ? p.img2 : p.img} alt={p.name} className="w-full h-full object-cover transition-all duration-500" />
-          {p.tag && <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-[#3E2F1C] text-[#FAF6F1] text-[9px] md:text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 md:px-3 md:py-1">{p.tag}</span>}
-          <div className={`hidden md:flex absolute inset-0 bg-[#3E2F1C]/10 items-end justify-center pb-4 gap-2 transition-opacity duration-300 ${h ? 'opacity-100' : 'opacity-0'}`}>
+          
+          {isSoldOut && (
+            <div className="absolute inset-0 z-20 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+              <span className="bg-[#3E2F1C] text-[#FAF6F1] px-4 md:px-6 py-2 md:py-3 text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold shadow-lg transform -rotate-12 border border-[#E8DFD3]/20">
+                Sold Out
+              </span>
+            </div>
+          )}
+
+          <img 
+            src={h && p.img2 && !isSoldOut ? p.img2 : p.img} 
+            alt={p.name} 
+            className={`w-full h-full object-cover transition-all duration-500 ${isSoldOut ? 'grayscale opacity-50' : ''}`} 
+          />
+          
+          {p.tag && !isSoldOut && <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-[#3E2F1C] text-[#FAF6F1] text-[9px] md:text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 md:px-3 md:py-1">{p.tag}</span>}
+          
+          <div className={`hidden md:flex absolute inset-0 bg-[#3E2F1C]/10 items-end justify-center pb-4 gap-2 transition-opacity duration-300 ${h && !isSoldOut ? 'opacity-100' : 'opacity-0'} z-10`}>
             <button onClick={(e) => { e.stopPropagation(); addCart(p); }} className="bg-[#FAF6F1] text-[#3E2F1C] text-xs tracking-wider uppercase px-5 py-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200 font-medium">Add</button>
             <button onClick={(e) => { e.stopPropagation(); setQvId(uniqueId); }} className="bg-[#FAF6F1] text-[#3E2F1C] p-2.5 hover:bg-[#3E2F1C] hover:text-[#FAF6F1] transition-colors duration-200"><Eye className="w-4 h-4" /></button>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); togWish(p); }} className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+
+          <button onClick={(e) => { e.stopPropagation(); togWish(p); }} className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 bg-white/80 rounded-full hover:bg-white transition-colors z-30">
             <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${wish.includes(uniqueId) ? 'fill-[#A0522D] text-[#A0522D]' : 'text-[#3E2F1C]'}`} />
           </button>
         </div>
+        
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-[13px] md:text-[15px] text-[#3E2F1C] font-medium" style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h3>
+            <h3 className={`text-[13px] md:text-[15px] font-medium ${isSoldOut ? 'text-[#8B7D6B] line-through' : 'text-[#3E2F1C]'}`} style={{ fontFamily: 'Playfair Display, serif' }}>{p.name}</h3>
             <p className="text-[11px] md:text-xs text-[#8B7D6B] mt-0.5">{p.mat}</p>
           </div>
-          <span className="text-[13px] md:text-[15px] font-semibold text-[#3E2F1C]">₱{p.price}</span>
+          <span className={`text-[13px] md:text-[15px] font-semibold ${isSoldOut ? 'text-[#8B7D6B]' : 'text-[#3E2F1C]'}`}>₱{p.price}</span>
         </div>
       </div>
     );
@@ -696,17 +728,24 @@ function App() {
         ` : ''}
       `}} />
 
-      {/* GLOBAL TOAST NOTIFICATION UI */}
+      {/* GLOBAL TOAST NOTIFICATION */}
       {toast && (
-        <div className={`fixed top-24 md:top-32 right-4 md:right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-right-8 duration-300 font-medium text-sm border-l-4 ${
-          toast.t === 'error' ? 'bg-white border-red-500 text-red-700' : 
-          toast.t === 'success' ? 'bg-white border-green-500 text-green-700' : 
-          'bg-white border-[#A0522D] text-[#3E2F1C]'
-        }`}>
-          {toast.t === 'error' ? <X className="w-5 h-5 text-red-500" /> : 
-           toast.t === 'success' ? <Check className="w-5 h-5 text-green-500" /> : 
-           <Sparkles className="w-5 h-5 text-[#A0522D]" />}
-          {toast.m}
+        <div className="fixed bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-3.5 bg-[#3E2F1C]/85 backdrop-blur-md text-[#FAF6F1] rounded-full shadow-lg border border-[#5A4A38]/50 animate-in fade-in slide-in-from-bottom-6 zoom-in-98 duration-500">
+          
+          <div className="bg-[#C9A96E]/15 p-1.5 rounded-full shrink-0">
+            {toast.t === 'error' ? (
+              <X className="w-4 h-4 text-[#C9A96E]" />
+            ) : toast.t === 'success' ? (
+              <Check className="w-4 h-4 text-[#C9A96E]" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-[#C9A96E]" />
+            )}
+          </div>
+          
+          <span className="text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase mt-0.5 whitespace-nowrap opacity-90">
+            {toast.m}
+          </span>
+          
         </div>
       )}
 
@@ -878,7 +917,7 @@ function App() {
                 <div className="p-6 md:p-16 flex flex-col justify-center">
                   <p className="text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em] text-[#A0522D] uppercase mb-2 md:mb-3 font-medium">Make it yours</p>
                   <h2 className="text-[22px] md:text-[36px] text-[#3E2F1C] mb-2 md:mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Design Your Own</h2>
-                  <p className="text-sm md:text-base text-[#5A4A3A] mb-5 md:mb-8">Choose from various bead types, add meaningful charms.</p>
+                  <p className="text-sm md:text-base text-[#5A4A3A] mb-5 md:mb-8">Choose from various bead types, add meaningful pendants.</p>
                   <div className="flex flex-wrap md:flex-nowrap gap-4 md:gap-6 mb-5 md:mb-8">
                     {[{ i: <Gem className="w-4 h-4 md:w-5 md:h-5" />, l: 'Beads' }, { i: <Layers className="w-4 h-4 md:w-5 md:h-5" />, l: 'String' }, { i: <Sparkles className="w-4 h-4 md:w-5 md:h-5" />, l: 'Charms' }].map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 md:gap-2"><div className="w-7 h-7 md:w-9 md:h-9 rounded-full bg-[#FAF6F1] flex items-center justify-center text-[#A0522D]">{s.i}</div><span className="text-xs md:text-sm text-[#3E2F1C] font-medium">{s.l}</span></div>
@@ -997,7 +1036,7 @@ function App() {
                     <h2 className="text-lg md:text-xl tracking-[0.2em] uppercase font-serif">BEADEDBYUNKNOWN</h2>
                   </div>
                   <p className="text-[#D1CBC3] text-sm leading-relaxed max-w-xs">
-                    Handcrafted bead bracelets made with intention in Portland.
+                    A gift for your friends, family, and yourself
                   </p>
                   
                   <div className="flex gap-5 pt-2">
@@ -1014,6 +1053,12 @@ function App() {
                         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                         <rect x="2" y="9" width="4" height="12"></rect>
                         <circle cx="4" cy="4" r="2"></circle>
+                      </svg>
+                    </a>
+
+                    <a href="https://www.tiktok.com/@beeeaded_" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors" title="Follow us on TikTok">
+                      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
+                        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
                       </svg>
                     </a>
                   </div>
@@ -1389,18 +1434,19 @@ function App() {
 
         {pg === 'customizer' && (() => {
           const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-          const circumference_mm = wristSize * 25.4;
+          const safeWristSize = parseFloat(wristSize) || 16.5; 
+          const circumference_mm = safeWristSize * 10;
           const idealCount = Math.max(5, Math.floor(circumference_mm / sBeadCol.size));
           const beadDiff = idealCount - sBeads.length;
           const baseRadius = isMobile ? 90 : 120;
-          const scale = Math.min(1.3, Math.max(0.7, wristSize / 6.5));
+          const scale = Math.min(1.3, Math.max(0.7, safeWristSize / 16.5));
           const radius = baseRadius * scale;
-          const getFullStringName = () => sStr?.name + (sStr?.id === 's2' ? ` (${sLockColor})` : '');
-          const totalCost = 25 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0);
+          const getFullStringName = () => sStr?.name + (sStr?.id === 's2' ? ` (${sLockColor}${sExtender ? ' w/ Extender' : ''})` : '');
+          const totalCost = 25 + sBeads.reduce((s, b) => s + b.price, 0) + (sStr?.price || 0) + sCharms.reduce((s, c) => s + c.price, 0) + (sExtender && sStr?.id === 's2' ? 8 : 0);
 
           return (
             <div className="max-w-[1200px] mx-auto px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-20">
-              <div className="hidden md:flex items-center gap-0 mb-10">{['Bead Type','String Beads','String Options','Charm','Wrist Fit','Review'].map((s, i) => (
+              <div className="hidden md:flex items-center gap-0 mb-10">{['Bead Type','String Beads','String Options','Pendant','Wrist Fit','Review'].map((s, i) => (
                 <div key={i} className="flex items-center flex-1"><div className={`flex items-center gap-2 ${i+1 <= cStep ? 'text-[var(--primary)]' : 'text-[#B0A395]'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${i+1 <= cStep ? 'bg-[var(--primary)] text-white' : 'bg-[#F0EBE4]'}`}>{i+1}</div><span className="text-xs tracking-wider uppercase font-medium">{s}</span></div>{i < 5 && <div className={`flex-1 h-px mx-4 ${i+1 < cStep ? 'bg-[var(--primary)]' : 'bg-[#E8DFD3]'}`} />}</div>
               ))}</div>
 
@@ -1468,7 +1514,7 @@ function App() {
                         <div className="flex justify-between"><span>Base Setting</span><span>₱25</span></div>
                         <div className="flex justify-between"><span>{sBeads.length}x {sBeadCol.name}</span><span>₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
                         <div className="flex justify-between"><span>String/Hardware</span><span>₱{sStr?.price || 0}</span></div>
-                        <div className="flex justify-between"><span>Charm</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
+                        <div className="flex justify-between"><span>Pendant</span><span>₱{sCharms.reduce((s, c) => s + c.price, 0)}</span></div>
                       </div>
                     </div>
                   </div>
@@ -1543,30 +1589,55 @@ function App() {
                     </div>
 
                     {sStr?.id === 's2' && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300 p-5 bg-white border border-[#E8DFD3] rounded-xl shadow-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Select Hardware Color</p>
-                        <div className="flex gap-3">
-                          {[
-                            { id: 'Gold', hex: '#C9A96E' },
-                            { id: 'Silver', hex: '#E5E7EB' }
-                          ].map(lc => (
-                            <button 
-                              key={lc.id}
-                              onClick={() => setSLockColor(lc.id)}
-                              className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${sLockColor === lc.id ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
-                            >
-                              <div className="w-5 h-5 rounded-full border border-black/10 shadow-sm shrink-0" style={{ backgroundColor: lc.hex }} />
-                              <span className="text-xs font-bold text-[#3E2F1C]">{lc.id}</span>
-                            </button>
-                          ))}
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-4">
+                        
+                        <div className="p-5 bg-white border border-[#E8DFD3] rounded-xl shadow-sm">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B] mb-3">Select Hardware Color</p>
+                          <div className="flex gap-3">
+                            {[
+                              { id: 'Gold', hex: '#C9A96E' },
+                              { id: 'Silver', hex: '#E5E7EB' }
+                            ].map(lc => (
+                              <button 
+                                key={lc.id}
+                                onClick={() => setSLockColor(lc.id)}
+                                className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${sLockColor === lc.id ? 'border-[var(--primary)] bg-[var(--bg-light)]' : 'border-[#E8DFD3] hover:border-[#D1C7B7]'}`}
+                              >
+                                <div className="w-5 h-5 rounded-full border border-black/10 shadow-sm shrink-0" style={{ backgroundColor: lc.hex }} />
+                                <span className="text-xs font-bold text-[#3E2F1C]">{lc.id}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
+
+                        <div className="p-5 bg-white border border-[#E8DFD3] rounded-xl shadow-sm">
+                          <div className="mb-3">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B7D6B]">Add Extender Chain?</p>
+                            <p className="text-[11px] text-[#8B7D6B] mt-1">Allows adjustable length for the perfect fit.</p>
+                          </div>
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={() => setSExtender(false)}
+                              className={`flex-1 py-2.5 rounded-lg border-2 font-bold text-xs transition-all ${!sExtender ? 'border-[var(--primary)] bg-[var(--bg-light)] text-[var(--dark)]' : 'border-[#E8DFD3] bg-white text-[#8B7D6B] hover:border-[#D1C7B7]'}`}
+                            >
+                              No Thanks
+                            </button>
+                            <button 
+                              onClick={() => setSExtender(true)}
+                              className={`flex-1 py-2.5 rounded-lg border-2 font-bold text-xs transition-all ${sExtender ? 'border-[var(--primary)] bg-[var(--bg-light)] text-[var(--dark)]' : 'border-[#E8DFD3] bg-white text-[#8B7D6B] hover:border-[#D1C7B7]'}`}
+                            >
+                              Yes (+₱8)
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
                     )}
                   </div>}
 
                   {cStep === 4 && <div>
-                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Charm</h2>
-                    <p className="text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center charm</p>
+                    <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Add a Pendant</h2>
+                    <p className="text-sm text-[#8B7D6B] mb-6">Optional — Select 1 center pendant</p>
                     <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-1 md:pr-2 scrollbar-hide">
                       {charmOpts.map(c => (
                         <button 
@@ -1584,21 +1655,26 @@ function App() {
 
                   {cStep === 5 && <div>
                     <h2 className="text-[24px] text-[var(--dark)] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>Wrist Measurement</h2>
-                    <p className="text-sm text-[#8B7D6B] mb-6">Measure tightly around your wrist with a tape measure. Enter your exact size in inches. We will adjust the gaps automatically.</p>
+                    <p className="text-sm text-[#8B7D6B] mb-6">Measure tightly around your wrist with a tape measure. Enter your exact size in <strong>centimeters (cm)</strong>. We will adjust the gaps automatically.</p>
                     
-                    <div className="flex items-center gap-4 mb-8">
-                      <input 
-                        type="number" step="0.25" min="4" max="10" 
-                        value={wristSize} onChange={(e) => setWristSize(parseFloat(e.target.value) || 6.5)}
-                        className="w-32 px-4 py-3 border-2 border-[#E8DFD3] rounded-xl text-lg font-bold text-center outline-none focus:border-[var(--primary)]"
-                      />
-                      <span className="text-lg font-bold text-[var(--dark)]">Inches</span>
-                    </div>
+                      <div className="flex items-center gap-4 mb-8">
+                        <input 
+                          type="number" step="0.5" min="10" max="25" 
+                          value={wristSize} 
+                          onChange={(e) => setWristSize(e.target.value)} 
+                          placeholder="16.5"
+                          className="w-32 px-4 py-3 border-2 border-[#E8DFD3] rounded-xl text-lg font-bold text-center outline-none focus:border-[var(--primary)]"
+                        />
+                        <span className="text-lg font-bold text-[var(--dark)]">cm</span>
+                      </div>
 
                     <div className={`p-5 rounded-2xl border transition-all duration-500 ${beadDiff === 0 ? 'bg-[#F2F7F4] border-[#7A8B6F]/30' : 'bg-[var(--bg-light)] border-[var(--primary)]/30 shadow-sm'}`}>
                       <h4 className="font-bold text-sm mb-1">{beadDiff === 0 ? 'Perfect Fit!' : 'Smart Fit Suggestion'}</h4>
-                      <p className="text-xs text-[#8B7D6B] mb-4">
-                        Based on a {wristSize}" wrist and {sBeadCol.size}mm beads, you need exactly <strong>{idealCount} beads</strong>. You currently have {sBeads.length}.
+                      <p className="text-xs text-[#8B7D6B] mb-2">
+                        Based on a {safeWristSize}cm wrist and {sBeadCol.size}mm beads, you need exactly <strong>{idealCount} beads</strong>. You currently have {sBeads.length}.
+                      </p>
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--primary)] mb-4">
+                        * Note: This recommendation ensures a little bit of a loose fit.
                       </p>
                       
                       {beadDiff !== 0 && (
@@ -1625,10 +1701,10 @@ function App() {
                       <div className="space-y-3 text-sm">
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">Base Setting</span><span className="font-bold text-[var(--dark)]">₱25</span></div>
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">Bead Collection</span><span className="font-bold text-[var(--primary)]">{sBeadCol.name}</span></div>
-                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Wrist Fit</span><span className="font-bold text-[var(--primary)]">{wristSize}"</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Wrist Fit</span><span className="font-bold text-[var(--primary)]">{safeWristSize}cm</span></div>
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">Beads ({sBeads.length})</span><span className="font-medium">₱{sBeads.reduce((s, b) => s + b.price, 0)}</span></div>
                         <div className="flex justify-between"><span className="text-[#8B7D6B]">String</span><span className="font-medium">{getFullStringName()}</span></div>
-                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Charm</span><span className="font-medium">{sCharms.length > 0 ? sCharms[0].name : 'None'}</span></div>
+                        <div className="flex justify-between"><span className="text-[#8B7D6B]">Pendant</span><span className="font-medium">{sCharms.length > 0 ? sCharms[0].name : 'None'}</span></div>
                       </div>
                       <div className="flex justify-between pt-3 md:pt-4 border-t border-[#E8DFD3] mt-3 md:mt-4"><span className="font-semibold">Total</span><span className="text-lg font-bold">₱{totalCost}</span></div>
                     </div>
@@ -1674,7 +1750,7 @@ function App() {
                           console.log('Failed to send to admin', err);
                         }
 
-                        const customMaterial = `Custom: ${sBeadCol.name} for ${wristSize}" wrist${sStr?.id === 's2' ? ` (${sLockColor} Lock)` : ''}`;
+                        const customMaterial = `Custom: ${sBeadCol.name} for ${safeWristSize}cm wrist${sStr?.id === 's2' ? ` (${sLockColor} Lock${sExtender ? ', Extender' : ''})` : ''}`;
                         addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:totalCost, img:'', mat: customMaterial });
                         flash('Design sent to studio!', 'success');
                       }} 
@@ -2344,7 +2420,7 @@ function App() {
 
               <div className="bg-[#FAF6F1] p-8 rounded-2xl border border-[#E8DFD3] text-center">
                 <p className="text-sm italic text-[#8B7D6B]">
-                  Questions regarding our terms? Contact us at support@beadedbyunknown.com
+                  Questions regarding our terms? Contact us at <strong>beadedbyunknown@gmail.com</strong>
                 </p>
               </div>
             </div>

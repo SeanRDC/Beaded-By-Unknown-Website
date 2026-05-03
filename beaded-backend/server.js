@@ -411,6 +411,28 @@ app.put('/api/products/:id', upload.fields([{ name: 'image', maxCount: 1 }, { na
   }
 });
 
+app.put('/api/products/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isAvailable } = req.body;
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id, 
+      { isAvailable: isAvailable }, 
+      { new: true } 
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+
+    res.status(200).json(updatedProduct);
+  } catch (error) {
+    console.error('Error updating product status:', error);
+    res.status(500).json({ message: 'Failed to update product status.' });
+  }
+});
+
 // =====================================================================
 // PAYMONGO & ORDER ROUTES
 // =====================================================================
@@ -438,7 +460,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       };
       shippingFee = shippingRates[shippingRegion] || 85; 
     }
-
+/*
     if (shippingFee > 0) {
       lineItems.push({
         currency: 'PHP',
@@ -448,8 +470,8 @@ app.post('/api/create-checkout-session', async (req, res) => {
         description: `J&T Express Delivery (${shippingRegion})`
       });
     }
+*/
 
-/*
     // 1 PESO TESTING MODE
 
     lineItems = [{
@@ -459,7 +481,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       quantity: 1,
       description: 'Testing PayMongo integration'
     }];
-*/ 
+
 
     const encodedKey = Buffer.from(process.env.PAYMONGO_SECRET_KEY).toString('base64');
     const paymongoResponse = await fetch('https://api.paymongo.com/v1/checkout_sessions', {

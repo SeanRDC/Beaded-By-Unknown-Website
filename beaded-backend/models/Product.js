@@ -11,7 +11,9 @@ const productSchema = new mongoose.Schema({
   reviews: { type: Number, default: 0 },
   mat: { type: String }, // Material description
   sizes: [{ type: String, default: ['S', 'M', 'L'] }],
-  tag: { type: String } // Optional (e.g., 'Bestseller')
+  tag: { type: String }, // Optional (e.g., 'Bestseller')
+  isAvailable: { type: Boolean, default: true } 
+  
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

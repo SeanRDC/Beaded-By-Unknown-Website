@@ -370,6 +370,27 @@ export default function AdminDashboard() {
     });
   };
 
+  const toggleAvailability = async (id, currentStatus) => {
+    const newStatus = currentStatus === false ? true : false; 
+    
+    try {
+      await fetch(`http://localhost:4242/api/products/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: newStatus })
+      });
+
+      setProducts(prevProducts => 
+        prevProducts.map(p => 
+          p._id === id ? { ...p, isAvailable: newStatus } : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update availability:", err);
+      alert("Error updating status.");
+    }
+  };
+
   const handleEditClick = (p) => {
     setEditId(p._id);
     setProduct({
@@ -922,6 +943,7 @@ export default function AdminDashboard() {
                           <th className="p-4 md:px-6">Product</th>
                           <th className="p-4 md:px-6">Price</th>
                           <th className="p-4 md:px-6">Category</th>
+                          <th className="p-4 md:px-6 text-center">Status</th>
                           <th className="p-4 md:px-6 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -929,11 +951,25 @@ export default function AdminDashboard() {
                         {products.map(p => (
                           <tr key={p._id} className="border-b border-[#E8DFD3] hover:bg-[#Fdfbf9] transition-colors">
                             <td className="p-4 md:px-6 flex items-center gap-4">
-                              <img src={p.img} alt={p.name} className="w-12 h-12 rounded-lg object-cover border border-[#E8DFD3] bg-white shadow-sm" />
-                              <span className="font-semibold text-sm text-[#3E2F1C]">{p.name}</span>
+                              <img src={p.img} alt={p.name} className={`w-12 h-12 rounded-lg object-cover border border-[#E8DFD3] bg-white shadow-sm transition-opacity ${p.isAvailable === false ? 'opacity-50 grayscale' : ''}`} />
+                              <span className={`font-semibold text-sm ${p.isAvailable === false ? 'text-[#8B7D6B] line-through' : 'text-[#3E2F1C]'}`}>{p.name}</span>
                             </td>
                             <td className="p-4 md:px-6 text-sm font-medium text-[#3E2F1C]">₱{p.price}</td>
                             <td className="p-4 md:px-6"><span className="bg-[#FAF6F1] px-3 py-1 rounded-full text-xs font-medium text-[#8B7D6B] border border-[#E8DFD3]">{p.cat}</span></td>
+                            
+                            <td className="p-4 md:px-6 text-center">
+                              <button 
+                                onClick={() => toggleAvailability(p._id, p.isAvailable)}
+                                className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border transition-all ${
+                                  p.isAvailable !== false 
+                                    ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100' 
+                                    : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                }`}
+                              >
+                                {p.isAvailable !== false ? 'Available' : 'Sold Out'}
+                              </button>
+                            </td>
+
                             <td className="p-4 md:px-6 text-right">
                               <button onClick={() => handleEditClick(p)} className="p-2 text-[#8B7D6B] hover:text-[#A0522D] hover:bg-[#FAF6F1] rounded-lg transition-colors"><Edit2 className="w-4 h-4 inline" /></button>
                               <button onClick={() => handleDelete(p._id, 'product')} className="p-2 text-[#8B7D6B] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"><Trash2 className="w-4 h-4 inline" /></button>
@@ -944,15 +980,33 @@ export default function AdminDashboard() {
                     </table>
                   </div>
                 )}
+                
+                {/* MOBILE VIEW */}
                 <div className="md:hidden space-y-3">
                   {products.map(p => (
-                    <div key={p._id} className="p-4 bg-white flex gap-4 items-center rounded-xl border border-[#E8DFD3] shadow-sm">
-                      <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover border border-[#E8DFD3] shrink-0" />
+                    <div key={p._id} className="p-4 bg-white flex gap-4 items-center rounded-xl border border-[#E8DFD3] shadow-sm relative">
+                      <img src={p.img} alt={p.name} className={`w-16 h-16 rounded-xl object-cover border border-[#E8DFD3] shrink-0 ${p.isAvailable === false ? 'opacity-50 grayscale' : ''}`} />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm text-[#3E2F1C] truncate">{p.name}</h3>
+                        <h3 className={`font-bold text-sm truncate ${p.isAvailable === false ? 'text-[#8B7D6B] line-through' : 'text-[#3E2F1C]'}`}>{p.name}</h3>
                         <p className="text-xs font-medium text-[#A0522D] mt-1">₱{p.price}</p>
-                        <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest mt-1">{p.cat}</p>
+                        
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[9px] text-[#8B7D6B] bg-[#FAF6F1] px-2 py-0.5 rounded border border-[#E8DFD3] uppercase tracking-widest">{p.cat}</span>
+                          
+                          {/* THE MOBILE STATUS TOGGLE */}
+                          <button 
+                            onClick={() => toggleAvailability(p._id, p.isAvailable)}
+                            className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border transition-all ${
+                              p.isAvailable !== false 
+                                ? 'border-green-200 bg-green-50 text-green-700' 
+                                : 'border-red-200 bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {p.isAvailable !== false ? 'Available' : 'Sold Out'}
+                          </button>
+                        </div>
                       </div>
+                      
                       <div className="flex flex-col gap-2 shrink-0">
                         <button onClick={() => handleEditClick(p)} className="p-2 bg-[#FAF6F1] text-[#3E2F1C] rounded-lg"><Edit2 className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(p._id, 'product')} className="p-2 bg-red-50 text-red-600 rounded-lg"><Trash2 className="w-4 h-4" /></button>
