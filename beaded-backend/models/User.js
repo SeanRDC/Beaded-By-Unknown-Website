@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
   orders: { type: Array, default: [] },
   resetOtp: { type: String, default: null },
   resetOtpExpire: { type: Date, default: null },
-  shippingAddress: { type: Object, default: {} } 
+  shippingAddress: { type: Object, default: {} },
+  resetOtp: { type: String, default: null },
+  resetOtpExpire: { type: Number, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

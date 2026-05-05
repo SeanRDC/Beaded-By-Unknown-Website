@@ -17,6 +17,7 @@ const Order = require('./models/Order');
 const Settings = require('./models/Settings');
 const Review = require('./models/Review');
 const Blog = require('./models/Blog');
+const CustomOrder = require('./models/CustomOrder');
 
 const app = express();
 
@@ -42,6 +43,53 @@ const uploadFields = upload.fields([
   { name: 'secondaryImage', maxCount: 1 }
 ]);
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// MASTER EMAIL TEMPLATE
+const buildEmail = (title, messageHtml, boxLabel = null, boxValue = null) => {
+  return `
+    <div style="background-color: #FAF6F1; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #E8DFD3; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        
+        <!-- Premium Header -->
+        <div style="background-color: #3E2F1C; padding: 30px 20px; text-align: center;">
+          <h1 style="color: #FAF6F1; margin: 0; font-size: 16px; letter-spacing: 4px; text-transform: uppercase; font-weight: 600;">Beaded by Unknown</h1>
+        </div>
+
+        <!-- Body Content -->
+        <div style="padding: 40px 30px; color: #3E2F1C; font-size: 15px; line-height: 1.6;">
+          <h2 style="color: #A0522D; font-size: 24px; font-family: Georgia, serif; margin-top: 0;">${title}</h2>
+          ${messageHtml}
+
+          <!-- Optional Highlight Box (For OTPs or Addresses) -->
+          ${boxValue ? `
+            <div style="background-color: #FAF6F1; border: 1px solid #E8DFD3; border-radius: 8px; padding: 25px 20px; text-align: center; margin: 30px 0;">
+              <span style="font-size: 12px; color: #8B7D6B; text-transform: uppercase; letter-spacing: 2px;">${boxLabel}</span><br/>
+              <strong style="font-size: 26px; letter-spacing: 6px; color: #3E2F1C; display: block; margin-top: 10px;">${boxValue}</strong>
+            </div>
+          ` : ''}
+          
+          <p style="margin-top: 30px; margin-bottom: 0; color: #8B7D6B;">With intention,<br/><strong style="color: #3E2F1C;">The Studio Team</strong></p>
+        </div>
+
+        <!-- Minimal Footer -->
+        <div style="background-color: #ffffff; padding: 0 30px 30px; text-align: center; font-size: 12px; color: #B0A395;">
+          <p style="margin: 0; border-top: 1px solid #E8DFD3; padding-top: 20px;">
+            © 2026 Beaded by Unknown<br/>A gift for your friends, family, and yourself.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  `;
+};
+
 // =====================================================================
 // MONGODB CONNECTION
 // =====================================================================
@@ -60,14 +108,30 @@ app.post('/api/register', async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const newUser = new User({ firstName, lastName, email, password: hashedPassword, cart: [], wishlist: [] });
+    const newUser = new User({ 
+      firstName, lastName, email, password: hashedPassword, 
+      cart: [], wishlist: [],
+      resetOtp: otp, resetOtpExpire: Date.now() + 10 * 60 * 1000 
+    });
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { firstName, email, points: newUser.points }, cart: newUser.cart, wishlist: newUser.wishlist });
+    await transporter.sendMail({
+      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your Account Verification Code',
+      html: buildEmail(
+        'Welcome to the Community', 
+        '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
+        'Verification Code', 
+        otp
+      )
+    });
+
+    res.json({ requireOtp: true, email });
   } catch (error) {
-    console.error("🔥 Register Error:", error);
     res.status(500).json({ error: error.message || 'Registration failed' });
   }
 });
@@ -77,19 +141,51 @@ app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Invalid email or password' });
-
-    if (user.password === 'google-auth-no-password') {
-      return res.status(400).json({ error: 'Please sign in with Google.' });
-    }
+    if (user.password === 'google-auth-no-password') return res.status(400).json({ error: 'Please sign in with Google.' });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Invalid email or password' });
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    await transporter.sendMail({
+      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your Login Verification Code',
+      html: buildEmail(
+        'Welcome to the Community', 
+        '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
+        'Verification Code', 
+        otp
+      )
+    });
+
+    res.json({ requireOtp: true, email });
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Login failed' });
+  }
+});
+
+app.post('/api/verify-login-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ 
+      email, resetOtp: otp, resetOtpExpire: { $gt: Date.now() } 
+    });
+
+    if (!user) return res.status(400).json({ error: 'Invalid or expired Code' });
+    
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
+    await user.save();
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { firstName: user.firstName, email, points: user.points }, cart: user.cart, wishlist: user.wishlist });
   } catch (error) {
-    console.error("🔥 Login Error:", error);
-    res.status(500).json({ error: error.message || 'Login failed' });
+    res.status(500).json({ error: 'Verification failed' });
   }
 });
 
@@ -174,25 +270,84 @@ app.get('/api/user/orders', verifyToken, async (req, res) => {
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
     
-    const userOrders = await Order.find({ customerEmail: user.email }).sort({ createdAt: -1 });
-    res.json(userOrders);
+    const standardOrders = await Order.find({ customerEmail: user.email }).lean();
+
+    const customOrders = await CustomOrder.find({ email: user.email }).lean();
+
+    const formattedCustomOrders = customOrders.map(co => ({
+      _id: co._id,
+      createdAt: co.createdAt,
+      status: co.status,
+      amountPaid: co.totalPrice,
+      items: [{
+        name: `Custom Design: ${co.name || 'Bracelet'}`,
+        quantity: 1,
+        amount: co.totalPrice * 100,
+        color: co.beadType || 'Mixed'
+      }]
+    }));
+
+    const allOrders = [...standardOrders, ...formattedCustomOrders].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    res.json(allOrders);
   } catch (error) {
     console.error("🔥 Fetch User Orders Error:", error);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
+app.post('/api/user/request-delete', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    await transporter.sendMail({
+      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: 'Account Deletion Request - Beaded by Unknown',
+      html: buildEmail(
+        'Account Deletion Request',
+        '<p>We received a request to permanently delete your Beaded by Unknown account. If you wish to proceed, please use the verification code below. <strong>This action cannot be undone and you will lose your order history and wishlist.</strong></p>',
+        'Deletion Code',
+        otp
+      )
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+app.delete('/api/user/delete', verifyToken, async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const user = await User.findOne({ 
+      _id: req.user.userId, 
+      resetOtp: otp, 
+      resetOtpExpire: { $gt: Date.now() } 
+    });
+
+    if (!user) return res.status(400).json({ error: 'Invalid or expired code' });
+
+    await User.findByIdAndDelete(req.user.userId);
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 // =====================================================================
 // PASSWORD RESET & OTP ROUTES
 // =====================================================================
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
 
 app.post('/api/forgot-password', async (req, res) => {
   try {
@@ -209,7 +364,12 @@ app.post('/api/forgot-password', async (req, res) => {
       from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Password Reset Code',
-      html: `<h3>Your Password Reset Code</h3><p>Your OTP is: <strong style="font-size: 24px; letter-spacing: 5px;">${otp}</strong></p><p>This code expires in 10 minutes.</p>`
+      html: buildEmail(
+        'Password Reset Request', 
+        '<p>We received a request to reset the password for your account. If this was you, use the code below to securely authenticate.</p>', 
+        'Your Reset Code', 
+        otp
+      )
     });
 
     res.json({ message: 'OTP sent to email' });
@@ -497,6 +657,19 @@ app.post('/api/create-checkout-session', async (req, res) => {
             show_description: true,
             show_line_items: true,
             payment_method_types: ['gcash', 'paymaya', 'card', 'qrph'],
+            billing: {
+              name: `${checkoutForm.firstName} ${checkoutForm.lastName}`,
+              email: checkoutForm.email,
+              phone: checkoutForm.phone,
+              address: {
+                line1: checkoutForm.street,
+                line2: checkoutForm.barangay,
+                city: checkoutForm.city,
+                state: checkoutForm.province,
+                postal_code: checkoutForm.postalCode,
+                country: 'PH'
+              }
+            },
             line_items: lineItems,
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
@@ -557,18 +730,13 @@ app.post('/api/webhooks/paymongo', async (req, res) => {
           from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
           to: newOrder.customerEmail,
           subject: 'Order Confirmed - Beaded by Unknown',
-          html: `
-            <div style="font-family: sans-serif; color: #3E2F1C; max-w-md: 600px; margin: 0 auto;">
-              <h2 style="color: #A0522D;">Thank you for your order, ${newOrder.customerName}!</h2>
-              <p>We have received your payment of <strong>₱${newOrder.amountPaid}</strong> and are now preparing your handcrafted pieces in our studio.</p>
-              <div style="background-color: #FAF6F1; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0;"><strong>Shipping to:</strong></p>
-                <p style="margin: 0;">${newOrder.shippingAddress.street}, Brgy. ${newOrder.shippingAddress.barangay}, ${newOrder.shippingAddress.city}</p>
-              </div>
-              <p>Because each piece is made to order, please allow 7-14 days for crafting and delivery. We will notify you once it ships!</p>
-              <p>With intention,<br/><strong>Beaded by Unknown</strong></p>
-            </div>
-          `
+          html: buildEmail(
+            `Order Confirmed, ${newOrder.customerName}!`, 
+            `<p>We have successfully received your payment of <strong>₱${newOrder.amountPaid}</strong>. Our studio is now reviewing your items and preparing them for crafting.</p>
+             <p>Because each piece is made to order with careful intention, please allow 7-14 days for crafting and delivery. We will email you again the moment it ships!</p>`, 
+            'Shipping To', 
+            `${newOrder.shippingAddress.street}<br/><span style="font-size: 14px;">Brgy. ${newOrder.shippingAddress.barangay}, ${newOrder.shippingAddress.city}</span>`
+          )
         });
         console.log('✉️ Confirmation email sent to', newOrder.customerEmail);
       } catch (mailErr) {
@@ -608,6 +776,27 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
     );
     
     if (!updatedOrder) return res.status(404).json({ error: 'Order not found' });
+
+    if (status === 'Shipped' || status === 'Delivered') {
+      try {
+        await transporter.sendMail({
+          from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+          to: updatedOrder.customerEmail,
+          subject: `Your order has been ${status}! - Beaded by Unknown`,
+          html: buildEmail(
+            `Great news, ${updatedOrder.customerName}!`, 
+            `<p>Your handcrafted order is officially <strong>${status}</strong>.</p>
+             ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new pieces!</p>'}`, 
+            'Order Status', 
+            status
+          )
+        });
+        console.log(`✉️ Update email sent to ${updatedOrder.customerEmail}`);
+      } catch (mailErr) {
+        console.error('Failed to send status email:', mailErr);
+      }
+    }
+
     res.json(updatedOrder);
   } catch (error) {
     console.error("Error updating order:", error);
@@ -785,6 +974,69 @@ app.delete('/api/admin/blogs/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete post' });
+  }
+});
+
+// =====================================================================
+// CUSTOM DESIGNS ROUTES
+// =====================================================================
+
+app.post('/api/custom-orders', async (req, res) => {
+  try {
+    const newCustomOrder = new CustomOrder(req.body);
+    await newCustomOrder.save();
+    res.status(201).json(newCustomOrder);
+  } catch (error) {
+    console.error('Error saving custom order:', error);
+    res.status(500).json({ error: 'Failed to save custom order' });
+  }
+});
+
+app.get('/api/custom-orders', async (req, res) => {
+  try {
+    const customOrders = await CustomOrder.find().sort({ createdAt: -1 });
+    res.json(customOrders);
+  } catch (error) {
+    console.error('Error fetching custom orders:', error);
+    res.status(500).json({ error: 'Failed to fetch custom orders' });
+  }
+});
+
+app.patch('/api/admin/custom-orders/:id/status', async (req, res) => {
+  if (req.headers.admin_secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: 'Invalid admin key' });
+  }
+  try {
+    const { status } = req.body;
+    const updated = await CustomOrder.findByIdAndUpdate(
+      req.params.id, 
+      { status: status }, 
+      { new: true }
+    );
+
+    if (status === 'Shipped' || status === 'Delivered') {
+      try {
+        await transporter.sendMail({
+          from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+          to: updated.email,
+          subject: `Your Custom Design has been ${status}! - Beaded by Unknown`,
+          html: buildEmail(
+            `Great news!`, 
+            `<p>Your custom-designed bracelet (${updated.name}) is officially <strong>${status}</strong>.</p>
+             ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new piece!</p>'}`, 
+            'Design Status', 
+            status
+          )
+        });
+      } catch (mailErr) {
+        console.error('Failed to send custom status email:', mailErr);
+      }
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating custom order:', error);
+    res.status(500).json({ error: 'Failed to update status' });
   }
 });
 
