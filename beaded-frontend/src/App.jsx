@@ -143,6 +143,10 @@ function App() {
 
   // User & Authentication
   const [logged, setLogged] = useState(false);
+  const [logoutPopupOpen, setLogoutPopupOpen] = useState(false);
+  const [deletePopupOpen, setDeletePopupOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState('warning');
+  const [deleteOtp, setDeleteOtp] = useState('');
   const [cEmail, setCEmail] = useState('');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -219,16 +223,26 @@ function App() {
 
   useEffect(() => {
     let interval;
-    if (loginTab === 'otp' && otpTimer > 0) {
+    const isOtpScreenActive = loginTab === 'otp' || loginTab === '2fa-otp' || deleteStep === 'otp';
+
+    if (isOtpScreenActive && otpTimer > 0) {
       interval = setInterval(() => {
         setOtpTimer((prev) => prev - 1);
       }, 1000);
-    } else if (loginTab === 'otp' && otpTimer === 0) {
-      flash('OTP expired. Please request a new one.', 'error');
-      setLoginTab('forgot'); 
+    } else if (isOtpScreenActive && otpTimer === 0) {
+      if (loginTab === 'otp') {
+        flash('Reset code expired. Please request a new one.', 'error');
+        setLoginTab('forgot'); 
+      } else if (loginTab === '2fa-otp') {
+        flash('Security code expired. Please log in again.', 'error');
+        setLoginTab('signin');
+      } else if (deleteStep === 'otp') {
+        flash('Deletion code expired. Please try again.', 'error');
+        setDeleteStep('warning');
+      }
     }
     return () => clearInterval(interval);
-  }, [loginTab, otpTimer, flash]);
+  }, [loginTab, deleteStep, otpTimer, flash]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -269,7 +283,7 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
-    if (logged && token && acctTab === 'orders') {
+    if (logged && token) {
       fetch('http://localhost:4242/api/user/orders', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -279,7 +293,7 @@ function App() {
       })
       .catch(err => console.error("Failed to fetch user orders:", err));
     }
-  }, [logged, acctTab]);
+  }, [logged]);
 
   useEffect(() => {
     const favicon = document.querySelector("link[rel~='icon']");
@@ -527,17 +541,83 @@ function App() {
 
       if (!res.ok) {
         flash(data.error, "error"); 
-      } else {
-        localStorage.setItem('beaded_token', data.token);
-        setLogged(data.user); 
-        setCart(data.cart || []);
-        setWish(data.wishlist || []);
-        setLoginOpen(false);
-        flash(`Welcome back, ${data.user.firstName}!`, 'success');
+      } else if (data.requireOtp) {
+        setOtpTimer(600);
+        setLoginTab('2fa-otp'); 
+        flash('Security code sent to your email!', 'success');
       }
     } catch (err) {
       flash('Cannot connect to the server.', 'error');
     }
+  };
+
+  const handleVerify2FA = async () => {
+    if (!otpCode) return flash("Please enter the 6-digit code.", "error");
+    try {
+      const res = await fetch('http://localhost:4242/api/verify-login-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: authEmail, otp: otpCode.trim() })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        localStorage.setItem('beaded_token', data.token);
+        setLogged(data.user);
+        setCart(data.cart || []);
+        setWish(data.wishlist || []);
+        setLoginOpen(false);
+        setLoginTab('signin');
+        setOtpCode('');
+        flash(`Welcome, ${data.user.firstName}!`, 'success');
+      } else {
+        flash(data.error, "error");
+      }
+    } catch (err) { flash('Server error.', 'error'); }
+  };
+
+  const handleRequestDelete = async () => {
+    try {
+      const token = localStorage.getItem('beaded_token');
+      const res = await fetch('http://localhost:4242/api/user/request-delete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setDeleteStep('otp');
+        setOtpTimer(600);
+        flash('Deletion code sent to your email.', 'info');
+      } else {
+        flash('Failed to request deletion.', 'error');
+      }
+    } catch(err) { flash('Server error', 'error'); }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteOtp) return flash('Please enter the 6-digit code.', 'error');
+    try {
+      const token = localStorage.getItem('beaded_token');
+      const res = await fetch('http://localhost:4242/api/user/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ otp: deleteOtp.trim() })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setLogged(false);
+        setCart([]);
+        setWish([]);
+        localStorage.removeItem('beaded_token');
+        setDeletePopupOpen(false);
+        setDeleteStep('warning');
+        setDeleteOtp('');
+        go('home');
+        flash('Account permanently deleted. We are sorry to see you go!', 'success');
+      } else {
+        flash(data.error, 'error');
+      }
+    } catch(err) { flash('Server error', 'error'); }
   };
 
   const handleGoogleLogin = async () => {
@@ -1736,11 +1816,12 @@ const Card = ({ p }) => {
                             body: JSON.stringify({
                               email: cEmail,
                               name: cName || 'Custom Bracelet',
-                              beads: sBeads.map(b => b.name),
+                              beadType: sBeadCol.name,
+                              beads: sBeads.map(b => ({ name: b.name, hex: b.hex })),
                               string: getFullStringName(),
                               beadSize: `${sBeadCol.size}mm`,
-                              wristSize: `${wristSize}"`,
-                              charms: sCharms.map(c => c.name),
+                              wristSize: `${wristSize}cm`,
+                              charms: sCharms.map(c => ({ name: c.name, em: c.em })),
                               totalPrice: totalCost,
                               status: 'Pending Studio Review',
                               createdAt: new Date().toISOString()
@@ -2011,16 +2092,10 @@ const Card = ({ p }) => {
                   </button>
                 ))}
                 <button 
-                  onClick={() => { 
-                    setLogged(false); 
-                    setCart([]);
-                    setWish([]);
-                    localStorage.removeItem('beaded_token'); 
-                    go('home'); 
-                  }} 
+                  onClick={() => setLogoutPopupOpen(true)} 
                   className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-[#B85C5C] hover:bg-[#FDECEC] mt-4 flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" /> Logout
+                  <Trash2 className="w-4 h-4" /> Sign Out
                 </button>
               </div>
 
@@ -2092,7 +2167,7 @@ const Card = ({ p }) => {
                         {myOrders
                           .filter(o => {
                             if (orderFilter === 'All') return true;
-                            if (orderFilter === 'Preparing') return o.status === 'Paid';
+                            if (orderFilter === 'Preparing') return ['Paid', 'Pending Studio Review', 'Crafting'].includes(o.status);
                             return o.status === orderFilter;
                           })
                           .map(order => (
@@ -2135,7 +2210,7 @@ const Card = ({ p }) => {
                           </div>
                         ))}
                         
-                        {myOrders.filter(o => orderFilter === 'All' ? true : (orderFilter === 'Preparing' ? o.status === 'Paid' : o.status === orderFilter)).length === 0 && (
+                          {myOrders.filter(o => orderFilter === 'All' ? true : (orderFilter === 'Preparing' ? ['Paid', 'Pending Studio Review', 'Crafting'].includes(o.status) : o.status === orderFilter)).length === 0 && (
                            <div className="text-center py-8 text-[#8B7D6B] text-sm">
                              No orders found with status: {orderFilter}.
                            </div>
@@ -2208,6 +2283,18 @@ const Card = ({ p }) => {
                         >
                           {isProfileSaved ? 'Saved' : 'Save All Settings'}
                         </button>
+
+                        <div className="mt-16 pt-8 border-t border-red-100">
+                          <h4 className="text-sm font-bold uppercase tracking-widest text-red-500 mb-2">Danger Zone</h4>
+                          <p className="text-xs text-[#8B7D6B] mb-4">Permanently delete your account and remove all personal data. This cannot be undone.</p>
+                          <button 
+                            type="button"
+                            onClick={() => { setDeletePopupOpen(true); setDeleteStep('warning'); setDeleteOtp(''); }}
+                            className="text-xs font-bold uppercase tracking-widest text-red-500 border-2 border-red-200 px-6 py-3 rounded-xl hover:bg-red-50 hover:border-red-300 transition-all duration-300"
+                          >
+                            Delete Account
+                          </button>
+                        </div>
                       </div>
                     </form>
                   </div>
@@ -2231,10 +2318,16 @@ const Card = ({ p }) => {
               <div className="p-8 md:p-10">
                 <div className="text-center mb-8">
                   <h3 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                    {loginTab === 'signin' ? 'Welcome Back' : loginTab === 'register' ? 'Create Account' : 'Password Reset'}
+                    {loginTab === 'signin' ? 'Welcome Back' : 
+                     loginTab === 'register' ? 'Create Account' : 
+                     loginTab === '2fa-otp' ? 'Security Check' : 
+                     'Password Reset'}
                   </h3>
                   <p className="text-sm text-[#8B7D6B]">
-                    {loginTab === 'signin' ? 'Sign in to access your wishlist and orders.' : loginTab === 'register' ? 'Join the community for a personalized experience.' : 'Securely recover your account access.'}
+                    {loginTab === 'signin' ? 'Sign in to access your wishlist and orders.' : 
+                     loginTab === 'register' ? 'Join the community for a personalized experience.' : 
+                     loginTab === '2fa-otp' ? 'Please verify your identity to continue securely.' : 
+                     'Securely recover your account access.'}
                   </p>
                 </div>
                 
@@ -2352,6 +2445,36 @@ const Card = ({ p }) => {
                         <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-sm transition-all" />
                       </div>
                       <button onClick={handleResetPassword} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4">Update Password</button>
+                    </div>
+                  )}
+
+                  {/* TWO-FACTOR AUTHENTICATION STEP */}
+                  {loginTab === '2fa-otp' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                      <p className="text-sm text-[#8B7D6B] mb-4 text-center">To protect your account, please enter the 6-digit code sent to <strong>{authEmail}</strong>.</p>
+                      
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">6-Digit Code</label>
+                          <span className={`text-[10px] font-bold tracking-widest ${otpTimer < 60 ? 'text-red-500 animate-pulse' : 'text-[#A0522D]'}`}>
+                            {formatTime(otpTimer)}
+                          </span>
+                        </div>
+                        <input 
+                          value={otpCode} 
+                          onChange={(e) => setOtpCode(e.target.value)} 
+                          placeholder="123456" 
+                          className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center text-lg tracking-[0.5em] font-bold transition-all" 
+                          maxLength="6" 
+                        />
+                      </div>
+
+                      <button onClick={handleVerify2FA} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4 shadow-md">
+                        Verify & Sign In
+                      </button>
+                      <button onClick={() => setLoginTab('signin')} className="w-full mt-4 text-xs font-bold text-[#8B7D6B] uppercase tracking-widest hover:text-[#3E2F1C]">
+                        Cancel
+                      </button>
                     </div>
                   )}
 
@@ -2722,6 +2845,104 @@ const Card = ({ p }) => {
               )}
               
             </div>
+          </div>
+        </div>
+      )}
+
+    {/* LOGOUT CONFIRMATION MODAL */}
+      {logoutPopupOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#3E2F1C]/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-[#E8DFD3]">
+            <h3 className="text-xl font-bold text-[#3E2F1C] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Sign Out?
+            </h3>
+            <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">
+              Are you sure you want to sign out of your account? Your cart and wishlist are safely saved.
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setLogoutPopupOpen(false)} 
+                className="px-5 py-2.5 text-sm font-bold text-[#3E2F1C] bg-[#FAF6F1] rounded-xl hover:bg-[#E8DFD3] transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  setLogged(false); 
+                  setCart([]);
+                  setWish([]);
+                  localStorage.removeItem('beaded_token'); 
+                  setLogoutPopupOpen(false);
+                  go('home'); 
+                }} 
+                className="px-5 py-2.5 text-sm font-bold text-white rounded-xl bg-red-500 hover:bg-red-600 transition-colors shadow-md"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE ACCOUNT MODAL */}
+      {deletePopupOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#3E2F1C]/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-red-100">
+            
+            {deleteStep === 'warning' ? (
+              <>
+                <h3 className="text-xl font-bold text-red-600 mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Delete Account?
+                </h3>
+                <p className="text-sm text-[#8B7D6B] mb-6 leading-relaxed">
+                  Are you absolutely sure? You will permanently lose access to your order history, wishlist, and saved addresses.
+                </p>
+                <div className="flex gap-3 justify-end mt-4">
+                  <button onClick={() => setDeletePopupOpen(false)} className="flex-1 py-3 text-sm font-bold text-[#3E2F1C] bg-[#FAF6F1] rounded-xl hover:bg-[#E8DFD3] transition-colors">
+                    Cancel
+                  </button>
+                  <button onClick={handleRequestDelete} className="flex-1 py-3 text-sm font-bold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-colors shadow-md">
+                    Yes, Send Code
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-bold text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Final Verification
+                </h3>
+                <p className="text-xs text-[#8B7D6B] mb-6 leading-relaxed">
+                  To confirm deletion, please enter the 6-digit code sent to your email.
+                </p>
+                
+                <div className="space-y-1 mb-6">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-[#8B7D6B] ml-1">6-Digit Code</label>
+                    <span className={`text-[10px] font-bold tracking-widest ${otpTimer < 60 ? 'text-red-500 animate-pulse' : 'text-red-500'}`}>
+                      {formatTime(otpTimer)}
+                    </span>
+                  </div>
+                  <input 
+                    value={deleteOtp} 
+                    onChange={(e) => setDeleteOtp(e.target.value)} 
+                    placeholder="123456" 
+                    className="w-full px-4 py-3 bg-red-50 border-2 border-red-100 rounded-xl outline-none focus:bg-white focus:border-red-400 text-center text-lg tracking-[0.5em] font-bold transition-all text-red-600" 
+                    maxLength="6" 
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button onClick={handleConfirmDelete} className="w-full py-3.5 text-sm font-bold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-colors shadow-md uppercase tracking-widest">
+                    Permanently Delete
+                  </button>
+                  <button onClick={() => setDeletePopupOpen(false)} className="w-full py-2 text-xs font-bold text-[#8B7D6B] uppercase tracking-widest hover:text-[#3E2F1C]">
+                    Cancel & Keep Account
+                  </button>
+                </div>
+              </>
+            )}
+            
           </div>
         </div>
       )}

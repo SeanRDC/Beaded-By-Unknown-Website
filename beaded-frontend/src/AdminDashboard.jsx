@@ -524,6 +524,23 @@ export default function AdminDashboard() {
 
   const chart = getSparklineData();
 
+  const updateCustomOrderStatus = async (orderId, newStatus) => {
+    if (!secretKey) return alert("Admin Key required");
+    try {
+      const res = await fetch(`http://localhost:4242/api/admin/custom-orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        const updatedRes = await fetch('http://localhost:4242/api/custom-orders');
+        setCustomOrders(await updatedRes.json());
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  };
+
   // --- RENDER ---
 
   return (
@@ -855,71 +872,152 @@ export default function AdminDashboard() {
                       <p className="text-[#8B7D6B] font-medium">No custom designs pending.</p>
                     </div>
                   ) : (
-                    customOrders.map(order => (
-                      <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6">
-                        <div className="flex-1 space-y-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="text-lg font-bold text-[#3E2F1C]">{order.name}</h3>
-                              <p className="text-sm text-[#A0522D] font-medium flex items-center gap-1.5 mt-0.5">
-                                <Mail className="w-4 h-4" /> {order.email}
-                              </p>
-                            </div>
-                            <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] uppercase tracking-widest font-bold rounded-full">
-                              {order.status}
-                            </span>
-                          </div>
+                    customOrders.map(order => {
+                      const radius = 55;
+                      const beads = order.beads || [];
+                      const charms = order.charms || [];
+                      const isOldFormat = typeof beads[0] === 'string';
+                      
+                      const renderBeads = beads.map((b) => ({
+                        name: isOldFormat ? b : b.name,
+                        hex: isOldFormat ? '#D1C7B7' : b.hex 
+                      }));
+                      const renderCharms = charms.map((c) => ({
+                        name: typeof c === 'string' ? c : c.name,
+                        em: typeof c === 'string' ? '✨' : c.em
+                      }));
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
-                            <div>
-                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
-                              <p className="font-medium text-[#3E2F1C]">{order.wristSize}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Size</p>
-                              <p className="font-medium text-[#3E2F1C]">{order.beadSize}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">String</p>
-                              <p className="font-medium text-[#3E2F1C]">{order.string}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Value</p>
-                              <p className="font-bold text-[#A0522D]">₱{order.totalPrice}</p>
-                            </div>
-                          </div>
-                        </div>
+                      const beadSizeNum = parseInt(order.beadSize) || 8;
+                      const beadPx = Math.max(8, beadSizeNum * 2.5);
+                      const offset = beadPx / 2;
 
-                        <div className="w-full md:w-72 bg-[#FAF6F1] p-5 rounded-xl border border-[#E8DFD3]">
-                          <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3">Material Breakdown</p>
+                      return (
+                        <div key={order._id} className="bg-white p-6 rounded-2xl border border-[#E8DFD3] shadow-sm flex flex-col md:flex-row gap-6 hover:border-[#A0522D] transition-colors">
                           
-                          <div className="space-y-2 mb-4">
-                            <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Charms ({order.charms?.length || 0})</p>
-                            <p className="text-sm text-[#5A4A3A]">{order.charms?.length > 0 ? order.charms.join(', ') : 'None'}</p>
+                          {/* THE VISUALIZER */}
+                          <div className="aspect-square w-full md:w-[180px] rounded-2xl bg-[#FAF6F1] border border-[#E8DFD3] flex items-center justify-center shrink-0 relative overflow-hidden">
+                            <div className="rounded-full flex items-center justify-center relative shadow-inner bg-transparent"
+                              style={{ width: radius * 2, height: radius * 2, borderWidth: '2px', borderStyle: 'solid', borderColor: '#D4C4A8' }}>
+                              
+                              {renderBeads.map((b, i) => { 
+                                const totalSlots = renderBeads.length + (renderCharms.length > 0 ? 1 : 0);
+                                const charmSlot = Math.floor(totalSlots / 2);
+                                const slotIndex = (renderCharms.length > 0 && i >= charmSlot) ? i + 1 : i;
+                                const angle = (slotIndex / Math.max(totalSlots, 1)) * Math.PI * 2 - Math.PI / 2; 
+                                return (
+                                  <div key={i} className="absolute rounded-full shadow-sm border border-white/40 z-10" 
+                                    style={{ width: beadPx, height: beadPx, backgroundColor: b.hex, left: `calc(50% + ${Math.cos(angle)*radius}px - ${offset}px)`, top: `calc(50% + ${Math.sin(angle)*radius}px - ${offset}px)` }} 
+                                  />
+                                ); 
+                              })}
+
+                              {renderCharms.map((c, i) => {
+                                const charmPx = 32;
+                                const cOffset = charmPx / 2;
+                                const totalSlots = renderBeads.length + 1;
+                                const angle = (Math.floor(totalSlots / 2) / totalSlots) * Math.PI * 2 - Math.PI / 2;
+                                return (
+                                  <div key={`charm-${i}`} className="absolute text-2xl filter drop-shadow-md z-20 flex items-center justify-center"
+                                    style={{ width: charmPx, height: charmPx, left: `calc(50% + ${Math.cos(angle)*radius}px - ${cOffset}px)`, top: `calc(50% + ${Math.sin(angle)*radius}px - ${cOffset}px + 10px)` }}>
+                                    {c.em}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
-                            <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
-                              {order.beads && (() => {
-                                const counts = order.beads.reduce((acc, b) => ({...acc, [b]: (acc[b] || 0) + 1}), {});
-                                return Object.entries(counts).map(([bead, count]) => (
-                                  <div key={bead} className="flex justify-between py-0.5">
-                                    <span>{bead}</span>
-                                    <span className="font-medium text-[#8B7D6B]">x{count}</span>
-                                  </div>
-                                ));
-                              })()}
+                          {/* ORDER DETAILS */}
+                          <div className="flex-1 space-y-4">
+                            <div className="flex justify-between items-start border-b border-[#E8DFD3] pb-4">
+                              <div>
+                                <h3 className="text-xl font-bold text-[#3E2F1C]">{order.name}</h3>
+                                <p className="text-sm text-[#A0522D] font-medium flex items-center gap-1.5 mt-1">
+                                  <Mail className="w-4 h-4" /> {order.email}
+                                </p>
+                              </div>
+                              <span className={`px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-full border ${
+                                order.status === 'Shipped' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                order.status === 'Delivered' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                order.status === 'Crafting' ? 'bg-green-50 text-green-700 border-green-200' :
+                                'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
+                                {order.status}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF6F1] rounded-xl border border-[#E8DFD3]">
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Type</p>
+                                <p className="font-medium text-[#3E2F1C] truncate">{order.beadType || 'Unknown'}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Bead Size</p>
+                                <p className="font-medium text-[#3E2F1C]">{order.beadSize}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">Wrist Size</p>
+                                <p className="font-medium text-[#3E2F1C]">{order.wristSize}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold">String Base</p>
+                                <p className="font-medium text-[#3E2F1C] truncate">{order.string}</p>
+                              </div>
+                            </div>
+                            
+                            {/* ACTION BUTTONS */}
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              {order.status === 'Pending Studio Review' && (
+                                <button onClick={() => updateCustomOrderStatus(order._id, 'Crafting')} className="text-[10px] font-bold uppercase tracking-widest bg-[#3E2F1C] text-white px-5 py-2.5 rounded-lg hover:bg-[#A0522D] transition-colors">
+                                  Accept & Start Crafting
+                                </button>
+                              )}
+                              {order.status === 'Crafting' && (
+                                <button onClick={() => updateCustomOrderStatus(order._id, 'Shipped')} className="text-[10px] font-bold uppercase tracking-widest bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors">
+                                  Mark as Shipped
+                                </button>
+                              )}
+                              {order.status === 'Shipped' && (
+                                <button onClick={() => updateCustomOrderStatus(order._id, 'Delivered')} className="text-[10px] font-bold uppercase tracking-widest bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 transition-colors">
+                                  Mark as Delivered
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* MATERIAL BREAKDOWN */}
+                          <div className="w-full md:w-64 bg-[#FAF6F1] p-5 rounded-xl border border-[#E8DFD3] shrink-0">
+                            <p className="text-[10px] text-[#8B7D6B] uppercase tracking-widest font-bold mb-3 flex justify-between">
+                              <span>Breakdown</span>
+                              <span className="text-[#A0522D]">₱{order.totalPrice}</span>
+                            </p>
+                            
+                            <div className="space-y-2 mb-4">
+                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Charms ({order.charms?.length || 0})</p>
+                              <p className="text-sm text-[#5A4A3A]">{renderCharms.length > 0 ? renderCharms.map(c => `${c.em} ${c.name}`).join(', ') : 'None'}</p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold text-[#3E2F1C] border-b border-[#E8DFD3] pb-1">Beads ({order.beads?.length || 0})</p>
+                              <div className="max-h-32 overflow-y-auto scrollbar-hide text-sm text-[#5A4A3A]">
+                                {(() => {
+                                  const counts = renderBeads.reduce((acc, b) => ({...acc, [b.name]: (acc[b.name] || 0) + 1}), {});
+                                  return Object.entries(counts).map(([bead, count]) => (
+                                    <div key={bead} className="flex justify-between py-0.5">
+                                      <span className="truncate pr-2">{bead}</span>
+                                      <span className="font-medium text-[#8B7D6B] shrink-0">x{count}</span>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
             )}
-
             {/* --- INVENTORY TAB --- */}
             {activeTab === 'inventory' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
