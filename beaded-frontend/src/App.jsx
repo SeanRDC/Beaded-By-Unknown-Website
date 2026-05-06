@@ -219,14 +219,14 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      const isIntendingToLogin = sessionStorage.getItem('isLoggingIn') === 'true';
+      const isIntendingToLogin = localStorage.getItem('isLoggingIn') === 'true';
       const hasExistingSession = localStorage.getItem('beaded_token') !== null;
 
       if (firebaseUser && (isIntendingToLogin || hasExistingSession)) { 
         try {
           const nameParts = firebaseUser.displayName ? firebaseUser.displayName.split(' ') : ['User'];
           
-          const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
+          const res = await fetch('https://beaded-by-unknown-api.onrender.com/api/google-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -240,7 +240,7 @@ function App() {
           
           if (!data.error) {
             localStorage.setItem('beaded_token', data.token);
-            sessionStorage.removeItem('isLoggingIn');
+            localStorage.removeItem('isLoggingIn');
             
             setLogged(data.user);
             setCart(data.cart || []);
@@ -258,7 +258,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [flash, logged]);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
@@ -668,10 +668,11 @@ function App() {
 
   const handleGoogleLogin = async () => {
     try {
-      googleProvider.setCustomParameters({ prompt: 'select_account' });
-      sessionStorage.setItem('isLoggingIn', 'true');
+      provider.setCustomParameters({ prompt: 'select_account' });
       
-      await signInWithRedirect(auth, googleProvider);
+      localStorage.setItem('isLoggingIn', 'true');
+      
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error("Login trigger failed:", error);
       flash('Google sign-in failed.', 'error');
@@ -2901,7 +2902,7 @@ const Card = ({ p }) => {
                   setCart([]);
                   setWish([]);
                   localStorage.removeItem('beaded_token'); 
-                  sessionStorage.removeItem('isLoggingIn'); // <-- Clears the login flag
+                  localStorage.removeItem('isLoggingIn');
                   setLogoutPopupOpen(false);
                   go('home'); 
                 }} 
