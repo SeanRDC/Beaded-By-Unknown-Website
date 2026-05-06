@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
-import { signInWithRedirect, onAuthStateChanged, signOut } from "firebase/auth";
+import { signInWithRedirect, onAuthStateChanged, signOut, getRedirectResult } from "firebase/auth";
 import { auth, googleProvider } from './firebase.js';
 
 
@@ -218,6 +218,8 @@ function App() {
   // --- EFFECTS ---
 
   useEffect(() => {
+    getRedirectResult(auth).catch(console.error);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       const isIntendingToLogin = localStorage.getItem('isLoggingIn') === 'true';
       const hasExistingSession = localStorage.getItem('beaded_token') !== null;
@@ -226,7 +228,7 @@ function App() {
         try {
           const nameParts = firebaseUser.displayName ? firebaseUser.displayName.split(' ') : ['User'];
           
-          const res = await fetch('https://beaded-by-unknown-api.onrender.com/api/google-login', {
+          const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -240,7 +242,7 @@ function App() {
           
           if (!data.error) {
             localStorage.setItem('beaded_token', data.token);
-            localStorage.removeItem('isLoggingIn');
+            localStorage.removeItem('isLoggingIn'); 
             
             setLogged(data.user);
             setCart(data.cart || []);
@@ -258,7 +260,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [flash, logged]);
+  }, [flash]);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
