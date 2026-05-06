@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
-import { signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { signInWithRedirect, onAuthStateChanged } from "firebase/auth";
 import { auth, googleProvider } from './firebase.js';
 
 import heroImage from './assets/HeroImage.png';
@@ -217,35 +217,39 @@ function App() {
   // --- EFFECTS ---
 
   useEffect(() => {
-    getRedirectResult(auth).then(async (result) => {
-      if (result) {
-        const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
-        
-        const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: result.user.email,
-            firstName: nameParts[0],
-            lastName: nameParts.slice(1).join(' ') || ''
-          })
-        });
-        
-        const data = await res.json();
-        
-        if (!data.error) {
-          localStorage.setItem('beaded_token', data.token);
-          setLogged(data.user);
-          setCart(data.cart || []);
-          setWish(data.wishlist || []);
-          setLoginOpen(false);
-          flash(`Welcome, ${data.user.firstName}!`, 'success');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser && !logged) { 
+        try {
+          const nameParts = firebaseUser.displayName ? firebaseUser.displayName.split(' ') : ['User'];
+          
+          const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: firebaseUser.email,
+              firstName: nameParts[0],
+              lastName: nameParts.slice(1).join(' ') || ''
+            })
+          });
+          
+          const data = await res.json();
+          
+          if (!data.error) {
+            localStorage.setItem('beaded_token', data.token);
+            setLogged(data.user);
+            setCart(data.cart || []);
+            setWish(data.wishlist || []);
+            setLoginOpen(false);
+            flash(`Welcome back, ${data.user.firstName}!`, 'success');
+          }
+        } catch (error) {
+          console.error("Backend sync failed:", error);
         }
       }
-    }).catch(error => {
-      console.error("Redirect Error:", error);
     });
-  }, [flash]);
+
+    return () => unsubscribe();
+  }, [logged, flash]);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
