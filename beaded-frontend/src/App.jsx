@@ -521,7 +521,7 @@ function App() {
     }
   };
 
-  const handleAuth = async (type) => {
+const handleAuth = async (type) => {
     if (type === 'register' && (!authFirstName || !authLastName || !authEmail || !authPassword)) {
       return flash("Please fill in all fields.", "error"); 
     }
@@ -530,9 +530,18 @@ function App() {
     }
 
     const endpoint = type === 'register' ? '/api/register' : '/api/login';
+    
     const payload = type === 'register' 
-      ? { firstName: authFirstName, lastName: authLastName, email: authEmail, password: authPassword }
-      : { email: authEmail, password: authPassword };
+      ? { 
+          firstName: authFirstName, 
+          lastName: authLastName, 
+          email: authEmail, 
+          password: authPassword 
+        }
+      : { 
+          email: authEmail, 
+          password: authPassword 
+        };
 
     try {
       const res = await fetch(`https://beaded-by-unknown.onrender.com${endpoint}`, {
@@ -543,7 +552,7 @@ function App() {
       const data = await res.json();
 
       if (!res.ok) {
-        flash(data.error, "error"); 
+        flash(data.error || "Authentication failed", "error"); 
       } else if (data.requireOtp) {
         setOtpTimer(600);
         setLoginTab('2fa-otp'); 
@@ -553,7 +562,7 @@ function App() {
       flash('Cannot connect to the server.', 'error');
     }
   };
-
+  
   const handleVerify2FA = async () => {
     if (!otpCode) return flash("Please enter the 6-digit code.", "error");
     try {
