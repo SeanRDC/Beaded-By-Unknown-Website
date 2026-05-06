@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
 import { signInWithRedirect, onAuthStateChanged } from "firebase/auth";
 import { auth, googleProvider } from './firebase.js';
+import { signInWithRedirect, onAuthStateChanged, signOut } from "firebase/auth";
 
 import heroImage from './assets/HeroImage.png';
 import studio1 from './assets/studio-1.png';
@@ -2877,13 +2878,13 @@ const Card = ({ p }) => {
             
             <div className="flex gap-3 justify-end">
               <button 
-                onClick={() => setLogoutPopupOpen(false)} 
-                className="px-5 py-2.5 text-sm font-bold text-[#3E2F1C] bg-[#FAF6F1] rounded-xl hover:bg-[#E8DFD3] transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
+                onClick={async () => {
+                  try {
+                    await signOut(auth); 
+                  } catch (error) {
+                    console.error("Firebase sign out error", error);
+                  }
+                
                   setLogged(false); 
                   setCart([]);
                   setWish([]);
