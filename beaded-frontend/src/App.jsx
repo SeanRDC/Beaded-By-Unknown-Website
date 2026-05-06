@@ -219,7 +219,10 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser && !logged) { 
+      const isIntendingToLogin = sessionStorage.getItem('isLoggingIn') === 'true';
+      const hasExistingSession = localStorage.getItem('beaded_token') !== null;
+
+      if (firebaseUser && (isIntendingToLogin || hasExistingSession)) { 
         try {
           const nameParts = firebaseUser.displayName ? firebaseUser.displayName.split(' ') : ['User'];
           
@@ -237,11 +240,16 @@ function App() {
           
           if (!data.error) {
             localStorage.setItem('beaded_token', data.token);
+            sessionStorage.removeItem('isLoggingIn');
+            
             setLogged(data.user);
             setCart(data.cart || []);
             setWish(data.wishlist || []);
             setLoginOpen(false);
-            flash(`Welcome back, ${data.user.firstName}!`, 'success');
+            
+            if (isIntendingToLogin) {
+              flash(`Welcome, ${data.user.firstName}!`, 'success');
+            }
           }
         } catch (error) {
           console.error("Backend sync failed:", error);
@@ -250,7 +258,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [logged, flash]);
+  }, []);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
@@ -660,8 +668,12 @@ function App() {
 
   const handleGoogleLogin = async () => {
     try {
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+      sessionStorage.setItem('isLoggingIn', 'true');
+      
       await signInWithRedirect(auth, googleProvider);
     } catch (error) {
+      console.error("Login trigger failed:", error);
       flash('Google sign-in failed.', 'error');
     }
   };
@@ -2884,11 +2896,12 @@ const Card = ({ p }) => {
                   } catch (error) {
                     console.error("Firebase sign out error", error);
                   }
-                
+                  
                   setLogged(false); 
                   setCart([]);
                   setWish([]);
                   localStorage.removeItem('beaded_token'); 
+                  sessionStorage.removeItem('isLoggingIn'); // <-- Clears the login flag
                   setLogoutPopupOpen(false);
                   go('home'); 
                 }} 
