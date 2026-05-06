@@ -59,7 +59,7 @@ export default function AdminDashboard() {
 
   const fetchAllData = async () => {
     try {
-      const prodRes = await fetch('http://localhost:4242/api/products');
+      const prodRes = await fetch('https://beaded-by-unknown.onrender.com/api/products');
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) setProducts(prodData);
@@ -68,13 +68,13 @@ export default function AdminDashboard() {
         setServerStatus('offline');
       }
 
-      const blogRes = await fetch('http://localhost:4242/api/blogs');
+      const blogRes = await fetch('https://beaded-by-unknown.onrender.com/api/blogs');
       if (blogRes.ok) {
         const blogData = await blogRes.json();
         if (Array.isArray(blogData)) setBlogs(blogData);
       }
 
-      const revRes = await fetch('http://localhost:4242/api/reviews');
+      const revRes = await fetch('https://beaded-by-unknown.onrender.com/api/reviews');
       if (revRes.ok) {
         const revData = await revRes.json();
         if (Array.isArray(revData)) setReviews(revData);
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('http://localhost:4242/api/settings');
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/settings');
       const data = await res.json();
       if (data) {
         if (data.topBannerText) setBannerText(data.topBannerText);
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   const fetchStats = async () => { 
     if (!secretKey) return; 
     try {
-      const res = await fetch(`http://localhost:4242/api/admin/stats`, {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/stats`, {
         headers: {
           'admin_secret': secretKey
         }
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
   const fetchOrders = async () => {
     if (!secretKey) return; 
     try {
-      const res = await fetch(`http://localhost:4242/api/admin/orders`, {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/orders`, {
         headers: { 'admin_secret': secretKey }
       });
       if (res.ok) {
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
   // --- EFFECTS ---
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/custom-orders')
+    fetch('https://beaded-by-unknown.onrender.com/api/custom-orders')
       .then(res => {
         if (!res.ok) throw new Error('Backend route not ready');
         return res.json();
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
   const updateOrderStatus = async (orderId, newStatus) => {
     if (!secretKey) return;
     try {
-      const res = await fetch(`http://localhost:4242/api/admin/orders/${orderId}/status`, {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -212,8 +212,8 @@ export default function AdminDashboard() {
 
     try {
       const url = editId 
-        ? `http://localhost:4242/api/products/${editId}` 
-        : `http://localhost:4242/api/products`;
+        ? `https://beaded-by-unknown.onrender.com/api/products/${editId}` 
+        : `https://beaded-by-unknown.onrender.com/api/products`;
 
       const res = await fetch(url, {
         method: editId ? 'PUT' : 'POST',
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
     if (!secretKey) return setStatus('❌ Admin Key Required.');
     setStatus('Updating Storefront...');
     try {
-      const res = await fetch('http://localhost:4242/api/admin/settings', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify({ 
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
     if (!secretKey) return setStatus('❌ Admin Key Required.');
     setStatus('Adding Review...');
     try {
-      const res = await fetch('http://localhost:4242/api/admin/reviews', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/admin/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify(reviewForm)
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
     if (!secretKey) return setStatus('❌ Admin Key Required.');
     setStatus('Saving Article...');
 
-    const url = editBlogId ? `http://localhost:4242/api/admin/blogs/${editBlogId}` : 'http://localhost:4242/api/admin/blogs';
+    const url = editBlogId ? `https://beaded-by-unknown.onrender.com/api/admin/blogs/${editBlogId}` : 'https://beaded-by-unknown.onrender.com/api/admin/blogs';
     const method = editBlogId ? 'PUT' : 'POST';
 
     try {
@@ -337,9 +337,9 @@ export default function AdminDashboard() {
       
       onConfirm: async () => {
         try {
-          let url = `http://localhost:4242/api/admin/products/${id}`;
-          if (type === 'review') url = `http://localhost:4242/api/admin/reviews/${id}`;
-          if (type === 'blog') url = `http://localhost:4242/api/admin/blogs/${id}`;
+          let url = `https://beaded-by-unknown.onrender.com/api/admin/products/${id}`;
+          if (type === 'review') url = `https://beaded-by-unknown.onrender.com/api/admin/reviews/${id}`;
+          if (type === 'blog') url = `https://beaded-by-unknown.onrender.com/api/admin/blogs/${id}`;
 
           const res = await fetch(url, { 
             method: 'DELETE', 
@@ -374,7 +374,7 @@ export default function AdminDashboard() {
     const newStatus = currentStatus === false ? true : false; 
     
     try {
-      await fetch(`http://localhost:4242/api/products/${id}/status`, {
+      await fetch(`https://beaded-by-unknown.onrender.com/api/products/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable: newStatus })
@@ -417,7 +417,7 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:4242/api/admin/settings', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify({ 
@@ -527,13 +527,13 @@ export default function AdminDashboard() {
   const updateCustomOrderStatus = async (orderId, newStatus) => {
     if (!secretKey) return alert("Admin Key required");
     try {
-      const res = await fetch(`http://localhost:4242/api/admin/custom-orders/${orderId}/status`, {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/custom-orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        const updatedRes = await fetch('http://localhost:4242/api/custom-orders');
+        const updatedRes = await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders');
         setCustomOrders(await updatedRes.json());
       }
     } catch(err) {

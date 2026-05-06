@@ -215,7 +215,7 @@ function App() {
 
   // --- EFFECTS ---
   useEffect(() => {
-    fetch('http://localhost:4242/api/products')
+    fetch('https://beaded-by-unknown.onrender.com/api/products')
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(err => console.log('Error fetching live products:', err));
@@ -284,7 +284,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (logged && token) {
-      fetch('http://localhost:4242/api/user/orders', {
+      fetch('https://beaded-by-unknown.onrender.com/api/user/orders', {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => res.json())
@@ -314,28 +314,28 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/blogs')
+    fetch('https://beaded-by-unknown.onrender.com/api/blogs')
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setBlogs(data); })
       .catch(err => console.error("Failed to load blogs:", err));
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/bestsellers')
+    fetch('https://beaded-by-unknown.onrender.com/api/bestsellers')
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setBestsellers(data); })
       .catch(err => console.error("Failed to load bestsellers:", err));
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/reviews')
+    fetch('https://beaded-by-unknown.onrender.com/api/reviews')
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setReviews(data); })
       .catch(err => console.error("Failed to load reviews:", err));
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/settings')
+    fetch('https://beaded-by-unknown.onrender.com/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -352,7 +352,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (token && !logged) {
-      fetch('http://localhost:4242/api/user/me', {
+      fetch('https://beaded-by-unknown.onrender.com/api/user/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => res.json())
@@ -372,7 +372,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('beaded_token');
     if (logged && token && (cart.length > 0 || wish.length > 0)) {
-      fetch('http://localhost:4242/api/user/sync', {
+      fetch('https://beaded-by-unknown.onrender.com/api/user/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ cart, wishlist: wish })
@@ -381,7 +381,7 @@ function App() {
   }, [cart, wish, logged]);
 
   useEffect(() => {
-    fetch('http://localhost:4242/api/products')
+    fetch('https://beaded-by-unknown.onrender.com/api/products')
       .then(res => res.json())
       .then(data => {
          if (Array.isArray(data)) {
@@ -424,7 +424,7 @@ function App() {
     if (!token) return;
 
     try {
-      const res = await fetch('http://localhost:4242/api/user/profile', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -500,7 +500,7 @@ function App() {
 
   const handleCheckout = async () => {
     try {
-      const response = await fetch('http://localhost:4242/api/create-checkout-session', {
+      const response = await fetch('https://beaded-by-unknown.onrender.com/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart, checkoutForm, shippingRegion }),
@@ -532,7 +532,7 @@ function App() {
       : { email: authEmail, password: authPassword };
 
     try {
-      const res = await fetch(`http://localhost:4242${endpoint}`, {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -554,7 +554,7 @@ function App() {
   const handleVerify2FA = async () => {
     if (!otpCode) return flash("Please enter the 6-digit code.", "error");
     try {
-      const res = await fetch('http://localhost:4242/api/verify-login-otp', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/verify-login-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: authEmail, otp: otpCode.trim() })
@@ -579,7 +579,7 @@ function App() {
   const handleRequestDelete = async () => {
     try {
       const token = localStorage.getItem('beaded_token');
-      const res = await fetch('http://localhost:4242/api/user/request-delete', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/user/request-delete', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -597,7 +597,7 @@ function App() {
     if (!deleteOtp) return flash('Please enter the 6-digit code.', 'error');
     try {
       const token = localStorage.getItem('beaded_token');
-      const res = await fetch('http://localhost:4242/api/user/delete', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/user/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ otp: deleteOtp.trim() })
@@ -625,7 +625,7 @@ function App() {
       const result = await signInWithPopup(auth, googleProvider);
       const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
       
-      const res = await fetch('http://localhost:4242/api/google-login', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -653,7 +653,7 @@ function App() {
   const handleForgotPassword = async () => {
     if (!forgotEmail) return flash("Please enter your email.", "error");
     try {
-      const res = await fetch('http://localhost:4242/api/forgot-password', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail })
@@ -672,7 +672,7 @@ function App() {
   const handleVerifyOtp = async () => {
     if (!otpCode) return flash("Please enter the OTP.", "error");
     try {
-      const res = await fetch('http://localhost:4242/api/verify-otp', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail, otp: otpCode })
@@ -690,7 +690,7 @@ function App() {
   const handleResetPassword = async () => {
     if (!newPassword) return flash("Please enter a new password.", "error");
     try {
-      const res = await fetch('http://localhost:4242/api/reset-password', {
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail, newPassword })
@@ -1810,7 +1810,7 @@ const Card = ({ p }) => {
                         }
 
                         try {
-                          await fetch('http://localhost:4242/api/custom-orders', {
+                          await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
