@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
-import { signInWithRedirect, onAuthStateChanged, signOut, getRedirectResult } from "firebase/auth";
+import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from './firebase.js';
 
 
@@ -216,93 +216,6 @@ function App() {
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
 
   // --- EFFECTS ---
-
-// Master Firebase Auth Listener with Advanced Debugging
-  useEffect(() => {
-    console.log("🔄 [DEBUG App] App loaded. Starting Firebase listeners...");
-
-    // 1. Explicitly check the redirect result when the page reloads
-    console.log("🔄 [DEBUG App] Checking getRedirectResult...");
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        console.log("✅ [DEBUG getRedirect] SUCCESS! Firebase caught the user:", result.user.email);
-      } else {
-        console.log("ℹ️ [DEBUG getRedirect] Returned null (no recent redirect detected).");
-      }
-    }).catch((error) => {
-      console.error("❌ [ERROR getRedirect] Failed to process redirect:", error);
-      console.error("❌ [Full Error]:", JSON.stringify(error, null, 2));
-    });
-
-    // 2. Watch for background auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("🔔 [DEBUG onAuthStateChanged] Triggered!");
-      console.log("🔔 [DEBUG onAuthStateChanged] Does firebaseUser exist?", !!firebaseUser);
-      
-      if (firebaseUser) {
-        console.log("🔔 [DEBUG onAuthStateChanged] Firebase User Email:", firebaseUser.email);
-      }
-
-      const isIntendingToLogin = localStorage.getItem('isLoggingIn') === 'true';
-      const hasExistingSession = localStorage.getItem('beaded_token') !== null;
-      
-      console.log("🔔 [DEBUG LocalStorage] isIntendingToLogin:", isIntendingToLogin);
-      console.log("🔔 [DEBUG LocalStorage] hasExistingSession:", hasExistingSession);
-
-      // If Firebase sees them, AND our app knows they want to log in...
-      if (firebaseUser && (isIntendingToLogin || hasExistingSession)) { 
-        console.log("🚀 [DEBUG Sync] Condition met! Preparing data for Render backend...");
-        try {
-          const nameParts = firebaseUser.displayName ? firebaseUser.displayName.split(' ') : ['User'];
-          const payload = {
-            email: firebaseUser.email,
-            firstName: nameParts[0],
-            lastName: nameParts.slice(1).join(' ') || ''
-          };
-          
-          console.log("🚀 [DEBUG Sync] Payload being sent to backend:", payload);
-
-          const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          
-          console.log("🚀 [DEBUG Sync] Render Backend responded with status:", res.status);
-          const data = await res.json();
-          console.log("🚀 [DEBUG Sync] Render Backend returned data:", data);
-          
-          if (!data.error) {
-            console.log("✅ [DEBUG Sync] Backend success! Setting React state...");
-            localStorage.setItem('beaded_token', data.token);
-            localStorage.removeItem('isLoggingIn'); 
-            
-            setLogged(data.user);
-            setCart(data.cart || []);
-            setWish(data.wishlist || []);
-            setLoginOpen(false);
-            
-            if (isIntendingToLogin) {
-              flash(`Welcome, ${data.user.firstName}!`, 'success');
-            }
-          } else {
-            console.error("❌ [ERROR Sync] Render Backend threw a specific error:", data.error);
-            flash(`Backend Error: ${data.error}`, 'error');
-          }
-        } catch (error) {
-          console.error("❌ [ERROR Sync] Fetch to Render Backend crashed completely:", error);
-          flash('Server connection failed. Check console.', 'error');
-        }
-      } else {
-        console.log("🛑 [DEBUG Sync] Condition NOT met. Aborting sync. (User stays logged out of React UI)");
-      }
-    });
-
-    return () => {
-       console.log("🧹 [DEBUG App] Cleaning up onAuthStateChanged listener.");
-       unsubscribe();
-    };
-  }, [flash, logged]);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
@@ -711,20 +624,34 @@ function App() {
   };
 
 const handleGoogleLogin = async () => {
-    console.log("👉 [DEBUG 1] Login button clicked!");
     try {
-      console.log("👉 [DEBUG 2] Setting Google Provider parameters...");
       googleProvider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(auth, googleProvider);
       
-      console.log("👉 [DEBUG 3] Saving 'isLoggingIn' flag to localStorage...");
-      localStorage.setItem('isLoggingIn', 'true');
+      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
       
-      console.log("👉 [DEBUG 4] Triggering Firebase signInWithRedirect...");
-      await signInWithRedirect(auth, googleProvider);
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: result.user.email,
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(' ') || ''
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (!data.error) {
+        localStorage.setItem('beaded_token', data.token);
+        setLogged(data.user);
+        setCart(data.cart || []);
+        setWish(data.wishlist || []);
+        setLoginOpen(false);
+        flash(`Welcome, ${data.user.firstName}!`, 'success');
+      }
     } catch (error) {
-      console.error("❌ [ERROR at Step 4] Triggering Redirect failed:", error);
-      console.error("❌ [Full Error]:", JSON.stringify(error, null, 2));
-      flash(`Login failed: ${error.message}`, 'error');
+      flash('Google sign-in failed.', 'error');
     }
   };
 
