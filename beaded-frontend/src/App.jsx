@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
-import { signInWithRedirect, GoogleAuthProvider } from "firebase/auth";
-await signInWithRedirect(auth, provider);
+import { signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { auth, googleProvider } from './firebase.js';
+
 import heroImage from './assets/HeroImage.png';
 import studio1 from './assets/studio-1.png';
 import studio2 from './assets/studio-2.png';
@@ -214,6 +215,38 @@ function App() {
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
 
   // --- EFFECTS ---
+
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (result) {
+        const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
+        
+        const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: result.user.email,
+            firstName: nameParts[0],
+            lastName: nameParts.slice(1).join(' ') || ''
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (!data.error) {
+          localStorage.setItem('beaded_token', data.token);
+          setLogged(data.user);
+          setCart(data.cart || []);
+          setWish(data.wishlist || []);
+          setLoginOpen(false);
+          flash(`Welcome, ${data.user.firstName}!`, 'success');
+        }
+      }
+    }).catch(error => {
+      console.error("Redirect Error:", error);
+    });
+  }, [flash]);
+
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
       .then(res => res.json())
@@ -622,29 +655,7 @@ function App() {
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
-      
-      const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: result.user.email,
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(' ') || ''
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (!data.error) {
-        localStorage.setItem('beaded_token', data.token);
-        setLogged(data.user);
-        setCart(data.cart || []);
-        setWish(data.wishlist || []);
-        setLoginOpen(false);
-        flash(`Welcome, ${data.user.firstName}!`, 'success');
-      }
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       flash('Google sign-in failed.', 'error');
     }
