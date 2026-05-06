@@ -666,13 +666,12 @@ function App() {
     } catch(err) { flash('Server error', 'error'); }
   };
 
-  const handleGoogleLogin = async () => {
+const handleGoogleLogin = async () => {
     try {
-      provider.setCustomParameters({ prompt: 'select_account' });
-      
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
       localStorage.setItem('isLoggingIn', 'true');
       
-      await signInWithRedirect(auth, provider);
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       console.error("Login trigger failed:", error);
       flash('Google sign-in failed.', 'error');
