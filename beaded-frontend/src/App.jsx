@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
-import { signInWithRedirect, onAuthStateChanged } from "firebase/auth";
-import { auth, googleProvider } from './firebase.js';
 import { signInWithRedirect, onAuthStateChanged, signOut } from "firebase/auth";
+import { auth, googleProvider } from './firebase.js';
+
 
 import heroImage from './assets/HeroImage.png';
 import studio1 from './assets/studio-1.png';
