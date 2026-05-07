@@ -645,19 +645,28 @@ app.put('/api/products/:id/status', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
   try {
-    const { cart, checkoutForm, shippingRegion, amount, email } = req.body;
+    const { cart, checkoutForm, shippingRegion, amount } = req.body;
 
     const newOrder = new Order({
-      email: email,
-      status: 'Paid',
+      checkoutSessionId: 'manual_redirect_' + Date.now(), 
+      customerName: `${checkoutForm.firstName} ${checkoutForm.lastName}`,
+      customerEmail: checkoutForm.email,
+      contactNumber: checkoutForm.phone,
+      shippingAddress: {
+        street: checkoutForm.street,
+        barangay: checkoutForm.barangay,
+        city: checkoutForm.city,
+        province: checkoutForm.province,
+        region: shippingRegion,
+        postalCode: checkoutForm.postalCode
+      },
       amountPaid: amount,
-      shippingRegion: shippingRegion,
-      shippingAddress: checkoutForm,
+      status: 'Paid', 
       items: cart.map(item => ({
         name: item.name,
         quantity: item.qty,
-        amount: item.price * item.qty,
-        size: item.sz || 'M'
+        amount: item.price * 100,
+        color: item.sz || 'Standard' 
       })),
       createdAt: new Date()
     });
@@ -668,7 +677,7 @@ app.post('/api/orders', async (req, res) => {
     res.status(200).json({ success: true, orderId: newOrder._id });
   } catch (error) {
     console.error("Failed to save order:", error);
-    res.status(500).json({ error: "Database error" });
+    res.status(500).json({ error: error.message || "Database error" }); 
   }
 });
 
