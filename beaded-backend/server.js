@@ -43,25 +43,26 @@ const uploadFields = upload.fields([
   { name: 'secondaryImage', maxCount: 1 }
 ]);
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-  family: 4 
-});
-
-transporter.verify(function(error, success) {
-  if (error) {
-    console.log("❌ Mail Server Connection Error:", error);
-  } else {
-    console.log("✅ Mail Server is ready to take our messages");
+const transporter = {
+  sendMail: async (options) => {
+    try {
+      const data = await resend.emails.send({
+        from: 'Beaded by Unknown <onboarding@resend.dev>', 
+        to: options.to,
+        subject: options.subject,
+        html: options.html
+      });
+      console.log("Email sent successfully via Resend API!");
+      return data;
+    } catch (error) {
+      console.error("Resend API Error:", error);
+      throw error;
+    }
   }
-});
+};
 
 // MASTER EMAIL TEMPLATE
 const buildEmail = (title, messageHtml, boxLabel = null, boxValue = null) => {
