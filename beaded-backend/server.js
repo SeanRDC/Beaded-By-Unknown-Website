@@ -51,6 +51,14 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+transporter.verify(function(error, success) {
+  if (error) {
+    console.log("❌ Mail Server Connection Error:", error);
+  } else {
+    console.log("✅ Mail Server is ready to take our messages");
+  }
+});
+
 // MASTER EMAIL TEMPLATE
 const buildEmail = (title, messageHtml, boxLabel = null, boxValue = null) => {
   return `
