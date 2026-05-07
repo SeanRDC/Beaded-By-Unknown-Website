@@ -642,6 +642,36 @@ app.put('/api/products/:id/status', async (req, res) => {
 // =====================================================================
 // PAYMONGO & ORDER ROUTES
 // =====================================================================
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { cart, checkoutForm, shippingRegion, amount, email } = req.body;
+
+    const newOrder = new Order({
+      email: email,
+      status: 'Paid',
+      amountPaid: amount,
+      shippingRegion: shippingRegion,
+      shippingAddress: checkoutForm,
+      items: cart.map(item => ({
+        name: item.name,
+        quantity: item.qty,
+        amount: item.price * item.qty,
+        size: item.sz || 'M'
+      })),
+      createdAt: new Date()
+    });
+
+    await newOrder.save();
+    console.log("Order successfully saved to database!");
+    
+    res.status(200).json({ success: true, orderId: newOrder._id });
+  } catch (error) {
+    console.error("Failed to save order:", error);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { cart, checkoutForm, shippingRegion } = req.body;
