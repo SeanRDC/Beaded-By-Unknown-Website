@@ -228,10 +228,30 @@ function App() {
 }, [resendCooldown]);
 
   useEffect(() => {
-    fetch('https://beaded-by-unknown.onrender.com/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.log('Error fetching live products:', err));
+    const fetchProductsWithRetry = async () => {
+      let retries = 5;
+      
+      while (retries > 0) {
+        try {
+          const response = await fetch('https://beaded-by-unknown.onrender.com/api/products');
+          
+          if (response.ok) {
+            const data = await response.json();
+            setProducts(data);
+            return;
+          }
+        } catch (error) {
+          console.warn(`Backend is asleep or buffering. Retrying... (${retries} attempts left)`);
+        }
+        
+        retries -= 1;
+        await new Promise(resolve => setTimeout(resolve, 3000)); 
+      }
+      
+      console.error("Backend failed to wake up after 5 attempts.");
+    };
+
+    fetchProductsWithRetry();
   }, []);
 
   useEffect(() => {
