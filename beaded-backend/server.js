@@ -46,7 +46,7 @@ const uploadFields = upload.fields([
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
-  secure: false,
+  secure: false, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -123,17 +123,22 @@ app.post('/api/register', async (req, res) => {
     });
     await newUser.save();
 
-    await transporter.sendMail({
-      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your Account Verification Code',
-      html: buildEmail(
-        'Welcome to the Community', 
-        '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
-        'Verification Code', 
-        otp
-      )
-    });
+    // SAFETY NET: If the email fails to send, don't crash the server!
+    try {
+      await transporter.sendMail({
+        from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your Account Verification Code',
+        html: buildEmail(
+          'Welcome to the Community', 
+          '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
+          'Verification Code', 
+          otp
+        )
+      });
+    } catch (mailError) {
+      console.error("OTP Delivery failed, but user was created:", mailError);
+    }
 
     res.json({ requireOtp: true, email });
   } catch (error) {
@@ -156,17 +161,22 @@ app.post('/api/login', async (req, res) => {
     user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    await transporter.sendMail({
-      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your Login Verification Code',
-      html: buildEmail(
-        'Welcome to the Community', 
-        '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
-        'Verification Code', 
-        otp
-      )
-    });
+    // SAFETY NET
+    try {
+      await transporter.sendMail({
+        from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your Login Verification Code',
+        html: buildEmail(
+          'Welcome to the Community', 
+          '<p>We are thrilled to have you! To complete your registration, please verify your email using the secure code below.</p>', 
+          'Verification Code', 
+          otp
+        )
+      });
+    } catch (mailError) {
+      console.error("OTP Delivery failed:", mailError);
+    }
 
     res.json({ requireOtp: true, email });
   } catch (error) {
