@@ -160,6 +160,8 @@ function App() {
   const [isProfileSaved, setIsProfileSaved] = useState(true);
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
+  onst [isAuthLoading, setIsAuthLoading] = useState(false);
+const [resendCooldown, setResendCooldown] = useState(0);
 
   // Forgot Password Flow States
   const [forgotEmail, setForgotEmail] = useState('');
@@ -216,6 +218,14 @@ function App() {
   const flash = useCallback((m, t) => { setToast({ m, t }); setTimeout(() => setToast(null), 3000); }, []);
 
   // --- EFFECTS ---
+
+  useEffect(() => {
+  let timer;
+  if (resendCooldown > 0) {
+    timer = setInterval(() => setResendCooldown(prev => prev - 1), 1000);
+  }
+  return () => clearInterval(timer);
+}, [resendCooldown]);
 
   useEffect(() => {
     fetch('https://beaded-by-unknown.onrender.com/api/products')
@@ -521,47 +531,68 @@ function App() {
     }
   };
 
-const handleAuth = async (type) => {
-    if (type === 'register' && (!authFirstName || !authLastName || !authEmail || !authPassword)) {
-      return flash("Please fill in all fields.", "error"); 
-    }
-    if (type === 'signin' && (!authEmail || !authPassword)) {
-      return flash("Please enter your email and password.", "error"); 
-    }
-
-    const endpoint = type === 'register' ? '/api/register' : '/api/login';
+  const handleResendOtp = async () => {
+  if (resendCooldown > 0) return;
+  setResendCooldown(30);
+  
+  try {
+    const res = await fetch('https://beaded-by-unknown.onrender.com/api/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: authEmail })
+    });
+    const data = await res.json();
     
-    const payload = type === 'register' 
-      ? { 
-          firstName: authFirstName, 
-          lastName: authLastName, 
-          email: authEmail, 
-          password: authPassword 
-        }
-      : { 
-          email: authEmail, 
-          password: authPassword 
-        };
-
-    try {
-      const res = await fetch(`https://beaded-by-unknown.onrender.com${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        flash(data.error || "Authentication failed", "error"); 
-      } else if (data.requireOtp) {
-        setOtpTimer(600);
-        setLoginTab('2fa-otp'); 
-        flash('Security code sent to your email!', 'success');
-      }
-    } catch (err) {
-      flash('Cannot connect to the server.', 'error');
+    if (data.success) {
+      setOtpTimer(600); 
+      flash('A new code has been sent!', 'success');
+    } else {
+      flash(data.error, 'error');
+      setResendCooldown(0); 
     }
-  };
+  } catch (err) {
+    flash('Server error.', 'error');
+    setResendCooldown(0);
+  }
+};
+
+const handleAuth = async (type) => {
+  if (type === 'register' && (!authFirstName || !authLastName || !authEmail || !authPassword)) {
+    return flash("Please fill in all fields.", "error"); 
+  }
+  if (type === 'signin' && (!authEmail || !authPassword)) {
+    return flash("Please enter your email and password.", "error"); 
+  }
+
+  setIsAuthLoading(true);
+
+  const endpoint = type === 'register' ? '/api/register' : '/api/login';
+  const payload = type === 'register' 
+    ? { firstName: authFirstName, lastName: authLastName, email: authEmail, password: authPassword }
+    : { email: authEmail, password: authPassword };
+
+  try {
+    const res = await fetch(`https://beaded-by-unknown.onrender.com${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      flash(data.error || "Authentication failed", "error"); 
+    } else if (data.requireOtp) {
+      setOtpTimer(600);
+      setLoginTab('2fa-otp'); 
+      setResendCooldown(30);
+      flash('Security code sent to your email!', 'success');
+    }
+  } catch (err) {
+    flash('Cannot connect to the server.', 'error');
+  } finally {
+    setIsAuthLoading(false);
+  }
+};
   
   const handleVerify2FA = async () => {
     if (!otpCode) return flash("Please enter the 6-digit code.", "error");
@@ -2413,9 +2444,10 @@ const Card = ({ p }) => {
 
                       <button 
                         onClick={() => handleAuth(loginTab)} 
-                        className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4"
+                        disabled={isAuthLoading}
+                        className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-[0.2em] uppercase hover:bg-[#A0522D] transition-all shadow-lg shadow-[#3E2F1C]/10 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {loginTab === 'signin' ? 'Sign In' : 'Create Account'}
+                        {isAuthLoading ? 'Processing...' : (loginTab === 'signin' ? 'Sign In' : 'Create Account')}
                       </button>
                     </>
                   )}
@@ -2481,6 +2513,17 @@ const Card = ({ p }) => {
                           className="w-full px-4 py-3 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center text-lg tracking-[0.5em] font-bold transition-all" 
                           maxLength="6" 
                         />
+                      </div>
+
+                      <div className="mt-6 text-center">
+                        <p className="text-sm text-[#8B7D6B] mb-2">Didn't receive the code?</p>
+                        <button 
+                          onClick={handleResendOtp}
+                          disabled={resendCooldown > 0}
+                          className={`text-sm font-bold transition-colors ${resendCooldown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-[#3E2F1C] hover:text-[#A0522D] underline'}`}
+                        >
+                          {resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 'Click here to resend'}
+                        </button>
                       </div>
 
                       <button onClick={handleVerify2FA} className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-all mt-4 shadow-md">

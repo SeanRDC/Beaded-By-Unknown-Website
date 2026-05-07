@@ -125,7 +125,7 @@ app.post('/api/register', async (req, res) => {
 
     // SAFETY NET: If the email fails to send, don't crash the server!
     try {
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your Account Verification Code',
@@ -163,7 +163,7 @@ app.post('/api/login', async (req, res) => {
 
     // SAFETY NET
     try {
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your Login Verification Code',
@@ -181,6 +181,30 @@ app.post('/api/login', async (req, res) => {
     res.json({ requireOtp: true, email });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Login failed' });
+  }
+});
+
+app.post('/api/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    transporter.sendMail({
+      from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your New Verification Code',
+      html: buildEmail('Resend Request', '<p>Your new verification code is below.</p>', 'Verification Code', otp)
+    }).catch(err => console.error("Resend Mail Error:", err));
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to resend OTP' });
   }
 });
 
