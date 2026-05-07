@@ -863,23 +863,20 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
     if (!updatedOrder) return res.status(404).json({ error: 'Order not found' });
 
     if (status === 'Shipped' || status === 'Delivered') {
-      try {
-        await transporter.sendMail({
-          from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
-          to: updatedOrder.customerEmail,
-          subject: `Your order has been ${status}! - Beaded by Unknown`,
-          html: buildEmail(
-            `Great news, ${updatedOrder.customerName}!`, 
-            `<p>Your handcrafted order is officially <strong>${status}</strong>.</p>
-             ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new pieces!</p>'}`, 
-            'Order Status', 
-            status
-          )
-        });
-        console.log(`✉️ Update email sent to ${updatedOrder.customerEmail}`);
-      } catch (mailErr) {
-        console.error('Failed to send status email:', mailErr);
-      }
+      transporter.sendMail({
+        from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+        to: updatedOrder.customerEmail,
+        subject: `Your order has been ${status}! - Beaded by Unknown`,
+        html: buildEmail(
+          `Great news, ${updatedOrder.customerName}!`, 
+          `<p>Your handcrafted order is officially <strong>${status}</strong>.</p>
+           ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new pieces!</p>'}`, 
+          'Order Status', 
+          status
+        )
+      }).catch(mailErr => console.error('Failed to send status email:', mailErr));
+      
+      console.log(`✉️ Update email queued for ${updatedOrder.customerEmail}`);
     }
 
     res.json(updatedOrder);
@@ -1100,22 +1097,18 @@ app.patch('/api/admin/custom-orders/:id/status', async (req, res) => {
     );
 
     if (status === 'Shipped' || status === 'Delivered') {
-      try {
-        await transporter.sendMail({
-          from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
-          to: updated.email,
-          subject: `Your Custom Design has been ${status}! - Beaded by Unknown`,
-          html: buildEmail(
-            `Great news!`, 
-            `<p>Your custom-designed bracelet (${updated.name}) is officially <strong>${status}</strong>.</p>
-             ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new piece!</p>'}`, 
-            'Design Status', 
-            status
-          )
-        });
-      } catch (mailErr) {
-        console.error('Failed to send custom status email:', mailErr);
-      }
+      transporter.sendMail({
+        from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
+        to: updated.email,
+        subject: `Your Custom Design has been ${status}! - Beaded by Unknown`,
+        html: buildEmail(
+          `Great news!`, 
+          `<p>Your custom-designed bracelet (${updated.name}) is officially <strong>${status}</strong>.</p>
+           ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new piece!</p>'}`, 
+          'Design Status', 
+          status
+        )
+      }).catch(mailErr => console.error('Failed to send custom status email:', mailErr));
     }
 
     res.json(updated);

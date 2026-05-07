@@ -169,6 +169,11 @@ export default function AdminDashboard() {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     if (!secretKey) return;
+
+    setOrders(prevOrders => 
+      prevOrders.map(o => o._id === orderId ? { ...o, status: newStatus } : o)
+    );
+
     try {
       const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
@@ -179,13 +184,13 @@ export default function AdminDashboard() {
         body: JSON.stringify({ status: newStatus })
       });
       
-      if (res.ok) {
+      if (!res.ok) {
         fetchOrders(); 
-      } else {
         alert("Failed to update status");
       }
     } catch (err) {
       console.error("Status update error:", err);
+      fetchOrders();
     }
   };
 
@@ -524,15 +529,21 @@ export default function AdminDashboard() {
 
   const chart = getSparklineData();
 
-  const updateCustomOrderStatus = async (orderId, newStatus) => {
+const updateCustomOrderStatus = async (orderId, newStatus) => {
     if (!secretKey) return alert("Admin Key required");
+    
+    setCustomOrders(prev => 
+      prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o)
+    );
+
     try {
       const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/custom-orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify({ status: newStatus })
       });
-      if (res.ok) {
+      
+      if (!res.ok) {
         const updatedRes = await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders');
         setCustomOrders(await updatedRes.json());
       }
