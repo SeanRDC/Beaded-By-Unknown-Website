@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Tags, Menu, LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail } from 'lucide-react';
+import { Tags, Menu, LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
   
@@ -9,7 +9,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview'); 
   const [serverStatus, setServerStatus] = useState('checking'); 
   const [adminName, setAdminName] = useState(localStorage.getItem('beaded_admin_name') || 'Iyesha');
-  const [secretKey, setSecretKey] = useState('');
+  const [secretKey, setSecretKey] = useState(sessionStorage.getItem('beaded_admin_key') || '');
+  const [isLocked, setIsLocked] = useState(!sessionStorage.getItem('beaded_admin_key'));
   const [status, setStatus] = useState('');
   const [editId, setEditId] = useState(null);
   const [editBlogId, setEditBlogId] = useState(null);
@@ -153,6 +154,27 @@ export default function AdminDashboard() {
   }, [secretKey]); 
 
   // --- HANDLERS ---
+
+  const handleUnlock = async (e) => {
+    e.preventDefault();
+    setStatus('Verifying key with server...');
+    try {
+      const res = await fetch(`https://beaded-by-unknown.onrender.com/api/admin/stats`, {
+        headers: { 'admin_secret': secretKey }
+      });
+      
+      if (res.ok) {
+        sessionStorage.setItem('beaded_admin_key', secretKey);
+        setIsLocked(false);
+        setStatus('');
+      } else {
+        setStatus('Invalid Master Key');
+        setSecretKey('');
+      }
+    } catch (err) {
+      setStatus('Server Connection Error');
+    }
+  };
 
   const toggleAdminName = () => {
     const newName = adminName === 'Iyesha' ? 'Sean' : 'Iyesha';
@@ -552,6 +574,38 @@ const updateCustomOrderStatus = async (orderId, newStatus) => {
     }
   };
 
+  // --- SECURITY LOCK SCREEN ---
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-[#FAF6F1] flex flex-col items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-3xl shadow-2xl border border-[#E8DFD3] text-center animate-in zoom-in-95 duration-300">
+          <div className="w-20 h-20 bg-[#FAF6F1] border border-[#E8DFD3] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <Lock className="w-8 h-8 text-[#A0522D]" />
+          </div>
+          <h2 className="text-3xl text-[#3E2F1C] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>Studio Access</h2>
+          <p className="text-sm text-[#8B7D6B] mb-8 leading-relaxed">This area is highly restricted. Please enter the master studio key to proceed.</p>
+          
+          <form onSubmit={handleUnlock}>
+            <input 
+              type="password" 
+              value={secretKey}
+              onChange={(e) => setSecretKey(e.target.value)}
+              placeholder="Master Key" 
+              className="w-full px-4 py-4 bg-[#FAF6F1] border-2 border-transparent rounded-xl outline-none focus:bg-white focus:border-[#A0522D] text-center tracking-[0.3em] font-bold text-[#3E2F1C] transition-all mb-4 shadow-inner"
+            />
+            <button 
+              type="submit"
+              className="w-full bg-[#3E2F1C] text-white py-4 rounded-xl font-bold tracking-widest uppercase hover:bg-[#A0522D] transition-colors shadow-md"
+            >
+              Unlock Dashboard
+            </button>
+          </form>
+          {status && <p className="mt-5 text-xs font-bold uppercase tracking-widest text-[#A0522D] animate-pulse">{status}</p>}
+        </div>
+      </div>
+    );
+  }
+
   // --- RENDER ---
 
   return (
@@ -628,14 +682,17 @@ const updateCustomOrderStatus = async (orderId, newStatus) => {
               {serverStatus === 'online' ? 'System Live' : 'Offline'}
             </div>
 
-            {/* Admin Key Input */}
-            <div className="flex items-center gap-2 bg-[#FAF6F1] px-3 py-2 rounded-lg border border-[#E8DFD3] focus-within:border-[#A0522D] focus-within:ring-2 focus-within:ring-[#A0522D]/20 transition-all">
-              <KeyRound className="w-4 h-4 text-[#8B7D6B]" />
-              <input 
-                type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} 
-                className="w-20 sm:w-28 bg-transparent text-sm outline-none placeholder-[#B0A395]" placeholder="Admin Key"
-              />
-            </div>
+            {/* Lock System Button */}
+            <button 
+              onClick={() => {
+                sessionStorage.removeItem('beaded_admin_key');
+                setSecretKey('');
+                setIsLocked(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF6F1] border border-[#E8DFD3] text-[#A0522D] hover:bg-[#A0522D] hover:text-white rounded-xl transition-all shadow-sm text-[10px] font-bold uppercase tracking-widest"
+            >
+              <Lock className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Lock System</span>
+            </button>
           </div>
         </header>
 
