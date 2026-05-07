@@ -282,15 +282,21 @@ function App() {
     }
   }, [logged]);
 
-  useEffect(() => {
+useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    
     if (urlParams.get('success') === 'true') {
+      console.log("✅ [DEBUG Arrival] Welcome back! Caught ?success=true in the URL.");
       
       const savedOrder = localStorage.getItem('pending_order');
+      console.log("✅ [DEBUG Arrival] Did we find 'pending_order' in localStorage?", !!savedOrder);
       
       if (savedOrder) {
+        console.log("✅ [DEBUG Arrival] Data found! Parsing data...");
         const orderData = JSON.parse(savedOrder);
         const token = localStorage.getItem('beaded_token');
+        
+        console.log("✅ [DEBUG Arrival] Sending this payload to the backend:", orderData);
 
         fetch('https://beaded-by-unknown.onrender.com/api/orders', { 
           method: 'POST',
@@ -300,16 +306,29 @@ function App() {
           },
           body: JSON.stringify(orderData)
         })
-        .then(() => {
-          localStorage.removeItem('pending_order');
+        .then(async (res) => {
+          console.log("✅ [DEBUG Arrival] Backend responded with status:", res.status);
+          const data = await res.json();
+          console.log("✅ [DEBUG Arrival] Backend response data:", data);
+          
+          if(res.ok) {
+            console.log("✅ [DEBUG Arrival] Order successfully saved! Deleting localStorage memory.");
+            localStorage.removeItem('pending_order'); 
+          } else {
+            console.error("❌ [DEBUG Arrival] Backend rejected the order save:", data);
+          }
         })
-        .catch(err => console.error('Failed to save order:', err));
+        .catch(err => console.error("❌ [DEBUG Arrival] Fetch completely crashed:", err));
+      } else {
+        console.warn("⚠️ [DEBUG Arrival] NO DATA FOUND in localStorage. The browser deleted it!");
       }
 
       setPg('confirmation');
       setCart([]);
       window.history.replaceState(null, '', window.location.pathname);
+      
     } else if (urlParams.get('canceled') === 'true') {
+      console.log("⚠️ [DEBUG Arrival] User canceled the payment.");
       flash('Payment was canceled or failed.', 'error');
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -533,14 +552,18 @@ function App() {
   }, [flash]);
 
   const handleCheckout = async () => {
+    console.log("🛒 [DEBUG Checkout] Initiating PayMongo checkout...");
     try {
-      localStorage.setItem('pending_order', JSON.stringify({
+      const orderData = {
         cart,
         checkoutForm,
         shippingRegion,
         amount: finalTotal,
         email: checkoutForm.email
-      }));
+      };
+      
+      console.log("🛒 [DEBUG Checkout] Saving this to localStorage:", orderData);
+      localStorage.setItem('pending_order', JSON.stringify(orderData));
 
       const response = await fetch('https://beaded-by-unknown.onrender.com/api/create-checkout-session', {
         method: 'POST',
@@ -550,12 +573,14 @@ function App() {
       const data = await response.json();
 
       if (data.checkout_url) {
+        console.log("🛒 [DEBUG Checkout] Success! Redirecting to PayMongo...");
         window.location.href = data.checkout_url;
       } else {
+        console.error("❌ [DEBUG Checkout] PayMongo rejected the session:", data);
         flash('Failed to generate payment link', 'error');
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ [DEBUG Checkout] System crashed during checkout:", err);
       flash('Payment failed to initialize.', 'error');
     }
   };
