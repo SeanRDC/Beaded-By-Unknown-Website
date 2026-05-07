@@ -285,6 +285,27 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
+      
+      const savedOrder = localStorage.getItem('pending_order');
+      
+      if (savedOrder) {
+        const orderData = JSON.parse(savedOrder);
+        const token = localStorage.getItem('beaded_token');
+
+        fetch('https://beaded-by-unknown.onrender.com/api/orders', { 
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(orderData)
+        })
+        .then(() => {
+          localStorage.removeItem('pending_order');
+        })
+        .catch(err => console.error('Failed to save order:', err));
+      }
+
       setPg('confirmation');
       setCart([]);
       window.history.replaceState(null, '', window.location.pathname);
@@ -513,6 +534,14 @@ function App() {
 
   const handleCheckout = async () => {
     try {
+      localStorage.setItem('pending_order', JSON.stringify({
+        cart,
+        checkoutForm,
+        shippingRegion,
+        amount: finalTotal,
+        email: checkoutForm.email
+      }));
+
       const response = await fetch('https://beaded-by-unknown.onrender.com/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
