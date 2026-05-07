@@ -160,8 +160,8 @@ function App() {
   const [isProfileSaved, setIsProfileSaved] = useState(true);
   const [myOrders, setMyOrders] = useState([]);
   const [orderFilter, setOrderFilter] = useState('All');
-  onst [isAuthLoading, setIsAuthLoading] = useState(false);
-const [resendCooldown, setResendCooldown] = useState(0);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Forgot Password Flow States
   const [forgotEmail, setForgotEmail] = useState('');
