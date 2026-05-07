@@ -1269,7 +1269,6 @@ const Card = ({ p }) => {
                 <p>© 2026 beadedbyunknown</p>
                 
                 <div className="flex items-center gap-2">
-                  <p>Developed by Sean Rhani Dela Cruz</p>
                   <a href="https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/" target="_blank" rel="noreferrer" className="text-[#D1CBC3] hover:text-white transition-colors flex items-center" title="Site Developer">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 hover:opacity-100 transition-opacity">
                       <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
@@ -1277,6 +1276,7 @@ const Card = ({ p }) => {
                       <circle cx="4" cy="4" r="2"></circle>
                     </svg>
                   </a>
+                  <p>Developed by Sean Rhani Dela Cruz</p>
                 </div>
                 
               </div>

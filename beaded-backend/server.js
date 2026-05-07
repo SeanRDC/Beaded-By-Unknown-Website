@@ -666,7 +666,7 @@ app.post('/api/orders', async (req, res) => {
       items: cart.map(item => ({
         name: item.name,
         quantity: item.qty,
-        amount: item.price * 100,
+        amount: item.price * 100, 
         color: item.sz || 'Standard' 
       })),
       createdAt: new Date()
@@ -674,6 +674,21 @@ app.post('/api/orders', async (req, res) => {
 
     await newOrder.save();
     console.log("Order successfully saved to database!");
+
+    const itemsHtml = cart.map(item => `<li>${item.qty}x ${item.name} (${item.sz || 'Standard'}) - ₱${item.price}</li>`).join('');
+
+    transporter.sendMail({
+      to: checkoutForm.email,
+      subject: 'Your Receipt - Beaded by Unknown',
+      html: buildEmail(
+        `Thank you, ${checkoutForm.firstName}!`, 
+        `<p>We have successfully received your payment of <strong>₱${amount}</strong>.</p>
+         <p>Your order is now being processed by our studio. Here is what you got:</p>
+         <ul style="text-align: left; background: #FAF6F1; padding: 15px; border-radius: 8px;">${itemsHtml}</ul>`, 
+        'View Store', 
+        'https://www.beadedbyunknown.shop'
+      )
+    }).catch(err => console.error("Receipt email failed:", err));
     
     res.status(200).json({ success: true, orderId: newOrder._id });
   } catch (error) {
@@ -864,20 +879,25 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
     if (!updatedOrder) return res.status(404).json({ error: 'Order not found' });
 
     if (status === 'Shipped' || status === 'Delivered') {
+      
+      const itemsHtml = updatedOrder.items.map(item => `<li>${item.quantity}x ${item.name} (${item.color})</li>`).join('');
+
       transporter.sendMail({
-        from: `"Beaded by Unknown" <${process.env.EMAIL_USER}>`,
         to: updatedOrder.customerEmail,
         subject: `Your order has been ${status}! - Beaded by Unknown`,
         html: buildEmail(
           `Great news, ${updatedOrder.customerName}!`, 
           `<p>Your handcrafted order is officially <strong>${status}</strong>.</p>
-           ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new pieces!</p>'}`, 
+           ${status === 'Shipped' ? '<p>It has left our studio, is currently with J&T Express, and is making its way to you.</p>' : '<p>Your order has arrived safely. We hope you love your new pieces!</p>'}
+           <br/>
+           <p><strong>Items in this package:</strong></p>
+           <ul style="text-align: left; background: #FAF6F1; padding: 15px; border-radius: 8px;">${itemsHtml}</ul>`, 
           'Order Status', 
           status
         )
       }).catch(mailErr => console.error('Failed to send status email:', mailErr));
       
-      console.log(`✉️ Update email queued for ${updatedOrder.customerEmail}`);
+      console.log(`Update email queued for ${updatedOrder.customerEmail}`);
     }
 
     res.json(updatedOrder);
