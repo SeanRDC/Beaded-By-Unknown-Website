@@ -170,11 +170,11 @@ function App() {
   const [otpTimer, setOtpTimer] = useState(600); // 600 seconds = 10 minutes
 
   // Settings
-  const [topBannerText, setTopBannerText] = useState('WELCOME TO BEADED BY UNKNOWN');
-  const [featureOne, setFeatureOne] = useState('Free shipping over ₱50');
+  const [topBannerText, setTopBannerText] = useState('A gift for your friends, family, and yourself');
+  const [featureOne, setFeatureOne] = useState('Free shipping over ₱500');
   const [featureTwo, setFeatureTwo] = useState('Handmade');
-  const [featureThree, setFeatureThree] = useState('Ethically sourced');
-  const [shopCategories, setShopCategories] = useState(['Plastic', 'Gemstone', 'Glass']);
+  const [featureThree, setFeatureThree] = useState('Pre Order 7 - 14 Days');
+  const [shopCategories, setShopCategories] = useState(['Bracelet', 'Phone Strap', 'Keychain']);
   const [products, setProducts] = useState([]);
 
   // --- DERIVED STATE & MEMOS ---
