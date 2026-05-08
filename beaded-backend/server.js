@@ -50,7 +50,7 @@ const transporter = {
   sendMail: async (options) => {
     try {
       const data = await resend.emails.send({
-        from: 'Beaded by Unknown <onboarding@resend.dev>', 
+        from: 'Beaded by Unknown <support@beadedbyunknown.shop>', 
         to: options.to,
         subject: options.subject,
         html: options.html
@@ -107,7 +107,7 @@ const buildEmail = (title, messageHtml, boxLabel = null, boxValue = null) => {
 // MONGODB CONNECTION
 // =====================================================================
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('📦 Connected to MongoDB Atlas'))
+  .then(() => console.log('Connected to MongoDB Atlas'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 // =====================================================================
@@ -1144,5 +1144,5 @@ app.patch('/api/admin/custom-orders/:id/status', async (req, res) => {
 // =====================================================================
 const PORT = process.env.PORT || 4242;
 app.listen(PORT, () => {
-  console.log(`🚀 Master Backend running on http://localhost:${PORT}`);
+  console.log(`Master Backend running on http://localhost:${PORT}`);
 });
