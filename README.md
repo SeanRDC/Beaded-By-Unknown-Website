@@ -94,45 +94,46 @@ You can explore the interactive storefront, custom jewelry builder, checkout flo
 ## Project Structure
 
 ```text
-├── beaded-backend/
-│   ├── models/
-│   │   ├── Blog.js
-│   │   ├── CustomOrder.js
-│   │   ├── Order.js
-│   │   ├── Product.js
-│   │   ├── Review.js
-│   │   ├── Settings.js
-│   │   └── User.js
-│   ├── .gitignore
-│   ├── cloudinary.js
-│   ├── package-lock.json
-│   ├── package.json
-│   └── server.js
-├── beaded-frontend/
-│   ├── node_modules/
-│   ├── public/
-│   │   ├── Beaded-logo.png
-│   │   └── admin-icon.png
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── AdminDashboard.jsx
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── ErrorBoundary.jsx
-│   │   ├── firebase.js
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── .gitignore
-│   ├── eslint.config.js
-│   ├── index.html
-│   ├── index.js
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── tailwind.config.js
-│   ├── vercel.json
-│   └── vite.config.js
-└── LICENSE
+├── beaded-backend/               # Express.js backend directory
+│   ├── models/                   # Mongoose database schemas
+│   │   ├── Blog.js               # Blog post schema
+│   │   ├── CustomOrder.js        # Bracelet builder order schema
+│   │   ├── Order.js              # Standard order schema
+│   │   ├── Product.js            # Product catalog schema
+│   │   ├── Review.js             # Customer review schema
+│   │   ├── Settings.js           # Global store settings schema
+│   │   └── User.js               # User account schema
+│   ├── .gitignore                # Ignored backend files
+│   ├── cloudinary.js             # Cloudinary image hosting configuration
+│   ├── package-lock.json         # Backend dependency tree
+│   ├── package.json              # Backend dependencies and scripts
+│   └── server.js                 # Main Express server entry point
+├── beaded-frontend/              # React (Vite) frontend directory
+│   ├── node_modules/             # Frontend dependencies
+│   ├── public/                   # Static public assets
+│   │   ├── Beaded-logo.png       # Brand logo
+│   │   └── admin-icon.png        # Admin dashboard icon
+│   ├── src/                      # Frontend source code
+│   │   ├── assets/               # Local images and fonts
+│   │   ├── AdminDashboard.jsx    # Secured CMS dashboard component
+│   │   ├── App.css               # Global application styles
+│   │   ├── App.jsx               # Root React component
+│   │   ├── ErrorBoundary.jsx     # Fallback UI for app crashes
+│   │   ├── firebase.js           # Firebase Auth configuration
+│   │   ├── index.css             # Tailwind base imports
+│   │   └── main.jsx              # React DOM render entry point
+│   ├── .gitignore                # Ignored frontend files
+│   ├── eslint.config.js          # Linter configuration
+│   ├── index.html                # Base HTML template
+│   ├── index.js                  # Frontend entry script
+│   ├── package-lock.json         # Frontend dependency tree
+│   ├── package.json              # Frontend dependencies and scripts
+│   ├── postcss.config.js         # PostCSS configuration for Tailwind
+│   ├── tailwind.config.js        # Tailwind CSS theme configuration
+│   ├── vercel.json               # Vercel deployment routing rules
+│   └── vite.config.js            # Vite bundler configuration
+└── LICENSE                       # Project license
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
