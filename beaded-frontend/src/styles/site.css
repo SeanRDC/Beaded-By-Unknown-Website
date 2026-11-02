@@ -5,7 +5,7 @@
   --ink: #191612;
   --soft: #5A5347;
   --thread: #B38E42;
-  --faint: #D9D5CB;
+  --faint: #8E8778;
   --on-ink: #FAFAF8;
   --on-ink-soft: #DAD4C9;
   --on-ink-accent: #E2C587;
@@ -33,7 +33,7 @@
   --ink: #3A2328;
   --soft: #7A5A62;
   --thread: #C9788E;
-  --faint: #F2D5DC;
+  --faint: #A67C87;
   --on-ink: #FFF7F8;
   --on-ink-soft: #EBD6DB;
   --on-ink-accent: #F2BFCC;
@@ -58,7 +58,7 @@ html[data-surface='site'] body {
 .site { position: relative; display: flex; flex-direction: column; min-height: 100svh; overflow-x: clip; }
 .site h1, .site h2, .site h3 { font-weight: 400; }
 .site :focus-visible { outline: 2px solid var(--thread); outline-offset: 3px; }
-.site main { flex: 1; }
+.site main { flex: 1; min-height: 100svh; }
 
 .skip { position: fixed; z-index: 90; top: 8px; left: 8px; background: var(--ink); color: var(--on-ink); padding: 10px 18px; border-radius: 999px; transform: translateY(-160%); }
 .skip:focus { transform: none; }

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { BeadPicture, BeadRing } from '../components/BeadRing.jsx';
 import { useSeo } from '../components/Chrome.jsx';
+import { Picture } from '../components/media.jsx';
 import { BASE_SETTING, CHARMS, COLLECTIONS, EXTENDER_PRICE, STRINGS } from '../data/beads.js';
 import { designTotal, fit } from '../lib/fit.js';
 import { peso } from '../lib/money.js';
@@ -220,6 +221,9 @@ export default function Builder() {
             <section>
               <h2 className="t-lead">Add a charm</h2>
               <p className="soft">Optional. Choose one, or none.</p>
+              <figure className="pic pic--fill builder__charms">
+                <Picture name="custom-1" alt="Enamel charms with gold edges: whale tails, flowers, a butterfly and a bow" sizes="(max-width: 860px) 100vw, 55vw" />
+              </figure>
               <div className="options options--charms">
                 {CHARMS.map((option) => (
                   <button key={option.id} type="button" className="option option--stack" aria-pressed={charm?.id === option.id} onClick={() => setCharm(charm?.id === option.id ? null : option)}>

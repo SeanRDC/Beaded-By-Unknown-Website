@@ -42,6 +42,7 @@
 .builder__panel { min-width: 0; }
 .builder__panel h2 + p { margin-top: 6px; }
 .builder__wrist { margin-top: 18px; max-width: 220px; }
+.builder__charms { aspect-ratio: 5 / 2; margin: 14px 0 0; }
 .builder__nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; }
 
 .steps { display: flex; flex-wrap: wrap; gap: 6px 22px; list-style: none; margin: 0 0 clamp(20px, 3vw, 34px); padding: 0; }
@@ -128,6 +129,7 @@ form .stack { margin-top: 18px; }
   .shop-grid, .even-grid, .posts { grid-template-columns: 1fr; }
   .shop-grid > div { grid-column: auto !important; grid-row: auto !important; }
   .pdp { display: block; }
+  .pdp__pic { aspect-ratio: 5 / 4; max-height: 56svh; }
   .pdp__details { position: static; margin-top: 18px; padding-bottom: 86px; }
   .pdp__add { display: none; }
   .pdp__bar { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; background: var(--ground); box-shadow: 0 -1px 0 var(--step); }
