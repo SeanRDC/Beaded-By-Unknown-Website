@@ -86,8 +86,8 @@ async function priceProductLine(line, quantity) {
 async function priceCart(cart, region, settings) {
   if (!cart.length) throw refuse('Your bag is empty.');
 
+  if (!Object.hasOwn(settings.shippingRates, region)) throw refuse('Choose a shipping region.');
   const rate = settings.shippingRates[region];
-  if (rate === undefined) throw refuse('Choose a shipping region.');
 
   const lines = await Promise.all(cart.map((line) => {
     const quantity = line.qty || 1;

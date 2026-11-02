@@ -15,9 +15,15 @@ const list = z.union([
   z.string().max(500).transform((value) => value.split(',').map((item) => item.trim()).filter(Boolean))
 ]);
 
+/* A blank or empty price must never read as zero. */
+const price = z.preprocess(
+  (value) => (value === null || String(value).trim() === '' ? Number.NaN : value),
+  z.coerce.number({ error: 'Enter a valid price.' }).min(0, 'Enter a valid price.').max(1000000, 'Enter a valid price.')
+);
+
 const fields = {
   name: text(160, 'Enter a name.'),
-  price: z.coerce.number({ error: 'Enter a valid price.' }).min(0, 'Enter a valid price.').max(1000000, 'Enter a valid price.'),
+  price,
   cat: text(80, 'Choose a category.'),
   mat: z.string().trim().max(300),
   tag: z.string().trim().max(60),

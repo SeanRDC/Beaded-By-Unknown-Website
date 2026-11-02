@@ -149,7 +149,7 @@ test('availability can be toggled with the key', async () => {
 });
 
 test('the custom order list is readable with the key', async () => {
-  await CustomOrder.create({ email: 'ana@example.test', name: 'Mine', totalPrice: 73 });
+  await CustomOrder.create({ email: 'ana@example.test', name: 'Mine', totalPrice: 73, paid: true });
   const res = await api().get('/api/custom-orders').set(ADMIN);
   assert.equal(res.status, 200);
   assert.equal(res.body.length, 1);
@@ -161,4 +161,38 @@ test('a product change shows up immediately for the next reader', async () => {
   await api().put(`/api/admin/products/${item._id}`).set(ADMIN).send({ name: 'Fresh name' });
   const res = await api().get('/api/products');
   assert.equal(res.body[0].name, 'Fresh name');
+});
+
+test('a blank price is refused when adding a product', async () => {
+  const res = await api().post('/api/admin/products').set(ADMIN).send({ name: 'x', price: '', cat: 'x', img: 'https://res.test/a.jpg' });
+  assert.equal(res.status, 400);
+  assert.equal(await Product.countDocuments(), 0);
+});
+
+test('a blank price from the dashboard form leaves the real price alone', async () => {
+  const item = await product();
+  const res = await api().put(`/api/products/${item._id}`).set(ADMIN).field('name', 'Same').field('price', '');
+  assert.equal(res.status, 400);
+  assert.equal((await Product.findById(item._id)).price, 100);
+});
+
+test('an empty price is refused', async () => {
+  const item = await product();
+  const res = await api().put(`/api/admin/products/${item._id}`).set(ADMIN).send({ price: null });
+  assert.equal(res.status, 400);
+  assert.equal((await Product.findById(item._id)).price, 100);
+});
+
+test('a product edit without a price keeps the price', async () => {
+  const item = await product();
+  const res = await api().put(`/api/admin/products/${item._id}`).set(ADMIN).send({ name: 'New name' });
+  assert.equal(res.status, 200);
+  assert.equal((await Product.findById(item._id)).price, 100);
+});
+
+test('a price of zero is still allowed', async () => {
+  const item = await product();
+  const res = await api().put(`/api/admin/products/${item._id}`).set(ADMIN).send({ price: 0 });
+  assert.equal(res.status, 200);
+  assert.equal((await Product.findById(item._id)).price, 0);
 });
