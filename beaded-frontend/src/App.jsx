@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, X, ChevronDown, ChevronRight, Star, Plus, Minus, Trash2, ArrowRight, Eye, Crown, Leaf, Sparkles, Award, Truck, MapPin, Lock, Check, Package, LayoutGrid, SlidersHorizontal, ChevronLeft, Palette, Gem, Layers, ShieldCheck, MessageCircle, Send, Gift, Home, Menu } from 'lucide-react';
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from './firebase.js';
+import { applyTheme } from './analytics.js';
 
 
 import heroImage from './assets/HeroImage.png';
@@ -306,49 +307,20 @@ useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     
     if (urlParams.get('success') === 'true') {
-      console.log("✅ [DEBUG Arrival] Welcome back! Caught ?success=true in the URL.");
-      
-      const savedOrder = localStorage.getItem('pending_order');
-      console.log("✅ [DEBUG Arrival] Did we find 'pending_order' in localStorage?", !!savedOrder);
-      
-      if (savedOrder) {
-        console.log("✅ [DEBUG Arrival] Data found! Parsing data...");
-        const orderData = JSON.parse(savedOrder);
-        const token = localStorage.getItem('beaded_token');
-        
-        console.log("✅ [DEBUG Arrival] Sending this payload to the backend:", orderData);
-
-        fetch('https://beaded-by-unknown.onrender.com/api/orders', { 
+      const ref = urlParams.get('ref');
+      if (ref) {
+        fetch('https://beaded-by-unknown.onrender.com/api/orders/confirm', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify(orderData)
-        })
-        .then(async (res) => {
-          console.log("✅ [DEBUG Arrival] Backend responded with status:", res.status);
-          const data = await res.json();
-          console.log("✅ [DEBUG Arrival] Backend response data:", data);
-          
-          if(res.ok) {
-            console.log("✅ [DEBUG Arrival] Order successfully saved! Deleting localStorage memory.");
-            localStorage.removeItem('pending_order'); 
-          } else {
-            console.error("❌ [DEBUG Arrival] Backend rejected the order save:", data);
-          }
-        })
-        .catch(err => console.error("❌ [DEBUG Arrival] Fetch completely crashed:", err));
-      } else {
-        console.warn("⚠️ [DEBUG Arrival] NO DATA FOUND in localStorage. The browser deleted it!");
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref })
+        }).catch(() => {});
       }
 
       setPg('confirmation');
       setCart([]);
       window.history.replaceState(null, '', window.location.pathname);
-      
+
     } else if (urlParams.get('canceled') === 'true') {
-      console.log("⚠️ [DEBUG Arrival] User canceled the payment.");
       flash('Payment was canceled or failed.', 'error');
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -417,6 +389,7 @@ useEffect(() => {
           if (data.featureTwo) setFeatureTwo(data.featureTwo);
           if (data.featureThree) setFeatureThree(data.featureThree);
           if (data.categories) setShopCategories(data.categories);
+          if (data.theme) { setAppTheme(data.theme); applyTheme(data.theme); }
         }
       })
       .catch(err => console.error("Failed to load settings:", err));
@@ -572,19 +545,7 @@ useEffect(() => {
   }, [flash]);
 
   const handleCheckout = async () => {
-    console.log("🛒 [DEBUG Checkout] Initiating PayMongo checkout...");
     try {
-      const orderData = {
-        cart,
-        checkoutForm,
-        shippingRegion,
-        amount: finalTotal,
-        email: checkoutForm.email
-      };
-      
-      console.log("🛒 [DEBUG Checkout] Saving this to localStorage:", orderData);
-      localStorage.setItem('pending_order', JSON.stringify(orderData));
-
       const response = await fetch('https://beaded-by-unknown.onrender.com/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -593,14 +554,11 @@ useEffect(() => {
       const data = await response.json();
 
       if (data.checkout_url) {
-        console.log("🛒 [DEBUG Checkout] Success! Redirecting to PayMongo...");
         window.location.href = data.checkout_url;
       } else {
-        console.error("❌ [DEBUG Checkout] PayMongo rejected the session:", data);
-        flash('Failed to generate payment link', 'error');
+        flash(data.error || 'Failed to generate payment link', 'error');
       }
     } catch (err) {
-      console.error("❌ [DEBUG Checkout] System crashed during checkout:", err);
       flash('Payment failed to initialize.', 'error');
     }
   };
@@ -742,21 +700,19 @@ const handleGoogleLogin = async () => {
       googleProvider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, googleProvider);
       
-      const nameParts = result.user.displayName ? result.user.displayName.split(' ') : ['User'];
-      
+      const idToken = await result.user.getIdToken();
+
       const res = await fetch('https://beaded-by-unknown.onrender.com/api/google-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: result.user.email,
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(' ') || ''
-        })
+        body: JSON.stringify({ idToken })
       });
-      
+
       const data = await res.json();
-      
-      if (!data.error) {
+
+      if (data.error) {
+        flash(data.error, 'error');
+      } else {
         localStorage.setItem('beaded_token', data.token);
         setLogged(data.user);
         setCart(data.cart || []);
@@ -812,7 +768,7 @@ const handleGoogleLogin = async () => {
       const res = await fetch('https://beaded-by-unknown.onrender.com/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail, newPassword })
+        body: JSON.stringify({ email: forgotEmail, otp: otpCode.trim(), newPassword })
       });
       const data = await res.json();
       if (res.ok) {
@@ -1933,30 +1889,31 @@ const Card = ({ p }) => {
                           return;
                         }
 
+                        let design;
                         try {
-                          await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders', {
+                          const res = await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                               email: cEmail,
                               name: cName || 'Custom Bracelet',
-                              beadType: sBeadCol.name,
-                              beads: sBeads.map(b => ({ name: b.name, hex: b.hex })),
-                              string: getFullStringName(),
-                              beadSize: `${sBeadCol.size}mm`,
-                              wristSize: `${wristSize}cm`,
-                              charms: sCharms.map(c => ({ name: c.name, em: c.em })),
-                              totalPrice: totalCost,
-                              status: 'Pending Studio Review',
-                              createdAt: new Date().toISOString()
+                              collectionId: sBeadCol.id,
+                              beads: sBeads.map(b => ({ name: b.name })),
+                              stringId: sStr.id,
+                              lockColor: sLockColor,
+                              extender: sExtender,
+                              charmIds: sCharms.map(c => c.id),
+                              wristCm: safeWristSize
                             })
                           });
+                          design = await res.json();
+                          if (!res.ok) return flash(design.error || 'Could not save your design.', 'error');
                         } catch(err) {
-                          console.log('Failed to send to admin', err);
+                          return flash('Could not save your design. Please try again.', 'error');
                         }
 
                         const customMaterial = `Custom: ${sBeadCol.name} for ${safeWristSize}cm wrist${sStr?.id === 's2' ? ` (${sLockColor} Lock${sExtender ? ', Extender' : ''})` : ''}`;
-                        addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:totalCost, img:'', mat: customMaterial });
+                        addCart({ id:Date.now(), name:cName || 'Custom Bracelet', price:design.totalPrice, img:'', mat: customMaterial, customOrderId: design._id });
                         flash('Design sent to studio!', 'success');
                       }} 
                       className="w-full bg-[var(--primary)] text-white text-xs md:text-sm tracking-[0.1em] md:tracking-[0.15em] uppercase py-3.5 md:py-4 font-bold shadow-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity rounded-xl"

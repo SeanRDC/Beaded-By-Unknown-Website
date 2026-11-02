@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
   const fetchAllData = async () => {
     try {
-      const prodRes = await fetch('https://beaded-by-unknown.onrender.com/api/products');
+      const prodRes = await fetch('https://beaded-by-unknown.onrender.com/api/products', { cache: 'no-cache' });
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         if (Array.isArray(prodData)) setProducts(prodData);
@@ -69,13 +69,13 @@ export default function AdminDashboard() {
         setServerStatus('offline');
       }
 
-      const blogRes = await fetch('https://beaded-by-unknown.onrender.com/api/blogs');
+      const blogRes = await fetch('https://beaded-by-unknown.onrender.com/api/blogs', { cache: 'no-cache' });
       if (blogRes.ok) {
         const blogData = await blogRes.json();
         if (Array.isArray(blogData)) setBlogs(blogData);
       }
 
-      const revRes = await fetch('https://beaded-by-unknown.onrender.com/api/reviews');
+      const revRes = await fetch('https://beaded-by-unknown.onrender.com/api/reviews', { cache: 'no-cache' });
       if (revRes.ok) {
         const revData = await revRes.json();
         if (Array.isArray(revData)) setReviews(revData);
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('https://beaded-by-unknown.onrender.com/api/settings');
+      const res = await fetch('https://beaded-by-unknown.onrender.com/api/settings', { cache: 'no-cache' });
       const data = await res.json();
       if (data) {
         if (data.topBannerText) setBannerText(data.topBannerText);
@@ -95,6 +95,7 @@ export default function AdminDashboard() {
         if (data.featureTwo) setFeatureTwo(data.featureTwo);
         if (data.featureThree) setFeatureThree(data.featureThree);
         if (data.categories) setShopCategories(data.categories);
+        if (data.theme) setSiteTheme(data.theme);
       }
     } catch (err) {}
   };
@@ -134,14 +135,15 @@ export default function AdminDashboard() {
   // --- EFFECTS ---
 
   useEffect(() => {
-    fetch('https://beaded-by-unknown.onrender.com/api/custom-orders')
+    if (!secretKey) return;
+    fetch('https://beaded-by-unknown.onrender.com/api/custom-orders', { headers: { 'admin_secret': secretKey } })
       .then(res => {
         if (!res.ok) throw new Error('Backend route not ready');
         return res.json();
       })
       .then(data => setCustomOrders(data))
       .catch(err => console.log('Custom orders waiting on backend setup.'));
-  }, []);
+  }, [secretKey]);
 
   useEffect(() => {
     fetchAllData();
@@ -403,7 +405,7 @@ export default function AdminDashboard() {
     try {
       await fetch(`https://beaded-by-unknown.onrender.com/api/products/${id}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'admin_secret': secretKey },
         body: JSON.stringify({ isAvailable: newStatus })
       });
 
@@ -566,7 +568,7 @@ const updateCustomOrderStatus = async (orderId, newStatus) => {
       });
       
       if (!res.ok) {
-        const updatedRes = await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders');
+        const updatedRes = await fetch('https://beaded-by-unknown.onrender.com/api/custom-orders', { headers: { 'admin_secret': secretKey } });
         setCustomOrders(await updatedRes.json());
       }
     } catch(err) {
