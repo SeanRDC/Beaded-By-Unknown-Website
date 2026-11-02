@@ -37,8 +37,8 @@
 **Interfaces:**
 - Produces: `helpers.startDb()`, `helpers.stopDb()`, `helpers.resetDb()`, `helpers.api()` returning a supertest agent over `createApp({ rateLimits: false })`.
 
-- [ ] Remove the listed files with `git rm`, add a root `.gitignore` for `node_modules/`, `dist/`, `.env`, `.env.*`, `.taste-skill/`, and commit.
-- [ ] Update dependencies: remove `stripe`, `nodemailer`, `multer-storage-cloudinary`; upgrade `cloudinary` to 2.x and the rest within range; add `zod`, `helmet`, `compression`; dev add `supertest`, `mongodb-memory-server`. `npm audit --omit=dev` must report 0. Add `"start": "node server.js"` and `"test": "node --test test/"`.
+- [x] Remove the listed files with `git rm`, add a root `.gitignore` for `node_modules/`, `dist/`, `.env`, `.env.*`, `.taste-skill/`, and commit.
+- [x] Update dependencies: remove `stripe`, `nodemailer`, `multer-storage-cloudinary`; upgrade `cloudinary` to 2.x and the rest within range; add `zod`, `helmet`, `compression`; dev add `supertest`, `mongodb-memory-server`. `npm audit --omit=dev` must report 0. Add `"start": "node server.js"` and `"test": "node --test test/"`.
 
 ### Task 2: Split the server, fail closed at startup
 
@@ -47,8 +47,8 @@
 **Interfaces:**
 - Produces: `createApp({ rateLimits = true } = {}) -> express.Application`; `assertEnv(env = process.env)` throws naming missing keys from `JWT_SECRET`, `ADMIN_SECRET`, `MONGODB_URI`, `CLIENT_URL`; `checkoutMode() -> 'showcase' | 'live'`; `allowedOrigins() -> string[]`; `HttpError(status, message)`.
 
-- [ ] Tests: `assertEnv` throws for each missing key; unknown route returns 404 JSON; a thrown internal error returns 500 with a generic message and no internal text; CORS allows `CLIENT_URL` and both its `www` and bare forms and refuses others; helmet headers present; `GET /api/health` reports `db`.
-- [ ] Move all existing routes into `routes/*.js` unchanged in behaviour, mount them from `app.js`, set `trust proxy` to 1 and `mongoose.set('sanitizeFilter', true)`.
+- [x] Tests: `assertEnv` throws for each missing key; unknown route returns 404 JSON; a thrown internal error returns 500 with a generic message and no internal text; CORS allows `CLIENT_URL` and both its `www` and bare forms and refuses others; helmet headers present; `GET /api/health` reports `db`.
+- [x] Move all existing routes into `routes/*.js` unchanged in behaviour, mount them from `app.js`, set `trust proxy` to 1 and `mongoose.set('sanitizeFilter', true)`.
 
 ### Task 3: Authentication and one-time codes
 
@@ -57,8 +57,8 @@
 **Interfaces:**
 - Produces: `validate(schema)`; `requireUser` sets `req.account`; `issueOtp(user, purpose) -> code` (`purpose`: `login`, `reset`, `delete`); `checkOtp(user, purpose, code, { consume = true }) -> boolean`; `email.send({ to, subject, html })` never throws; `email.transport.deliver` replaceable in tests; `escapeHtml(value)`; `firebase.verifyIdToken(token) -> { email, firstName, lastName }`.
 
-- [ ] Tests: a non-string `email` or `otp` returns 400 on every auth route; a code cannot be used for a different purpose; a sixth wrong attempt fails even with the right code; codes are stored hashed; reset without a valid code changes nothing and a used code cannot be reused; forgot-password and resend-code answer identically for known and unknown emails; google-login rejects a body with no token and takes identity only from the verified token; a deleted user's token returns 401 on `/api/user/me`; rate limit returns 429 after the limit with `createApp({ rateLimits: true })`.
-- [ ] Verify Firebase tokens with `jsonwebtoken` against Google's `securetoken` x509 certificates, cached by `max-age`, with `RS256`, audience and issuer from `FIREBASE_PROJECT_ID` (default `beaded-shop`), and require `email_verified`.
+- [x] Tests: a non-string `email` or `otp` returns 400 on every auth route; a code cannot be used for a different purpose; a sixth wrong attempt fails even with the right code; codes are stored hashed; reset without a valid code changes nothing and a used code cannot be reused; forgot-password and resend-code answer identically for known and unknown emails; google-login rejects a body with no token and takes identity only from the verified token; a deleted user's token returns 401 on `/api/user/me`; rate limit returns 429 after the limit with `createApp({ rateLimits: true })`.
+- [x] Verify Firebase tokens with `jsonwebtoken` against Google's `securetoken` x509 certificates, cached by `max-age`, with `RS256`, audience and issuer from `FIREBASE_PROJECT_ID` (default `beaded-shop`), and require `email_verified`.
 
 ### Task 4: Admin access, products and uploads
 
@@ -67,7 +67,7 @@
 **Interfaces:**
 - Produces: `requireAdmin` (constant time, fails closed when `ADMIN_SECRET` is unset); `uploads.store(file) -> url`, replaceable in tests; `cached(key, ttlMs, fn)`, `cache.clear(prefix?)`, `publicCache` middleware.
 
-- [ ] Tests: every admin route and each product write returns 403 without the key and when `ADMIN_SECRET` is unset; product writes ignore unlisted fields; a non-image or oversized upload returns 400; editing with `primaryImage` or `image` replaces the picture; `GET /api/custom-orders` returns 403 without the key.
+- [x] Tests: every admin route and each product write returns 403 without the key and when `ADMIN_SECRET` is unset; product writes ignore unlisted fields; a non-image or oversized upload returns 400; editing with `primaryImage` or `image` replaces the picture; `GET /api/custom-orders` returns 403 without the key.
 
 ### Task 5: Pricing, checkout, orders and the webhook
 
@@ -77,27 +77,27 @@
 - Produces: `priceCustomDesign({ collectionId, beads, stringId, lockColor, extender, charmIds, wristCm }) -> { beadType, beadSize, string, charms, totalPrice }`; `priceCart(cart, region, settings) -> { lines, subtotal, shippingFee, total }`; `payments.createSession(...)`, `payments.fetchSession(id)`, `payments.verifySignature(header, rawBody, secret, livemode) -> boolean`; `markOrderPaid(sessionId) -> order | null`, which sends the receipt only for the call that flips the status.
 - Consumes: `checkoutMode()`, `email.send`, `Settings`.
 
-- [ ] Tests: client-sent prices are ignored; free shipping applies at or above the threshold; shipping uses the region's rate; every Review Focus case above; showcase sends one ₱1 line while the order records the real total and `chargedAmount: 1`; live sends real lines plus shipping; a bad webhook signature returns 400 and creates nothing; a stale timestamp is refused; `POST /api/orders` is gone; pending orders are absent from stats, bestsellers and the customer's list.
+- [x] Tests: client-sent prices are ignored; free shipping applies at or above the threshold; shipping uses the region's rate; every Review Focus case above; showcase sends one ₱1 line while the order records the real total and `chargedAmount: 1`; live sends real lines plus shipping; a bad webhook signature returns 400 and creates nothing; a stale timestamp is refused; `POST /api/orders` is gone; pending orders are absent from stats, bestsellers and the customer's list.
 
 ### Task 6: Settings, theme, shipping and optimisation
 
 **Files:** Modify `models/Settings.js`, `routes/content.js`, `routes/admin.js`, model indexes. Test: `test/settings.test.js`.
 
-- [ ] Tests: `GET /api/settings` returns `theme`, `shippingRates`, `freeShippingOver`, `showcase`; `PUT /api/admin/settings` saves them and rejects an unknown theme; a settings write clears the cache; public GETs send `Cache-Control`; `/api/admin/stats` totals match paid orders without loading documents.
-- [ ] Add the spec's indexes, `compression`, `.lean()` and field selection on public reads.
+- [x] Tests: `GET /api/settings` returns `theme`, `shippingRates`, `freeShippingOver`, `showcase`; `PUT /api/admin/settings` saves them and rejects an unknown theme; a settings write clears the cache; public GETs send `Cache-Control`; `/api/admin/stats` totals match paid orders without loading documents.
+- [x] Add the spec's indexes, `compression`, `.lean()` and field selection on public reads.
 
 ### Task 7: Emails and catalogue script
 
 **Files:** Modify `services/email.js`. Create `scripts/showcase-catalog.js`. Test: `test/email.test.js`.
 
-- [ ] Tests: templates escape user values, sign off as Unknown, and use "I"; the showcase receipt says nothing will ship.
-- [ ] The script sets the spec's prices, categories, materials and descriptions by product ID, prints a before and after table, and writes only with `--apply`.
+- [x] Tests: templates escape user values, sign off as Unknown, and use "I"; the showcase receipt says nothing will ship.
+- [x] The script sets the spec's prices, categories, materials and descriptions by product ID, prints a before and after table, and writes only with `--apply`.
 
 ### Task 8: Keep the current storefront and dashboard working
 
 **Files:** Modify `beaded-frontend/src/App.jsx`, `beaded-frontend/src/AdminDashboard.jsx`, `beaded-frontend/index.html`, `beaded-frontend/vercel.json`, `beaded-frontend/package.json`. Create `beaded-frontend/src/analytics.js`.
 
-- [ ] `App.jsx`: Google login posts `idToken`; reset posts the code; the builder posts structured IDs and keeps `customOrderId` on the cart line; checkout stops writing `pending_order`; the success return posts `/api/orders/confirm`.
-- [ ] Dashboard: send `admin_secret` on the custom order list and availability toggle; read the theme from settings.
-- [ ] Move analytics into `src/analytics.js`; add CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` in `vercel.json`; update frontend dependencies until `npm audit --omit=dev` is clean.
-- [ ] Verify: `npm test` in the backend and `npx vite build` in the frontend both pass. Run the API locally against an in-memory database and drive the sign-in, cart and admin paths once.
+- [x] `App.jsx`: Google login posts `idToken`; reset posts the code; the builder posts structured IDs and keeps `customOrderId` on the cart line; checkout stops writing `pending_order`; the success return posts `/api/orders/confirm`.
+- [x] Dashboard: send `admin_secret` on the custom order list and availability toggle; read the theme from settings.
+- [x] Move analytics into `src/analytics.js`; add CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` in `vercel.json`; update frontend dependencies until `npm audit --omit=dev` is clean.
+- [x] Verify: `npm test` in the backend and `npx vite build` in the frontend both pass. Run the API locally against an in-memory database and drive the sign-in, cart and admin paths once.

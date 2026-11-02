@@ -38,8 +38,8 @@
 **Interfaces:**
 - Produces: `fit(cm, collection) -> { count, beads, total }`; `peso(n)`; `shippingFor(subtotal, region, settings) -> number`; `slugify(text)`; `findBySlug(items, slug, field)`; `lineKey(item)`, `addLine`, `removeLine`, `setLineQty`, `cartCount`, `cartSubtotal`; `cld(url, width)`, `cldSrcSet(url, widths)`; `api(path, { method, body, token, admin, retries, signal })`.
 
-- [ ] Vitest tests for each lib function, including `removeLine` leaving another size of the same product, and free shipping at exactly the threshold.
-- [ ] Add dependencies, tokens for both themes, Tailwind mapping, component classes (`.t-head`, `.t-lead`, `.btn`, `.link`, `.chip`), Jost, and the image script producing AVIF and WebP at 640, 1024 and 1600.
+- [x] Vitest tests for each lib function, including `removeLine` leaving another size of the same product, and free shipping at exactly the threshold.
+- [x] Add dependencies, tokens for both themes, Tailwind mapping, component classes (`.t-head`, `.t-lead`, `.btn`, `.link`, `.chip`), Jost, and the image script producing AVIF and WebP at 640, 1024 and 1600.
 
 ### Task 2: Stores, split and routes
 
@@ -48,39 +48,39 @@
 **Interfaces:**
 - Produces: `useShop()`, `useCart()`, `useAuth()`, `useUi()`; `<Seo title description />`.
 
-- [ ] Split behaviour first, with a mechanical move so the app keeps working at each commit, then real URLs per the spec's route table, a designed 404, scroll handling, and analytics page views.
-- [ ] Apply fixes 16 to 21 with tests where logic allows.
+- [x] Split behaviour first, with a mechanical move so the app keeps working at each commit, then real URLs per the spec's route table, a designed 404, scroll handling, and analytics page views.
+- [x] Apply fixes 16 to 21 with tests where logic allows.
 
 ### Task 3: Shell
 
 **Files:** `src/components/{Header,FloatingBar,MobileMenu,Footer,BagDrawer,SearchOverlay,LoginDialog,QuickView,Toast,ShowcaseNotice,PageTransition}.jsx`.
 
-- [ ] Header, floating bar with the small name, phone menu replacing the bottom tabs, footer on every page but checkout, theme from settings, portfolio notice as a real `<dialog>`, thread-sweep transition under 500ms.
+- [x] Header, floating bar with the small name, phone menu replacing the bottom tabs, footer on every page but checkout, theme from settings, portfolio notice as a real `<dialog>`, thread-sweep transition under 500ms.
 
 ### Task 4: Home
 
 **Files:** `src/pages/Home.jsx`, `src/components/home/{ThreadedName,Strand,BeadRing,Pieces,WristInBeads,SizesLine,Letter,SlowWords,Quotes,BeforeYouOrder,LatestPost}.jsx`, `src/lib/beads-canvas.js`.
 
-- [ ] Port one section per commit from the concept, in spec order, ending with the strand. Thread positions come from a sampled table, not per-frame measuring.
-- [ ] "String this one" passes wrist, collection and colours through router state.
+- [x] Port one section per commit from the concept, in spec order, ending with the strand. Thread positions come from a sampled table, not per-frame measuring.
+- [x] "String this one" passes wrist, collection and colours through router state.
 
 ### Task 5: Shop and product
 
-- [ ] Shop grid of one large and two small repeating, category chips from settings, sort, loading and empty states.
-- [ ] Product page with sticky pictures, details in place, phone add bar, not-found state.
+- [x] Shop grid of one large and two small repeating, category chips from settings, sort, loading and empty states.
+- [x] Product page with sticky pictures, details in place, phone add bar, not-found state.
 
 ### Task 6: Builder, bag and checkout
 
-- [ ] Builder keeps its six steps and posts structured IDs. Uses `BeadRing` for the live bracelet.
-- [ ] Bag drawer with the bead-filled shipping thread and the fly-to-bag move.
-- [ ] Checkout steps, shipping from settings, showcase note, "Continue to PayMongo", confirmation page posting `/api/orders/confirm`. The backend's return URLs move to `/checkout/confirmed` and `/checkout`.
+- [x] Builder keeps its six steps and posts structured IDs. Uses `BeadRing` for the live bracelet.
+- [x] Bag drawer with the bead-filled shipping thread and the fly-to-bag move.
+- [x] Checkout steps, shipping from settings, showcase note, "Continue to PayMongo", confirmation page posting `/api/orders/confirm`. The backend's return URLs move to `/checkout/confirmed` and `/checkout`.
 
 ### Task 7: Remaining pages
 
-- [ ] Account, wishlist, story, journal, journal post, FAQ, size guide, shipping, terms, confirmation, error boundary. Voice pass across all copy.
+- [x] Account, wishlist, story, journal, journal post, FAQ, size guide, shipping, terms, confirmation, error boundary. Voice pass across all copy.
 
 ### Task 8: Verification
 
-- [ ] Accessibility pass, `robots.txt`, `sitemap.xml`, share image, per-route metadata.
-- [ ] Playwright flows at 1440 and 390 with a mocked API. Inspector and screenshots at 1440, 768 and 390. Lighthouse against the spec's budget. Dashboard screenshot before and after.
-- [ ] Update `README.md`, remove `docs/superpowers/specs/concept-a/`.
+- [x] Accessibility pass, `robots.txt`, `sitemap.xml`, share image, per-route metadata.
+- [x] Playwright flows at 1440 and 390 with a mocked API. Inspector and screenshots at 1440, 768 and 390. Lighthouse against the spec's budget. Dashboard screenshot before and after.
+- [x] Update `README.md`, remove `docs/superpowers/specs/concept-a/`.
