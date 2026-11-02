@@ -2,16 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* The admin dashboard keeps these until its own redesign. */
-html {
-  scrollbar-gutter: stable;
-  overflow-x: hidden;
-}
-
 body {
-  background-color: #FAF6F1;
-  color: #3E2F1C;
-  overflow-x: hidden;
-  width: 100%;
+  background: var(--ground);
+  color: var(--ink);
   margin: 0;
 }

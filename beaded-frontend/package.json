@@ -17,11 +17,9 @@
   },
   "dependencies": {
     "@fontsource-variable/jost": "^5.3.0",
-    "@fontsource/playfair-display": "^5.3.0",
     "@gsap/react": "^2.1.2",
     "firebase": "^13.1.0",
     "gsap": "^3.15.0",
-    "lucide-react": "^1.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0"

@@ -17,6 +17,7 @@ const Blog = require('../models/Blog');
 const Product = require('../models/Product');
 const Review = require('../models/Review');
 const email = require('../services/email');
+const uploads = require('../services/uploads');
 
 const PORT = process.env.PORT || 4599;
 const CLOUD = 'https://res.cloudinary.com/donzfsztu/image/upload';
@@ -57,6 +58,7 @@ async function main() {
   await Blog.create(POST);
 
   fakePayments();
+  uploads.store = async () => PRODUCTS[0].img;
   const mail = [];
   email.transport.deliver = async (message) => {
     mail.push(message);

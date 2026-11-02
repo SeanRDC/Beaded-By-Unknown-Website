@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://beaded-by-unknown.onrender.com';
+export const BASE = import.meta.env.VITE_API_URL || 'https://beaded-by-unknown.onrender.com';
 const WAKE_DELAY_MS = 3000;
 
 export class ApiError extends Error {
