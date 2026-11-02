@@ -52,8 +52,7 @@ This repository contains the source code for Beaded by Unknown, a full-stack e-c
 
 ### Built With
 
-* **Storefront:** React 19 (Vite), React Router, GSAP with ScrollTrigger, hand-written CSS on design tokens, Firebase Authentication, deployed on Vercel
-* **Admin dashboard:** React, Tailwind CSS, Lucide React
+* **Frontend:** React 19 (Vite), React Router, GSAP with ScrollTrigger, hand-written CSS on design tokens shared by the storefront and the dashboard, Firebase Authentication, deployed on Vercel
 * **Backend:** Node.js, Express 5, Zod, Helmet, express-rate-limit, JSON Web Tokens and bcryptjs, PayMongo API and webhooks, Resend, Cloudinary and Multer, deployed on Render
 * **Database:** MongoDB Atlas, Mongoose (schemas for Users, Products, Orders, Custom Orders, Blogs, Reviews and Settings)
 * **Testing:** Node's test runner with Supertest and mongodb-memory-server, Vitest, Playwright with axe
@@ -84,7 +83,8 @@ You can explore the storefront, custom jewelry builder, checkout flow and themes
 
 ### Authentication & Security
 * **Dual-Login System:** Email and password (bcrypt and JWT) alongside Google sign-in, with Firebase ID tokens verified on the server.
-* **Sign-In Codes:** Hashed, single-purpose one-time codes for sign-in, password resets and account deletion.
+* **Sign-In Codes:** Hashed, single-purpose one-time codes for sign-in, password resets and account deletion, limited to five guesses counted atomically, with a lock after that.
+* **Sessions That End:** Changing a password signs out every earlier session.
 * **Validated Requests:** Every request body is checked with Zod and database filters are sanitised against injection.
 * **Layered Protection:** Helmet headers, a strict Content Security Policy, rate limits on sensitive routes and a fail-closed, constant-time admin check.
 * **Honest Prices:** Totals are always worked out on the server, so a tampered browser cannot change what an order costs.
@@ -96,12 +96,14 @@ You can explore the storefront, custom jewelry builder, checkout flow and themes
 * **Shipping by Region:** Rates depend on the destination and are set from the dashboard, with free shipping over a set amount.
 * **Showcase Mode:** Real prices are displayed while checkout charges ₱1, until `CHECKOUT_MODE` is set to `live`.
 
-### Admin Dashboard (SaaS CMS)
-* **Secret Access Route:** A locked dashboard requiring a secure Admin Key to access.
-* **Live Analytics:** Real-time revenue tracking and SVG sparkline charts visualizing 7-day sales trends.
-* **Order Fulfillment:** Comprehensive order management system to track and update statuses (Preparing ➔ Shipped ➔ Delivered).
-* **Inventory CRUD:** Manage the product catalog with seamless image hosting via **Cloudinary**.
-* **Global Store Controls:** Edit website announcement banners, feature highlights, and dynamically add/remove shop categories without touching the codebase.
+### The Studio (Admin Dashboard)
+* **One Design Language:** The dashboard shares the shop's tokens, type and controls, and its navigation is the same gold thread with a bead on the current page.
+* **Locked by a Server-Checked Key:** Nothing loads until the server accepts the studio key, and a changed key sends the dashboard back to the door.
+* **Sales at a Glance:** Revenue, orders and a seven-day chart.
+* **Order Fulfillment:** Read each order's details and move it through Paid, Shipped and Delivered, with the customer emailed at each step.
+* **Custom Designs:** A drawn preview of every paid design, with its beads, charms and measurements.
+* **Catalogue:** Add, edit, sell out and delete pieces, with pictures hosted on **Cloudinary**.
+* **Store Controls:** Edit the banner, highlights, categories, shipping rates, the free shipping amount, reviews, journal articles and the theme without touching the code.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -166,6 +168,7 @@ The browser tests start the throwaway API and a production build by themselves. 
 │   ├── public/                   # Pictures, icons, robots.txt and sitemap
 │   ├── scripts/                  # Picture optimiser
 │   ├── src/
+│   │   ├── admin/                # One file for each screen of the dashboard
 │   │   ├── api/                  # API client
 │   │   ├── components/           # Header, footer, bag, dialogs, cards and home sections
 │   │   ├── data/                 # Bead catalogue, questions and picture sizes
@@ -174,15 +177,16 @@ The browser tests start the throwaway API and a production build by themselves. 
 │   │   ├── pages/                # One file for each page of the shop
 │   │   ├── store/                # Shop, bag, account and interface state
 │   │   ├── styles/               # Design tokens and storefront styles
-│   │   ├── AdminDashboard.jsx    # Secured dashboard
+│   │   ├── AdminDashboard.jsx    # Dashboard shell, loaded only on /admin
 │   │   ├── Site.jsx              # Storefront routes and layout
 │   │   └── main.jsx              # App entry point
 │   ├── index.html                # Base HTML template
 │   ├── playwright.config.js      # Browser test setup
-│   ├── tailwind.config.js        # Tailwind theme for the dashboard
+│   ├── tailwind.config.js        # Tailwind, used for its CSS reset
 │   ├── vercel.json               # Routing and security headers
 │   └── vite.config.js            # Bundler and unit test configuration
 ├── docs/                         # Design specs and implementation plans
+├── DEPLOYMENT.md                 # Step by step guide to going live
 └── LICENSE                       # Project license
 ```
 
