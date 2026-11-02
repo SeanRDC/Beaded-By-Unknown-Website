@@ -1,3 +1,5 @@
+import '@fontsource/playfair-display/400.css';
+import '@fontsource/playfair-display/700.css';
 import { useState, useEffect } from 'react';
 import { Tags, Menu, LayoutDashboard, Package, Plus, Trash2, Edit2, TrendingUp, ShoppingBag, X, KeyRound, Wifi, WifiOff, Settings as SettingsIcon, MessageSquare, BookOpen, Search, Palette, Mail, Lock } from 'lucide-react';
 

@@ -59,8 +59,8 @@ const payments = {
               }
             },
             line_items: lineItems(lines, shippingFee, region),
-            success_url: `${clientUrl()}/?success=true&ref=${ref}`,
-            cancel_url: `${clientUrl()}/?canceled=true`,
+            success_url: `${clientUrl()}/checkout/confirmed?ref=${ref}`,
+            cancel_url: `${clientUrl()}/checkout?canceled=true`,
             description: 'Beaded by Unknown order',
             metadata: { order_ref: ref }
           }
