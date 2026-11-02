@@ -2,19 +2,19 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
-  lastName: { type: String }, 
+  lastName: { type: String },
   email: { type: String, required: true, unique: true },
-  password: { type: String }, 
+  password: { type: String },
   phone: { type: String },
-  points: { type: Number, default: 0 }, 
+  points: { type: Number, default: 0 },
   wishlist: { type: Array, default: [] },
   cart: { type: Array, default: [] },
   orders: { type: Array, default: [] },
-  resetOtp: { type: String, default: null },
-  resetOtpExpire: { type: Date, default: null },
   shippingAddress: { type: Object, default: {} },
-  resetOtp: { type: String, default: null },
-  resetOtpExpire: { type: Number, default: null }
+  otpHash: { type: String, default: null },
+  otpPurpose: { type: String, enum: ['login', 'reset', 'delete', null], default: null },
+  otpExpire: { type: Date, default: null },
+  otpAttempts: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
