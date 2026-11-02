@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const API = 'http://localhost:4599';
@@ -380,4 +381,65 @@ test('no page logs an error', async ({ page }) => {
     await page.waitForTimeout(250);
   }
   expect(errors).toEqual([]);
+});
+
+const PAGES = ['/', '/shop', '/shop/november-necklace', '/custom', '/story', '/journal', '/faq', '/size-guide', '/shipping', '/terms', '/wishlist', '/account'];
+
+async function auditPages(page) {
+  for (const path of PAGES) {
+    await page.goto(path);
+    await page.waitForTimeout(1200);
+    const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    const found = violations.map((item) => `${path}: ${item.id} (${item.nodes.length}) ${item.nodes[0].target}`);
+    expect(found, path).toEqual([]);
+  }
+}
+
+test.describe('accessibility', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('every page passes an automated WCAG AA audit', async ({ page }) => {
+    test.setTimeout(120000);
+    await auditPages(page);
+  });
+
+  test('every page passes in the Blush Pink theme too', async ({ page }) => {
+    test.setTimeout(120000);
+    await page.route('**/api/settings', async (route) => {
+      const response = await route.fetch();
+      await route.fulfill({ response, json: { ...(await response.json()), theme: 'pink' } });
+    });
+    await auditPages(page);
+  });
+
+  test('the bag and sign-in dialogs pass too', async ({ page }, info) => {
+    test.skip(info.project.name === 'phone', 'covered on desktop');
+    await addToBag(page);
+    let { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(violations.map((item) => item.id)).toEqual([]);
+
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Sign in' }).first().click();
+    await expect(page.getByRole('dialog', { name: 'Sign in' })).toBeVisible();
+    ({ violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze());
+    expect(violations.map((item) => item.id)).toEqual([]);
+  });
+});
+
+test('the keyboard skip link jumps past the header', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'keyboard only');
+  await page.goto('/shop');
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('main')).toBeFocused();
+});
+
+test('Escape closes the notice and keeps it closed', async ({ page }) => {
+  await page.goto('/');
+  const notice = page.getByRole('dialog', { name: 'This shop is a portfolio project' });
+  await expect(notice).toBeVisible();
+  await expect(page.getByRole('button', { name: 'I understand' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(notice).toBeHidden();
 });

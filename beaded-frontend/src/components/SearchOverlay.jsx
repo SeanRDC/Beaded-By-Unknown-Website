@@ -34,7 +34,7 @@ export function SearchOverlay() {
           onChange={(event) => setText(event.target.value)}
           placeholder="Search pieces or beads"
           aria-label="Search pieces or beads"
-          autoFocus
+          data-autofocus
         />
         {query && hits.length === 0 && <p className="soft">Nothing matches "{text}". Try "necklace" or "seed beads".</p>}
         {hits.length > 0 && (

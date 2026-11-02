@@ -87,11 +87,11 @@ export function ShowcaseNotice() {
   };
 
   return (
-    <Sheet open={open && settings.showcase} onClose={close} side="center" label="This shop is a portfolio project">
+    <Sheet open={open && settings.showcase} onClose={close} side="center" label="This shop is a portfolio project" closeButton={false}>
       <div className="notice">
         <h2>This shop is a portfolio project</h2>
         <p>Everything works, but nothing here is really for sale. Please don't place an order, because it won't arrive. Checkout runs in test mode at ₱1.</p>
-        <button type="button" className="btn btn--wide" onClick={close}>I understand</button>
+        <button type="button" className="btn btn--wide" data-autofocus onClick={close}>I understand</button>
       </div>
     </Sheet>
   );
@@ -102,7 +102,7 @@ export function CheckoutBar() {
   const { openPanel } = useUi();
   return (
     <header className="top">
-      <Link to="/" aria-label="Beaded by Unknown, home"><SmallName /></Link>
+      <Link to="/" aria-label="beeeaded, Beaded by Unknown home"><SmallName /></Link>
       <span />
       <button type="button" className="top__right" onClick={() => openPanel('bag')}>Back to bag</button>
     </header>

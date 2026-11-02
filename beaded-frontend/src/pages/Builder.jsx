@@ -124,7 +124,7 @@ export default function Builder() {
       <div className="builder__grid">
         <aside className="builder__stage">
           <div className="fit__ring">
-            <BeadRing ringRef={ringRef} collection={collection} cm={wrist} pattern={pattern} exactCount={beads.length} thread="var(--thread)" shadow={false} label={`Your bracelet so far, ${beads.length} beads`} />
+            <BeadRing ringRef={ringRef} collection={collection} cm={wrist} pattern={pattern} exactCount={beads.length} threaded shadow={false} label={`Your bracelet so far, ${beads.length} beads`} />
             <div className="fit__count">
               <b className="nums">{beads.length}</b>
               <span className="soft">of about {ideal} beads</span>

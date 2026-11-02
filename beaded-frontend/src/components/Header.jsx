@@ -43,11 +43,11 @@ export function Header() {
         </nav>
       </div>
 
-      {pathname === '/' ? <span /> : <Link to="/" aria-label="Beaded by Unknown, home"><SmallName /></Link>}
+      {pathname === '/' ? <span /> : <Link to="/" aria-label="beeeaded, Beaded by Unknown home"><SmallName /></Link>}
 
       <ul className="top__right">
         <li className="top__tool"><button type="button" onClick={() => openPanel('search')}>Search</button></li>
-        <li className="top__tool"><Link to="/wishlist" aria-label={`Wishlist, ${wish.length} saved`}>Saved <span className="count nums">{wish.length}</span></Link></li>
+        <li className="top__tool"><Link to="/wishlist">Saved <span className="count nums">{wish.length}</span></Link></li>
         <li className="top__tool">
           <button type="button" onClick={() => (user ? navigate('/account') : openPanel('login'))}>{user ? user.firstName : 'Sign in'}</button>
         </li>
@@ -71,7 +71,7 @@ export function FloatingBar() {
 
   return (
     <div className={`pill ${on ? 'is-on' : ''}`} inert={!on}>
-      <Link to="/" aria-label="Beaded by Unknown, home"><SmallName /></Link>
+      <Link to="/" aria-label="beeeaded, Beaded by Unknown home"><SmallName /></Link>
       <ul>
         <li className="pill__link"><Link to="/shop">Shop</Link></li>
         <li className="pill__link"><Link to="/custom">String your own</Link></li>

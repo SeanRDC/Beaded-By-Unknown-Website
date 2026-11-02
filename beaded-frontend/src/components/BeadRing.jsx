@@ -4,11 +4,12 @@ import { Ring, sprite } from '../lib/beads-canvas.js';
 import { reduced } from '../motion/gsap.js';
 
 /* A bracelet at true proportion. ringRef exposes the painter to whoever drives it. */
-export function BeadRing({ ringRef, collection, cm, pattern, exactCount, shadow = true, thread = null, label }) {
+export function BeadRing({ ringRef, collection, cm, pattern, exactCount, shadow = true, threaded = false, label }) {
   const canvas = useRef(null);
   const previous = useRef(collection);
 
   useEffect(() => {
+    const thread = threaded ? getComputedStyle(document.documentElement).getPropertyValue('--thread').trim() : null;
     const ring = new Ring(canvas.current, { thread, shadow, collection, cm, pattern });
     ring.update({ exactCount }, false);
     ringRef.current = ring;

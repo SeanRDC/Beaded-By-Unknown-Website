@@ -104,7 +104,7 @@
 .qa__head p { margin-top: 14px; }
 .qa__list { grid-column: 3; display: grid; gap: 8px; align-content: start; }
 .qa details { background: var(--step); border-radius: var(--r-card); padding: 18px 22px; }
-.qa summary { cursor: pointer; font-size: var(--s-lead); letter-spacing: -0.012em; line-height: 1.2; list-style: none; }
+.qa summary { cursor: pointer; font-size: var(--s-lead); letter-spacing: -0.012em; line-height: 1.2; list-style: none; display: flex; justify-content: space-between; gap: 14px; }
 .qa summary::-webkit-details-marker { display: none; }
 .qa details p { margin-top: 10px; max-width: 34em; }
 

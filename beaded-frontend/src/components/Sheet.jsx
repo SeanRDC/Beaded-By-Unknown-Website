@@ -10,7 +10,7 @@ const ENTRY = {
 };
 
 /* Every overlay is a real modal dialog, so focus, Escape and the inert page behind come for free. */
-export function Sheet({ open, onClose, side = 'center', label, className = '', closeLabel = 'Close', children }) {
+export function Sheet({ open, onClose, side = 'center', label, className = '', closeButton = true, children }) {
   const dialog = useRef(null);
 
   useEffect(() => {
@@ -19,6 +19,7 @@ export function Sheet({ open, onClose, side = 'center', label, className = '', c
 
     if (open && !el.open) {
       el.showModal();
+      (el.querySelector('[data-autofocus]') || el).focus();
       if (!reduced()) gsap.fromTo(el, from, { ...to, duration: side === 'center' ? 0.36 : 0.48, ease: 'power3.out', clearProps: 'transform,opacity' });
     } else if (!open && el.open) {
       if (reduced()) {
@@ -32,6 +33,7 @@ export function Sheet({ open, onClose, side = 'center', label, className = '', c
   return (
     <dialog
       ref={dialog}
+      tabIndex={-1}
       className={`sheet sheet--${side} ${className}`}
       aria-label={label}
       onCancel={(event) => {
@@ -44,7 +46,7 @@ export function Sheet({ open, onClose, side = 'center', label, className = '', c
     >
       {open && (
         <>
-          <button type="button" className="sheet__close" onClick={onClose}>{closeLabel}</button>
+          {closeButton && <button type="button" className="sheet__close" onClick={onClose}>Close</button>}
           {children}
         </>
       )}

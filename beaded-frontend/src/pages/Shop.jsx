@@ -7,7 +7,7 @@ import { gsap, rise, useMotion } from '../motion/gsap.js';
 import { useShop } from '../store/shop.jsx';
 
 const SORTS = {
-  Featured: () => 0,
+  Featured: (a, b) => (a.isAvailable === false) - (b.isAvailable === false),
   'Price: low to high': (a, b) => a.price - b.price,
   'Price: high to low': (a, b) => b.price - a.price
 };
