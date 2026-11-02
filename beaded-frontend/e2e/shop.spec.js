@@ -85,6 +85,34 @@ test('home returns to the same place after a reload', async ({ page }) => {
   await expect.poll(() => scrollY(page)).toBeGreaterThan(before - 60);
 });
 
+test('the shop returns to the same place after a reload', async ({ page }) => {
+  await page.goto('/shop');
+  await page.locator('#site-foot').scrollIntoViewIfNeeded();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(200);
+  const before = await scrollY(page);
+  await page.reload();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(before - 60);
+});
+
+test('a new visit to home starts at the top', async ({ page }) => {
+  await scrollHomeToBracelet(page);
+  await page.goto('/');
+  await expect(page.locator('#fit')).toBeAttached();
+  expect(await scrollY(page)).toBe(0);
+});
+
+test('going back to a page that was never scrolled returns to its top', async ({ page }) => {
+  await page.goto('/size-guide');
+  /* A dispatched click, because a real one would scroll down to the footer link first. */
+  await page.locator('footer a[href="/faq"]').dispatchEvent('click');
+  await expect(page).toHaveURL(/\/faq$/);
+  await page.locator('#site-foot').scrollIntoViewIfNeeded();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(100);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/size-guide$/);
+  await expect.poll(() => scrollY(page)).toBe(0);
+});
+
 test('the back button returns to the same place on home', async ({ page }) => {
   const before = await scrollHomeToBracelet(page);
   await page.getByRole('link', { name: 'String this one' }).click();

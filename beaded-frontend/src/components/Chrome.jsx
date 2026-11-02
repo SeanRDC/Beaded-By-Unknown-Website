@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigationType } from 'react-router-dom';
 
 import { gsap, reduced, ScrollTrigger } from '../motion/gsap.js';
 import { trackPage } from '../analytics.js';
+import { arriveAt, watchPlaces } from '../lib/places.js';
 import { useShop } from '../store/shop.jsx';
 import { useUi } from '../store/ui.jsx';
 import { Sheet } from './Sheet.jsx';
@@ -27,14 +28,18 @@ export function Toast() {
   return <div className={`toast ${toast.type === 'error' ? 'toast--error' : ''}`} role="status">{toast.message}</div>;
 }
 
-/* New pages start at the top. The back button keeps the browser's own position. */
+/* New pages start at the top. A reload or the back button returns to the same place. */
 export function ScrollManager() {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, key } = useLocation();
   const type = useNavigationType();
 
+  useLayoutEffect(() => watchPlaces(), []);
+
   useLayoutEffect(() => {
+    const letGo = arriveAt(`${key}:${pathname}`, type);
     if (type !== 'POP' && !hash) window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [pathname, hash, type]);
+    return letGo;
+  }, [pathname, hash, key, type]);
 
   useEffect(() => {
     trackPage(pathname);
