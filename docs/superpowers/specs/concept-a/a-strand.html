@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept A: The Strand</title>
+<meta name="description" content="Concept board for the Beaded by Unknown redesign.">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one gold thread strings the whole page. It runs through the letters of the
+   name, drops down the margin, loops into the bracelet, and ends through the footer. */
+:root {
+  --ground: #FAFAF8;
+  --step: #F0EFEB;
+  --ink: #191612;
+  --soft: #5A5347;
+  --thread: #B38E42;
+  --m: clamp(16px, 1.7vw, 26px);
+  --r: 28px;
+  --face: 'Jost', 'Futura', 'Century Gothic', sans-serif;
+  --s-small: 0.9375rem;
+  --s-body: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+  --s-lead: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  --s-head: clamp(2.75rem, 1.2rem + 5.4vw, 6.25rem);
+  --out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--ground); -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--face); font-size: var(--s-body); line-height: 1.5; overflow-x: clip; position: relative; }
+img, canvas { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, p, ul, figure, blockquote { margin: 0; padding: 0; }
+ul { list-style: none; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--thread); outline-offset: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* the thread that runs behind everything */
+#strand { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; z-index: 0; overflow: visible; }
+#strand path { fill: none; stroke: var(--thread); stroke-width: 2; stroke-linecap: round; }
+#riders { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 0; pointer-events: none; }
+#riders canvas { position: absolute; left: 0; top: 0; max-width: none; will-change: transform; }
+main, header, footer { position: relative; z-index: 1; }
+
+/* top bar */
+.top { display: flex; justify-content: space-between; align-items: center; padding: 18px var(--m); }
+.top ul { display: flex; gap: clamp(16px, 2.2vw, 34px); }
+.top a, .pill a { transition: color 160ms ease; }
+.only-wide { display: none; }
+@media (min-width: 760px) { .only-wide { display: inline; } .top li.only-wide { display: list-item; } }
+@media (hover: hover) { .top a:hover { color: var(--thread); } }
+
+.pill { position: fixed; z-index: 5; top: 12px; left: 50%; width: min(calc(100% - 2 * var(--m)), 860px); transform: translate(-50%, -140%); transition: transform 420ms var(--out); background: var(--ink); color: var(--ground); border-radius: 999px; padding: 10px 26px; display: flex; justify-content: space-between; align-items: center; font-size: var(--s-small); }
+.pill.is-on { transform: translate(-50%, 0); }
+.pill ul { display: flex; gap: 24px; }
+.mini { font-size: 1.375rem; line-height: 1; letter-spacing: -0.01em; display: inline-flex; }
+.mini span { display: inline-block; }
+.bag b { font-weight: 400; display: inline-block; min-width: 1ch; }
+@media (hover: hover) { .pill a:hover { color: #E2C587; } }
+
+/* hero */
+.name { position: relative; margin: 0; padding: 0 var(--m); }
+.word { display: block; font-weight: 400; font-size: 23.4vw; line-height: 0.86; letter-spacing: -0.035em; white-space: nowrap; position: relative; width: max-content; }
+.word .l { display: inline-block; position: relative; z-index: 1; }
+.js .word { visibility: hidden; }
+.line { position: absolute; left: 0; height: 2px; background: var(--thread); z-index: 0; transform-origin: left center; }
+
+.hero__row { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); padding: clamp(18px, 2.6vw, 38px) var(--m) 0; align-items: stretch; }
+.hero__text { grid-column: 1 / span 4; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding-bottom: 6px; }
+.by { font-size: var(--s-head); line-height: 1; letter-spacing: -0.03em; }
+.lead { font-size: var(--s-lead); line-height: 1.22; letter-spacing: -0.012em; max-width: 21em; margin-top: 18px; }
+.note { color: var(--soft); margin-top: 14px; max-width: 26em; }
+.acts { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--ground); border: 0; border-radius: 999px; padding: 15px 30px; cursor: pointer; transition: transform 140ms var(--out), background-color 180ms ease; }
+.btn:active { transform: scale(0.97); }
+.txt { text-decoration: underline; text-underline-offset: 0.24em; text-decoration-thickness: 1px; text-decoration-color: var(--thread); }
+@media (hover: hover) { .btn:hover { background: var(--thread); } }
+.hero__pic { grid-column: 5 / -1; border-radius: var(--r); overflow: hidden; height: clamp(380px, calc(100svh - 24vw - 96px), 760px); background: var(--step); position: relative; }
+.hero__pic img { width: 100%; height: 118%; object-fit: cover; object-position: 50% 68%; }
+
+/* pieces */
+section { position: relative; }
+.pieces { padding: clamp(150px, 19vw, 280px) var(--m) 0; }
+.h { font-size: var(--s-head); font-weight: 400; line-height: 1; letter-spacing: -0.032em; text-wrap: balance; }
+.pieces__grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); margin-top: clamp(32px, 4vw, 60px); }
+.card { position: relative; }
+.card--a { grid-column: 1 / span 7; }
+.card--b { grid-column: 8 / -1; }
+.card--c { grid-column: 8 / -1; margin-top: clamp(24px, 3vw, 48px); }
+.stack { grid-column: 8 / -1; padding-top: clamp(40px, 9vw, 150px); display: grid; }
+.stack .card { grid-column: auto; }
+.card__pic { position: relative; border-radius: var(--r); overflow: hidden; background: var(--step); display: block; }
+.card--a .card__pic { aspect-ratio: 1 / 1; }
+.card--a .card__pic img { object-position: 50% 92%; }
+.stack .card__pic { aspect-ratio: 5 / 4; }
+.card__pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 420ms ease; }
+.card__pic img + img { opacity: 0; }
+@media (hover: hover) { .card:not(.is-out):hover .card__pic img + img { opacity: 1; } }
+.is-out .card__pic img { opacity: 0.72; }
+.card__row { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding-top: 12px; }
+.card__row h3 { font-weight: 400; font-size: var(--s-lead); letter-spacing: -0.012em; line-height: 1.15; }
+.add { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 0.24em; text-decoration-thickness: 1px; text-decoration-color: var(--thread); white-space: nowrap; }
+.add:disabled { color: var(--soft); text-decoration: none; cursor: default; }
+.meta { color: var(--soft); }
+
+/* the bracelet */
+.fit { padding: clamp(150px, 16vw, 240px) var(--m) clamp(120px, 12vw, 180px); display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); align-items: center; }
+.fit__ring { grid-column: 1 / span 6; position: relative; aspect-ratio: 1; max-width: 660px; width: 100%; justify-self: center; }
+.fit__ring canvas { width: 100%; height: 100%; }
+.fit__num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.fit__num b { font-weight: 400; font-size: clamp(4rem, 2rem + 8vw, 8.5rem); line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.fit__num span { color: var(--soft); }
+.fit__ctl { grid-column: 8 / -1; }
+.fit__ctl p { margin-top: 18px; max-width: 28em; }
+.ctl { margin-top: 34px; }
+.ctl label, .ctl .lab { display: flex; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+output { font-variant-numeric: tabular-nums; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; cursor: grab; margin: 0; }
+input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--thread); }
+input[type=range]::-moz-range-track { height: 2px; background: var(--thread); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); margin-top: -13px; transition: transform 140ms var(--out); }
+input[type=range]::-moz-range-thumb { width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--ink); }
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.14); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: var(--step); border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer; transition: background-color 180ms ease, color 180ms ease, transform 140ms var(--out); }
+.chip:active { transform: scale(0.96); }
+.chip[aria-pressed=true] { background: var(--ink); color: var(--ground); }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { width: 40px; height: 40px; border: 0; border-radius: 50%; padding: 0; background: none; cursor: pointer; transition: transform 140ms var(--out); }
+.swatch canvas { width: 100%; height: 100%; }
+.swatch:active { transform: scale(0.92); }
+.swatch[aria-pressed=true] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.sum { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin-top: 34px; }
+.sum strong { font-weight: 400; font-size: var(--s-lead); letter-spacing: -0.012em; font-variant-numeric: tabular-nums; }
+
+/* sizes on one straight thread */
+.sizes { padding: 0 var(--m); }
+.sizes__track { position: relative; margin-top: clamp(40px, 5vw, 70px); height: clamp(170px, 16vw, 230px); }
+.sizes__track::before { content: ''; position: absolute; left: calc(-1 * var(--m)); right: calc(-1 * var(--m)); top: 38%; height: 2px; background: var(--thread); }
+.size { position: absolute; top: 38%; width: 0; height: 0; }
+.size canvas { position: absolute; max-width: none; transform: translate(-50%, -50%); }
+.size__cap { position: absolute; left: 0; transform: translateX(-50%); text-align: center; white-space: nowrap; font-size: var(--s-small); line-height: 1.3; }
+.size__cap span { color: var(--soft); display: block; }
+
+/* the letter, on one dark panel */
+.letter { margin: clamp(130px, 14vw, 210px) var(--m) 0; background: var(--ink); color: var(--ground); border-radius: calc(var(--r) + 8px); padding: clamp(14px, 1.6vw, 24px); display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); }
+.letter__pic { grid-column: 1 / span 6; border-radius: var(--r); overflow: hidden; min-height: 460px; position: relative; }
+.letter__pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 70%; }
+.letter__txt { grid-column: 7 / -1; padding: clamp(20px, 4.5vw, 72px) clamp(10px, 3.2vw, 52px); }
+.letter__txt p { margin-top: 20px; max-width: 34em; color: #DAD4C9; }
+.sig { color: #E2C587 !important; font-size: var(--s-lead); margin-top: 28px !important; }
+
+/* slow words */
+.words { padding: clamp(100px, 10vw, 150px) 0 clamp(70px, 7vw, 100px); overflow: hidden; }
+.words p { white-space: nowrap; font-size: clamp(3rem, 1.5rem + 6.4vw, 7rem); letter-spacing: -0.03em; line-height: 1; color: #D9D5CB; will-change: transform; }
+
+/* before you order */
+.qa { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); padding: 0 var(--m); }
+.qa__head { grid-column: 1 / span 5; position: sticky; top: 90px; align-self: start; }
+.qa__list { grid-column: 7 / -1; display: grid; gap: 8px; }
+.qa details { background: var(--step); border-radius: 18px; padding: 18px 22px; }
+.qa summary { cursor: pointer; font-size: var(--s-lead); letter-spacing: -0.012em; line-height: 1.2; list-style: none; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa details p { margin-top: 10px; max-width: 34em; }
+
+/* footer */
+footer { padding: clamp(130px, 14vw, 210px) 0 22px; overflow: hidden; }
+.close { position: relative; }
+.close .word2 { display: inline-block; font-size: 23.4vw; line-height: 0.86; letter-spacing: -0.035em; white-space: nowrap; padding-left: var(--m); will-change: transform; }
+.close .word2 span { position: relative; z-index: 1; display: inline-block; }
+.foot { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); padding: clamp(28px, 3vw, 44px) var(--m) 0; }
+.foot ul:nth-child(1) { grid-column: 1 / span 3; }
+.foot ul:nth-child(2) { grid-column: 4 / span 3; }
+.foot ul:nth-child(3) { grid-column: 7 / span 3; }
+.foot p { grid-column: 10 / -1; color: var(--soft); text-align: right; font-size: var(--s-small); }
+.foot li { padding: 2px 0; }
+
+.tag { position: fixed; z-index: 6; right: 10px; bottom: 10px; background: var(--ink); color: var(--ground); border-radius: 999px; padding: 6px 14px; font-size: 0.8125rem; white-space: nowrap; opacity: 0.86; }
+@media (max-width: 860px) { .tag { display: none; } }
+
+@media (max-width: 860px) {
+  .hero__row { display: flex; flex-direction: column; }
+  .hero__pic { height: min(112vw, 42svh); order: 2; }
+  .hero__text { order: 3; }
+  .pieces__grid { display: block; }
+  .stack { padding-top: 34px; gap: 34px; }
+  .card--c { margin-top: 0; }
+  .fit { display: block; }
+  .fit__ctl { margin-top: 28px; }
+  .sizes__track { height: 200px; }
+  .letter { display: block; }
+  .letter__pic { min-height: 0; aspect-ratio: 4 / 3; }
+  .qa { display: block; }
+  .qa__head { position: static; margin-bottom: 26px; }
+  .foot { display: block; }
+  .foot ul { margin-bottom: 18px; }
+  .foot p { text-align: left; }
+  .size__cap { font-size: 0.8125rem; }
+}
+@media (prefers-reduced-motion: reduce) { .js .word { visibility: visible; } }
+</style>
+</head>
+<body>
+
+<svg id="strand" aria-hidden="true"><path id="strandPath" d=""></path></svg>
+<div id="riders" aria-hidden="true"></div>
+
+<div class="pill" id="pill">
+  <a href="#top" class="mini" id="mini" aria-label="Beaded by Unknown, back to top"><span>b</span><span>e</span><span>e</span><span>e</span><span>a</span><span>d</span><span>e</span><span>d</span></a>
+  <ul>
+    <li class="only-wide"><a href="#pieces">Shop</a></li>
+    <li class="only-wide"><a href="#fit">String your own</a></li>
+    <li class="only-wide"><a href="#letter">Story</a></li>
+    <li><a href="#pieces" class="bag">Bag <b class="bagN">0</b></a></li>
+  </ul>
+</div>
+
+<header class="top" id="top">
+  <ul>
+    <li><a href="#pieces">Shop</a></li>
+    <li><a href="#fit">String your own</a></li>
+    <li class="only-wide"><a href="#letter">Story</a></li>
+    <li class="only-wide"><a href="#qa">Journal</a></li>
+  </ul>
+  <ul>
+    <li class="only-wide"><a href="#top">Search</a></li>
+    <li class="only-wide"><a href="#top">Account</a></li>
+    <li><a href="#pieces" class="bag">Bag <b class="bagN">0</b></a></li>
+  </ul>
+</header>
+
+<main>
+  <section class="hero">
+    <h1 class="name" id="name">
+      <span class="sr">Beaded by Unknown</span>
+      <i class="line" id="line" aria-hidden="true"></i>
+      <span class="word" id="word" aria-hidden="true"><span class="l">b</span><span class="l">e</span><span class="l">e</span><span class="l">e</span><span class="l">a</span><span class="l">d</span><span class="l">e</span><span class="l">d</span><i id="probe" style="display:inline-block;width:0;height:0"></i></span>
+    </h1>
+
+    <div class="hero__row">
+      <div class="hero__text">
+        <div>
+          <p class="by" aria-hidden="true">by Unknown</p>
+          <p class="lead">Bracelets and necklaces strung by hand, one bead at a time.</p>
+          <p class="note">Made to order in 7 to 14 days. Free shipping over ₱500.</p>
+        </div>
+        <div class="acts">
+          <a class="btn" href="#pieces">Shop the pieces</a>
+          <a class="txt" href="#fit">String your own</a>
+        </div>
+      </div>
+      <figure class="hero__pic" id="heroPic"><img src="img/basic-1.jpg" alt="Two strands of yellow and blue seed beads resting on a printed card" width="1036" height="1280"></figure>
+    </div>
+  </section>
+
+  <section class="pieces" id="pieces">
+    <h2 class="h">The pieces</h2>
+    <div class="pieces__grid">
+      <article class="card card--a">
+        <a class="card__pic" href="#pieces"><img src="img/november-1.jpg" alt="November Necklace, black flower pendant on pale stone" loading="lazy"><img src="img/november-2.jpg" alt="" loading="lazy"></a>
+        <div class="card__row"><h3>November Necklace</h3><span>₱55</span></div>
+        <div class="card__row" style="padding-top:2px"><span class="meta">Grey and black beads, clear bicones, flower pendant</span><button class="add" type="button">Add to bag</button></div>
+      </article>
+      <div class="stack">
+        <article class="card">
+          <a class="card__pic" href="#pieces"><img src="img/basic-1.jpg" alt="Basic Beads Bracelet in yellow and blue" loading="lazy" style="object-position:50% 72%"><img src="img/basic-2.jpg" alt="" loading="lazy"></a>
+          <div class="card__row"><h3>Basic Beads Bracelet</h3><span>₱1</span></div>
+          <div class="card__row" style="padding-top:2px"><span class="meta">Seed beads</span><button class="add" type="button">Add to bag</button></div>
+        </article>
+        <article class="card is-out" style="margin-top:34px">
+          <a class="card__pic" href="#pieces"><img src="img/glossy-1.jpg" alt="Glossy Beads Bracelet in pink and pale blue" loading="lazy"></a>
+          <div class="card__row"><h3>Glossy Beads Bracelet</h3><span>₱2</span></div>
+          <div class="card__row" style="padding-top:2px"><span class="meta">Sold out</span><button class="add" type="button" disabled>Back soon</button></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="fit" id="fit">
+    <div class="fit__ring" id="ringWrap">
+      <canvas id="ring" width="660" height="660" role="img" aria-label="A bracelet drawn to scale, updating with your choices"></canvas>
+      <div class="fit__num"><b id="count">20</b><span>beads</span></div>
+    </div>
+    <div class="fit__ctl">
+      <h2 class="h">Your wrist, in beads</h2>
+      <p>Every bracelet is sized by counting. Move the thread to your wrist and the count, the price and the bracelet change with it.</p>
+
+      <div class="ctl">
+        <label for="wrist"><span>Wrist</span><output id="wristOut" for="wrist">16.5 cm</output></label>
+        <input id="wrist" type="range" min="13" max="22" step="0.5" value="16.5">
+      </div>
+
+      <div class="ctl">
+        <div class="lab"><span>Bead</span><span id="beadOut" class="meta">Cat Eye, 8 mm</span></div>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="ctl">
+        <div class="lab"><span>Colour</span><span id="colorOut" class="meta">Blue and White</span></div>
+        <div class="swatches" id="swatches"></div>
+      </div>
+
+      <div class="sum">
+        <strong id="total">₱73</strong>
+        <a class="btn" href="#fit">String this one</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sizes" id="sizes">
+    <h2 class="h">Six sizes, sold by the bead</h2>
+    <div class="sizes__track" id="sizeTrack"></div>
+  </section>
+
+  <section class="letter" id="letter">
+    <figure class="letter__pic"><img src="img/november-2.jpg" alt="Close view of a beaded necklace on a jute stand" loading="lazy"></figure>
+    <div class="letter__txt">
+      <h2 class="h" style="font-size:clamp(2.25rem,1.2rem + 3.4vw,4.25rem)">It began as a late-night hobby</h2>
+      <p>Beaded by Unknown started with a love for colour and form, and a belief that jewellery can be a wearable piece of a dream, something that keeps you grounded through the day.</p>
+      <p>What started with a single strand grew into a practice of hand-stringing every bead with care. Small, handmade companions for your daily journey.</p>
+      <p class="sig">Unknown</p>
+    </div>
+  </section>
+
+  <section class="words"><p id="words" aria-hidden="true">Handmade&ensp;&ensp;Pre-order 7 to 14 days&ensp;&ensp;A gift for your friends, family, and yourself&ensp;&ensp;Handmade&ensp;&ensp;Pre-order 7 to 14 days</p></section>
+
+  <section class="qa" id="qa">
+    <div class="qa__head"><h2 class="h">Before you order</h2></div>
+    <div class="qa__list">
+      <details open><summary>How long does it take?</summary><p>Everything is a pre-order. Allow 7 to 14 days for your piece to be made, checked and packed before it ships by J&amp;T Express.</p></details>
+      <details><summary>What does shipping cost?</summary><p>₱85 to Metro Manila, ₱100 to Luzon, ₱120 to Visayas and ₱130 to Mindanao. Free on orders over ₱500.</p></details>
+      <details><summary>How do I measure my wrist?</summary><p>Wrap a soft tape around your wrist, snug but not tight, and read it in centimetres. The builder works out the bead count for you.</p></details>
+      <details><summary>Can I return a piece?</summary><p>Each piece is made for you, so all sales are final once work has started. Check your measurement before you order.</p></details>
+      <details><summary>How can I pay?</summary><p>GCash, Maya, QR Ph or card, through PayMongo.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer id="end">
+  <div class="close" id="close">
+    <i class="line" id="line2" aria-hidden="true" style="position:absolute"></i>
+    <div class="word2" id="word2" aria-label="beeeaded"></div>
+  </div>
+  <div class="foot">
+    <ul><li><a href="#pieces">Shop</a></li><li><a href="#fit">String your own</a></li><li><a href="#letter">Our story</a></li></ul>
+    <ul><li><a href="#qa">Size guide</a></li><li><a href="#qa">Shipping</a></li><li><a href="#qa">Terms and privacy</a></li></ul>
+    <ul><li><a href="https://www.instagram.com/beeeaded_/" rel="noreferrer">Instagram</a></li><li><a href="https://www.tiktok.com/@beeeaded_" rel="noreferrer">TikTok</a></li></ul>
+    <p>© 2026 Beaded by Unknown<br>Developed by Sean Rhani Dela Cruz</p>
+  </div>
+</footer>
+
+<span class="tag">Approved concept</span>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" integrity="sha384-HOvlOYPIs/zjoIkWUGXkVmXsjr8GuZLV+Q+rcPwmJOVZVpvTSXQChiN4t9Euv9Vc" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" integrity="sha384-P8VzCVnT9NBUkMrpcIZrJbA7EBjJvh/fJS6PmP+4nLIM284DtsImIv8D0fFjIkeh" crossorigin="anonymous"></script>
+<script src="beads.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ---------- the bracelet ---------- */
+const { COLLECTIONS, fit, sprite, Ring } = Beads;
+const picks = ['rs3', 'ij6', 'ce8', 'ma10', 'ip12'];
+const ring = new Ring($('#ring'));
+let colors = ['Blue', 'White'];
+
+const peso = (n) => '₱' + (Number.isInteger(n) ? n : n.toFixed(2));
+function report() {
+  const i = ring.info;
+  $('#count').textContent = i.count;
+  $('#total').textContent = peso(i.total);
+  $('#wristOut').textContent = ring.cm + ' cm';
+  $('#beadOut').textContent = `${ring.coll.type}, ${ring.coll.size} mm`;
+  $('#colorOut').textContent = colors.join(' and ');
+}
+ring.onChange = () => { report(); buildStrand(); };
+
+function swatches() {
+  const box = $('#swatches');
+  box.innerHTML = '';
+  ring.coll.colors.slice(0, 9).forEach((name) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch';
+    b.setAttribute('aria-label', name);
+    b.setAttribute('aria-pressed', colors.includes(name));
+    const c = document.createElement('canvas');
+    const s = sprite(name, ring.coll.type, 40);
+    c.width = s.width; c.height = s.height;
+    c.getContext('2d').drawImage(s, 0, 0);
+    b.append(c);
+    b.onclick = () => {
+      colors = colors.includes(name) ? colors.filter((n) => n !== name) : [colors[colors.length - 1], name].filter(Boolean);
+      if (!colors.length) colors = [name];
+      ring.set({ pattern: colors });
+      swatches();
+    };
+    box.append(b);
+  });
+}
+
+picks.forEach((id) => {
+  const coll = COLLECTIONS.find((c) => c.id === id);
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip';
+  b.textContent = `${coll.type} ${coll.size} mm`;
+  b.setAttribute('aria-pressed', coll === ring.coll);
+  b.onclick = () => {
+    $$('.chip').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    colors = colors.filter((n) => coll.colors.includes(n));
+    if (!colors.length) colors = coll.colors.slice(0, 2);
+    ring.scales.length = 0;
+    ring.set({ coll, pattern: colors });
+    if (!calm) { ringDone = true; ring.string(0.9); }
+    swatches();
+  };
+  $('#chips').append(b);
+});
+swatches();
+$('#wrist').addEventListener('input', (e) => ring.set({ cm: parseFloat(e.target.value) }));
+
+/* ---------- six sizes on one thread ---------- */
+const sizes = [[3, 0.5], [4, 1], [6, 1], [8, 1], [10, 3], [12, 4]];
+const trackW = $('#sizeTrack').clientWidth;
+const unit = Math.min(14, (trackW * (trackW < 560 ? 0.5 : 0.66)) / 43);        /* 43 mm in all, drawn at one scale */
+const gap = (trackW - 43 * unit) / 6;
+let walk = gap / 2;
+sizes.forEach(([mm, from], i) => {
+  const el = document.createElement('div');
+  el.className = 'size';
+  const px = mm * unit;
+  el.style.left = (walk + px / 2) + 'px';
+  walk += px + gap;
+  const s = sprite(['Sky Blue', 'Pink', 'Moss Green', 'Yellow', 'Dark Blue', 'Dirty White'][i], ['Glass Seed', 'Imitation Jade', 'Acrylic', 'Acrylic', 'Cat Eye', 'Imitation Pearl'][i], px);
+  const c = document.createElement('canvas');
+  c.width = s.width; c.height = s.height;
+  c.style.width = c.style.height = px + 'px';
+  c.getContext('2d').drawImage(s, 0, 0);
+  const cap = document.createElement('div');
+  cap.className = 'size__cap';
+  cap.style.top = (px / 2 + 14) + 'px';
+  cap.innerHTML = `${mm} mm<span>${trackW < 560 ? '' : 'from '}${peso(from)}</span>`;
+  el.append(c, cap);
+  $('#sizeTrack').append(el);
+});
+
+/* ---------- footer word: the handle, with extra beads ---------- */
+const longWord = 'beeeeeeeeeaded';
+$('#word2').innerHTML = [...longWord].map((c) => `<span>${c}</span>`).join('');
+
+/* ---------- the name, fitted and threaded ---------- */
+const word = $('#word');
+function fitName() {
+  const box = $('#name').clientWidth - parseFloat(getComputedStyle($('#name')).paddingLeft) * 2;
+  word.style.fontSize = '100px';
+  const w = word.getBoundingClientRect().width;
+  word.style.fontSize = (100 * box / w) + 'px';
+}
+function xHeight(el) {
+  const cs = getComputedStyle(el);
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  return ctx.measureText('x').actualBoundingBoxAscent;
+}
+function threadY() {
+  const base = $('#probe').getBoundingClientRect().bottom - $('#name').getBoundingClientRect().top;
+  return base - xHeight(word) * 0.5;
+}
+
+/* ---------- the strand ---------- */
+const svg = $('#strand'), path = $('#strandPath'), riders = $('#riders');
+let total = 0, ys = [], ls = [], stops = [], beads = [], minHead = 0, ringFrom = 0, ringTo = 0, ringDone = calm;
+
+function build(d) { path.setAttribute('d', d); total = path.getTotalLength(); path.style.strokeDasharray = total; }
+
+function buildStrand() {
+  const doc = document.documentElement;
+  const W = doc.clientWidth, H = doc.scrollHeight;
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.style.height = H + 'px';
+  const top = (el) => el.getBoundingClientRect().top + scrollY;
+  const bottom = (el) => el.getBoundingClientRect().bottom + scrollY;
+  const left = (el) => el.getBoundingClientRect().left;
+  const g = W < 860 ? 7 : parseFloat(getComputedStyle(doc).getPropertyValue('--m')) || 22;
+  const gut = W < 860 ? 7 : g / 2 + 1;
+
+  const y0 = top($('#name')) + threadY();
+  const r = 46;
+  const lineEnd = W - gut - r;
+  const line = $('#line');
+  line.style.top = threadY() - 1 + 'px';
+  line.style.left = '0';
+  line.style.width = lineEnd + 'px';
+
+  const heroB = bottom($('#heroPic'));
+  const pieces = top($('#pieces'));
+  const title = top($('#pieces .h'));
+  const crossY = Math.min(title - 44, heroB + (title - heroB) * 0.6);
+
+  const wrap = $('#ringWrap');
+  const size = wrap.getBoundingClientRect().width;
+  const cx = left(wrap) + size / 2, cy = top(wrap) + size / 2;
+  const R = ring.radius * (size / ring.w);
+  const low = cy + R;
+  const fitB = bottom($('#fit'));
+  const exitY = Math.max(low + 40, fitB - 60);
+
+  const sizesTop = top($('#letter'));
+  const letterB = bottom($('#letter'));
+  const closeY = top($('#close'));
+  const endY = closeY + threadYFoot();
+
+  const seg1 = [
+    `M ${lineEnd} ${y0}`,
+    `A ${r} ${r} 0 0 1 ${W - gut} ${y0 + r}`,
+    `L ${W - gut} ${heroB + 10}`,
+    `C ${W - gut} ${heroB + (crossY - heroB) * 0.9}, ${W * 0.8} ${crossY}, ${W * 0.5} ${crossY}`,
+    `C ${W * 0.2} ${crossY}, ${gut} ${crossY + 8}, ${gut} ${crossY + 110}`,
+    `L ${gut} ${low - 230}`,
+    `C ${gut} ${low - 40}, ${cx - 200} ${low}, ${cx} ${low}`
+  ].join(' ');
+  const seg2 = `A ${R} ${R} 0 1 0 ${cx - 0.01} ${low}`;
+  const out = W < 860
+    ? `C ${cx + 110} ${low}, ${W - gut} ${low}, ${W - gut} ${low + 44}`
+    : `C ${cx + 220} ${low}, ${W * 0.6} ${exitY}, ${W * 0.74} ${exitY} C ${W * 0.9} ${exitY}, ${W - gut} ${exitY + 10}, ${W - gut} ${exitY + 110}`;
+  const seg3 = [
+    out,
+    `L ${W - gut} ${endY - 70}`,
+    `A 70 70 0 0 1 ${W - gut - 70} ${endY}`,
+    `L ${-20} ${endY}`
+  ].join(' ');
+
+  build(seg1);
+  const len1 = total;
+  build(`${seg1} ${seg2}`);
+  const len2 = total;
+  build(`${seg1} ${seg2} ${seg3}`);
+  ringFrom = len1; ringTo = len2;
+
+  /* scroll to thread length: the tip stays a little below the middle of the screen */
+  ys = []; ls = [];
+  let last = -Infinity;
+  for (let l = 0; l <= total; l += 18) {
+    const p = path.getPointAtLength(l);
+    let y = p.y;
+    if (l > len1 && l < len2) y = low - 40 + ((l - len1) / (len2 - len1)) * 240;
+    if (y < last) y = last + 0.01;
+    ys.push(y); ls.push(l); last = y;
+  }
+
+  /* where the small beads come to rest: four short runs, touching, like a part-strung cord */
+  const runs = [len1 * 0.5, len1 * 0.86, len2 + (total - len2) * 0.2, len2 + (total - len2) * 0.68];
+  stops = [];
+  let b = 1;
+  runs.forEach((at) => {
+    let walked = at;
+    for (let k = 0; k < 4 && b < beads.length; k++, b++) { stops.push(walked); walked += beads[b].px * 0.96; }
+  });
+  stops.sort((p, q) => p - q);
+  minHead = Math.min(r * 1.6 + (heroB - y0 - r) * 0.8, total * 0.2);
+  placeRiders();
+}
+
+function threadYFoot() {
+  const el = $('#word2');
+  const cs = getComputedStyle(el);
+  const probe = document.createElement('i');
+  probe.style.cssText = 'display:inline-block;width:0;height:0';
+  el.append(probe);
+  const base = probe.getBoundingClientRect().bottom - $('#close').getBoundingClientRect().top;
+  probe.remove();
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  return base - ctx.measureText('x').actualBoundingBoxAscent * 0.5;
+}
+
+function makeRiders() {
+  const names = ['Yellow', 'Sky Blue', 'White', 'Dark Blue', 'Yellow', 'Sky Blue', 'White', 'Dark Blue', 'Pink', 'Moss Green', 'White', 'Sky Blue', 'Yellow', 'White', 'Dark Blue', 'Sky Blue', 'Pink'];
+  const n = names.length;
+  const big = innerWidth < 860 ? 13 : 18;
+  for (let i = 0; i < n; i++) {
+    const px = i === 0 ? big : big - (i % 3) * 2;
+    const s = sprite(names[i], 'Acrylic', px);
+    const c = document.createElement('canvas');
+    c.width = s.width; c.height = s.height;
+    c.style.width = c.style.height = px + 'px';
+    c.getContext('2d').drawImage(s, 0, 0);
+    riders.append(c);
+    beads.push({ el: c, px, set: gsap.quickSetter(c, 'css') });
+  }
+}
+
+const head = { l: 0 };
+function placeRiders() {
+  const L = head.l;
+  path.style.strokeDashoffset = total - L;
+  if (!ringDone && ringTo > ringFrom) {
+    const t = gsap.utils.clamp(0, 1, (L - ringFrom) / (ringTo - ringFrom));
+    ring.reveal(t);
+    if (t >= 1) ringDone = true;
+  }
+  let tail = 0;
+  beads.forEach((b, i) => {
+    tail += b.px * 0.96;
+    const at = i === 0 ? L : Math.min(L - tail, stops[i - 1] ?? L);
+    const on = at > 2;
+    const p = path.getPointAtLength(Math.max(0, at));
+    b.el.style.opacity = on ? 1 : 0;
+    b.el.style.transform = `translate(${p.x - b.px / 2}px, ${p.y - b.px / 2}px)`;
+  });
+}
+
+function lengthForScroll(s) {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const vh = innerHeight;
+  const closing = gsap.utils.clamp(0, 1, (s - (max - vh * 0.5)) / (vh * 0.5));
+  if (closing >= 1) return total;
+  const y = s + vh * (0.92 + closing * 0.4);
+  let lo = 0, hi = ys.length - 1;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (ys[m] <= y) lo = m; else hi = m - 1; }
+  return Math.min(total, Math.max(ls[lo] || 0, minHead));
+}
+
+/* ---------- start ---------- */
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+  fitName();
+  makeRiders();
+  buildStrand();
+  report();
+
+  gsap.set(word, { visibility: 'visible' });
+
+  /* the small floating bar */
+  ScrollTrigger.create({
+    start: 'top -320',
+    onEnter: () => $('#pill').classList.add('is-on'),
+    onLeaveBack: () => $('#pill').classList.remove('is-on')
+  });
+
+  /* add to bag strings one more e on to the small name */
+  let added = 0;
+  $$('.add:not(:disabled)').forEach((b) => b.addEventListener('click', () => {
+    added++;
+    $$('.bagN').forEach((n) => { n.textContent = added; });
+    gsap.fromTo('.bagN', { y: -6, opacity: 0.2 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power3.out' });
+    if (added <= 5) {
+      const e = document.createElement('span');
+      e.textContent = 'e';
+      const m = $('#mini');
+      m.insertBefore(e, m.children[3]);
+      if (!calm) gsap.from(e, { x: 40, opacity: 0, duration: 0.45, ease: 'power3.out' });
+    }
+  }));
+
+  if (calm) {
+    head.l = total;
+    placeRiders();
+    return;
+  }
+
+  /* 1. the name is strung, first letter first, travelling in along the thread */
+  const W = document.documentElement.clientWidth;
+  const letters = $$('.word .l');
+  const nameIn = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  nameIn
+    .from('#line', { scaleX: 0, duration: 1.05, ease: 'power3.inOut' })
+    .from(letters, {
+      x: (i, el) => W - el.getBoundingClientRect().left + 30,
+      duration: 1.1,
+      stagger: 0.085
+    }, 0.42)
+    .fromTo(head, { l: 0 }, { l: () => minHead, duration: 1.2, ease: 'power2.inOut', onUpdate: placeRiders }, 0.9)
+    .from('.hero__text > div > *, .hero__text .acts', { y: 22, opacity: 0, duration: 0.8, stagger: 0.08 }, 0.95)
+    .fromTo('#heroPic', { clipPath: 'inset(100% 0 0 0 round 28px)' }, { clipPath: 'inset(0% 0 0 0 round 28px)', duration: 1.25, ease: 'power3.inOut' }, 0.7)
+    .from('#heroPic img', { scale: 1.14, duration: 1.7, ease: 'power2.out' }, 0.7);
+
+  /* hero picture drifts a few percent as it leaves */
+  gsap.fromTo('#heroPic img', { yPercent: 0 }, { yPercent: -12, ease: 'none', scrollTrigger: { trigger: '#heroPic', start: 'top top', end: 'bottom top', scrub: true } });
+
+  /* 2. the thread follows the reader down the page */
+  const follow = gsap.quickTo(head, 'l', { duration: 0.7, ease: 'power3.out', onUpdate: placeRiders });
+  ScrollTrigger.create({ start: 0, end: 'max', onUpdate: (st) => { if (nameIn.progress() === 1) follow(lengthForScroll(st.scroll())); } });
+
+  /* 3. pieces: the big picture opens, the small ones settle */
+  gsap.from('#pieces .h', { yPercent: 34, opacity: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '#pieces .h', start: 'top 86%', once: true } });
+  gsap.fromTo('.card--a .card__pic', { clipPath: 'inset(0 100% 0 0 round 28px)' }, { clipPath: 'inset(0 0% 0 0 round 28px)', duration: 1.15, ease: 'power3.inOut', scrollTrigger: { trigger: '.card--a', start: 'top 82%', once: true } });
+  gsap.from('.card--a img', { scale: 1.1, duration: 1.5, ease: 'power2.out', scrollTrigger: { trigger: '.card--a', start: 'top 82%', once: true } });
+  $$('.stack .card').forEach((c) => gsap.from(c, { y: 34, opacity: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: c, start: 'top 90%', once: true } }));
+
+  /* 4. the bracelet strings itself as the thread comes round it: see placeRiders() */
+  gsap.from('.fit__ctl > *', { y: 24, opacity: 0, duration: 0.8, stagger: 0.07, ease: 'power3.out', scrollTrigger: { trigger: '.fit__ctl', start: 'top 74%', once: true } });
+
+  /* 5. sizes slide along their thread, smallest first */
+  gsap.from('.size', { x: (i) => -trackW * (0.1 + i * 0.05), opacity: 0, ease: 'power2.out', stagger: 0.06, scrollTrigger: { trigger: '#sizeTrack', start: 'top 92%', end: 'top 58%', scrub: 0.6 } });
+
+  /* 6. the letter panel grows into place */
+  gsap.from('#letter', { scale: 0.95, ease: 'none', scrollTrigger: { trigger: '#letter', start: 'top 96%', end: 'top 45%', scrub: 0.5 } });
+  gsap.from('.letter__txt > *', { y: 26, opacity: 0, duration: 0.85, stagger: 0.09, ease: 'power3.out', scrollTrigger: { trigger: '.letter__txt', start: 'top 76%', once: true } });
+
+  /* 7. slow words travel with the scroll */
+  gsap.fromTo('#words', { x: '4%' }, { x: '-36%', ease: 'none', scrollTrigger: { trigger: '.words', start: 'top bottom', end: 'bottom top', scrub: 0.4 } });
+
+  /* 8. answers come in row by row */
+  gsap.from('.qa details', { x: 26, opacity: 0, duration: 0.7, stagger: 0.07, ease: 'power3.out', scrollTrigger: { trigger: '.qa__list', start: 'top 80%', once: true } });
+
+  /* 9. the footer name keeps gaining beads as the page runs out */
+  gsap.fromTo('#word2', { x: 0 }, { x: () => -($('#word2').scrollWidth - innerWidth + 30), ease: 'none', scrollTrigger: { trigger: '#end', start: 'top 80%', end: 'bottom bottom', scrub: 0.5 } });
+
+  ScrollTrigger.addEventListener('refresh', buildStrand);
+  addEventListener('load', () => ScrollTrigger.refresh());
+  addEventListener('resize', () => { fitName(); });
+  ScrollTrigger.refresh();
+});
+</script>
+</body>
+</html>
