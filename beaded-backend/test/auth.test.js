@@ -22,6 +22,12 @@ async function startLogin(client = api()) {
   return codeFor(EMAIL);
 }
 
+/* Moves past the short gap between codes, which would otherwise hold back a second request. */
+const pastTheGap = () => User.updateOne({ email: EMAIL }, { otpNextAt: new Date(0) });
+
+const otherThan = (code) => (code === '111111' ? '222222' : '111111');
+const guess = (otp) => api().post('/api/verify-login-otp').send({ email: EMAIL, otp });
+
 const stubGoogle = (identity) => {
   require('../services/firebase').verifyIdToken = async () => identity;
 };
@@ -149,6 +155,7 @@ test('resend emails nothing unless a login is in progress', async () => {
 test('resend replaces the code for a login in progress', async () => {
   await account();
   const first = await startLogin();
+  await pastTheGap();
   await api().post('/api/resend-otp').send({ email: EMAIL });
   await flush();
   assert.equal(sent.length, 2);
@@ -244,4 +251,180 @@ test('new accounts need a password of at least 8 characters', async () => {
   const res = await api().post('/api/register').send({ firstName: 'Ana', lastName: 'Cruz', email: EMAIL, password: 'short' });
   assert.equal(res.status, 400);
   assert.equal(await User.countDocuments(), 0);
+});
+
+test('an expired sign-in cannot be revived without the password', async () => {
+  await account();
+  await startLogin();
+  await User.updateOne({ email: EMAIL }, { otpExpire: new Date(Date.now() - 1000), otpNextAt: new Date(0) });
+  sent.length = 0;
+  await api().post('/api/resend-otp').send({ email: EMAIL });
+  await flush();
+  assert.equal(sent.length, 0);
+});
+
+test('asking for another code does not refill the guesses', async () => {
+  await account();
+  const first = await startLogin();
+  for (let i = 0; i < 4; i++) await guess(otherThan(first));
+  await pastTheGap();
+  await api().post('/api/resend-otp').send({ email: EMAIL });
+  const second = await codeFor(EMAIL);
+  await guess(otherThan(second));
+  assert.equal((await guess(second)).status, 400);
+});
+
+test('asking for another reset code does not refill the guesses', async () => {
+  await account();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  const first = await codeFor(EMAIL);
+  const check = (otp) => api().post('/api/verify-otp').send({ email: EMAIL, otp });
+  for (let i = 0; i < 4; i++) await check(otherThan(first));
+  await pastTheGap();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  const second = await codeFor(EMAIL);
+  await check(otherThan(second));
+  assert.equal((await check(second)).status, 400);
+});
+
+test('after five wrong guesses only the password can start again', async () => {
+  await account();
+  const code = await startLogin();
+  for (let i = 0; i < 5; i++) await guess(otherThan(code));
+  sent.length = 0;
+  await api().post('/api/resend-otp').send({ email: EMAIL });
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  await flush();
+  assert.equal(sent.length, 0);
+
+  const fresh = await startLogin();
+  assert.equal((await guess(fresh)).status, 200);
+});
+
+test('a spent code does not hold back the next request', async () => {
+  await account();
+  await guess(await startLogin());
+  sent.length = 0;
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  await flush();
+  assert.equal(sent.length, 1);
+});
+
+test('an inbox cannot be flooded with reset codes', async () => {
+  await account();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  await flush();
+  assert.equal(sent.length, 1);
+});
+
+test('a reset request cannot interrupt a sign-in in progress', async () => {
+  await account();
+  const code = await startLogin();
+  await pastTheGap();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  assert.equal((await guess(code)).status, 200);
+});
+
+test('guesses sent side by side each use up an attempt', async () => {
+  await account();
+  const code = await startLogin();
+  await Promise.all(Array.from({ length: 12 }, () => guess(otherThan(code))));
+  assert.equal((await guess(code)).status, 400);
+});
+
+test('two requests with the right code sign in only once', async () => {
+  await account();
+  const code = await startLogin();
+  const results = await Promise.all([guess(code), guess(code), guess(code)]);
+  assert.equal(results.filter((res) => res.status === 200).length, 1);
+});
+
+test('checking a reset code does not use up a guess', async () => {
+  await account();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  const code = await codeFor(EMAIL);
+  const check = (otp) => api().post('/api/verify-otp').send({ email: EMAIL, otp });
+  for (let i = 0; i < 4; i++) await check(otherThan(code));
+  assert.equal((await check(code)).status, 200);
+  const res = await api().post('/api/reset-password').send({ email: EMAIL, otp: code, newPassword: 'a brand new password' });
+  assert.equal(res.status, 200);
+});
+
+test('changing the password signs out every earlier session', async () => {
+  await account();
+  const signedIn = await guess(await startLogin());
+  const before = await api().get('/api/user/me').set('Authorization', `Bearer ${signedIn.body.token}`);
+  assert.equal(before.status, 200);
+
+  await pastTheGap();
+  await api().post('/api/forgot-password').send({ email: EMAIL });
+  const code = await codeFor(EMAIL);
+  await api().post('/api/reset-password').send({ email: EMAIL, otp: code, newPassword: 'a brand new password' });
+
+  const after = await api().get('/api/user/me').set('Authorization', `Bearer ${signedIn.body.token}`);
+  assert.equal(after.status, 401);
+});
+
+test('a session from before versions existed keeps working', async () => {
+  const user = await account();
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const res = await api().get('/api/user/me').set('Authorization', `Bearer ${token}`);
+  assert.equal(res.status, 200);
+});
+
+test('account deletion codes are rate limited', async () => {
+  const user = await account();
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const client = api({ rateLimits: true });
+  let last;
+  for (let i = 0; i < 5; i++) {
+    last = await client.post('/api/user/request-delete').set('Authorization', `Bearer ${token}`);
+  }
+  assert.equal(last.status, 429);
+});
+
+test('account deletion guesses are rate limited', async () => {
+  const user = await account();
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const client = api({ rateLimits: true });
+  let last;
+  for (let i = 0; i < 12; i++) {
+    last = await client.delete('/api/user/delete').set('Authorization', `Bearer ${token}`).send({ otp: '123456' });
+  }
+  assert.equal(last.status, 429);
+});
+
+test('a new account is stored in lowercase', async () => {
+  await api().post('/api/register').send({ firstName: 'Ana', lastName: 'Cruz', email: 'Ana@Example.TEST', password: PASSWORD });
+  await flush();
+  assert.equal((await User.findOne()).email, 'ana@example.test');
+});
+
+test('signing in ignores the case of the email', async () => {
+  await account();
+  const res = await api().post('/api/login').send({ email: 'ANA@example.test', password: PASSWORD });
+  assert.equal(res.status, 200);
+});
+
+test('an older account with capitals in its email can still sign in', async () => {
+  await account({ email: 'Ana@Example.test' });
+  const res = await api().post('/api/login').send({ email: 'ana@example.test', password: PASSWORD });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.email, 'Ana@Example.test');
+});
+
+test('registering cannot create a second account in different capitals', async () => {
+  await account({ email: 'Ana@Example.test' });
+  const res = await api().post('/api/register').send({ firstName: 'Ana', lastName: 'Cruz', email: 'ana@example.test', password: PASSWORD });
+  assert.equal(res.status, 400);
+  assert.equal(await User.countDocuments(), 1);
+});
+
+test('Google sign-in finds an older account with capitals in its email', async () => {
+  await account({ email: 'Ana@Example.test' });
+  stubGoogle({ email: 'ana@example.test', firstName: 'Ana', lastName: 'Cruz' });
+  const res = await api().post('/api/google-login').send({ idToken: 'valid' });
+  assert.equal(res.status, 200);
+  assert.equal(await User.countDocuments(), 1);
 });

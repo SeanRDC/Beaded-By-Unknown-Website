@@ -359,6 +359,7 @@ test('a forgotten password can be reset with an emailed code', async ({ page, re
   test.skip(info.project.name === 'phone', 'covered on desktop');
   const email = unique('forgetful');
   await request.post(`${API}/api/register`, { data: { firstName: 'Ana', lastName: 'Cruz', email, password: 'first password' } });
+  await request.post(`${API}/api/verify-login-otp`, { data: { email, otp: await latestCode(request, email) } });
 
   await page.goto('/');
   await page.getByRole('button', { name: 'Sign in' }).first().click();

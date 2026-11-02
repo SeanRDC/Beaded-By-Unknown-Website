@@ -134,7 +134,7 @@ export function LoginDialog() {
     await auth.resendCode(form.email);
     setSeconds(CODE_SECONDS);
     setCooldown(RESEND_SECONDS);
-    flash('A new code is on its way.', 'success');
+    flash('A new code is on its way. If nothing arrives, sign in again.', 'success');
   });
 
   return (
@@ -198,7 +198,7 @@ export function LoginDialog() {
             {cooldown > 0 ? `Send another code in ${cooldown}s` : 'Send another code'}
           </button>
         )}
-        {(step === 'forgot' || step === 'code' || step === 'reset') && (
+        {(step === 'verify' || step === 'forgot' || step === 'code' || step === 'reset') && (
           <button type="button" className="link t-small" onClick={() => setStep('signin')}>Back to sign in</button>
         )}
 

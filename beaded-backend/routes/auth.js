@@ -8,7 +8,7 @@ const { code, email, newPassword, optionalText, text, validate } = require('../m
 const User = require('../models/User');
 const mail = require('../services/email');
 const firebase = require('../services/firebase');
-const { checkOtp, issueOtp } = require('../services/otp');
+const { canSendOtp, checkOtp, hasActiveOtp, issueOtp } = require('../services/otp');
 const { publicUser } = require('./user');
 
 const GOOGLE_ONLY = 'google-auth-no-password';
@@ -32,7 +32,7 @@ function authRoutes(limits) {
   const router = express.Router();
 
   router.post('/register', limits.auth, validate(registerBody), async (req, res) => {
-    if (await User.findOne({ email: req.body.email })) throw new HttpError(400, 'Email already in use.');
+    if (await User.findByEmail(req.body.email)) throw new HttpError(400, 'Email already in use.');
 
     const user = new User({
       firstName: req.body.firstName,
@@ -46,7 +46,7 @@ function authRoutes(limits) {
   });
 
   router.post('/login', limits.auth, validate(loginBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findByEmail(req.body.email);
     if (!user) throw new HttpError(400, 'Invalid email or password.');
     if (user.password === GOOGLE_ONLY) throw new HttpError(400, 'Please sign in with Google.');
     if (!(await bcrypt.compare(req.body.password, user.password))) throw new HttpError(400, 'Invalid email or password.');
@@ -56,10 +56,10 @@ function authRoutes(limits) {
     res.json({ requireOtp: true, email: user.email });
   });
 
-  /* Only a login in progress gets a fresh code. The answer never reveals whether an account exists. */
+  /* Only a live sign-in gets a fresh code. The answer never reveals whether an account exists. */
   router.post('/resend-otp', limits.email, validate(emailBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
-    if (user && user.otpPurpose === 'login') {
+    const user = await User.findByEmail(req.body.email);
+    if (user && hasActiveOtp(user, 'login') && canSendOtp(user)) {
       const otp = await issueOtp(user, 'login');
       await mail.send({ to: user.email, ...mail.loginCode(otp) });
     }
@@ -67,21 +67,21 @@ function authRoutes(limits) {
   });
 
   router.post('/verify-login-otp', limits.auth, validate(codeBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findByEmail(req.body.email);
     if (!user || !(await checkOtp(user, 'login', req.body.otp))) throw new HttpError(400, 'Invalid or expired code.');
     res.json(session(user));
   });
 
   router.post('/google-login', limits.auth, validate(googleBody), async (req, res) => {
     const identity = await firebase.verifyIdToken(req.body.idToken);
-    const user = (await User.findOne({ email: identity.email })) || (await User.create({ ...identity, password: GOOGLE_ONLY }));
+    const user = (await User.findByEmail(identity.email)) || (await User.create({ ...identity, password: GOOGLE_ONLY }));
     res.json(session(user));
   });
 
-  /* Same answer for known and unknown emails. */
+  /* Same answer for known and unknown emails. A reset never interrupts a sign-in in progress. */
   router.post('/forgot-password', limits.email, validate(emailBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
-    if (user) {
+    const user = await User.findByEmail(req.body.email);
+    if (user && canSendOtp(user) && !hasActiveOtp(user, 'login')) {
       const otp = await issueOtp(user, 'reset');
       await mail.send({ to: user.email, ...mail.resetCode(otp) });
     }
@@ -89,15 +89,16 @@ function authRoutes(limits) {
   });
 
   router.post('/verify-otp', limits.auth, validate(codeBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findByEmail(req.body.email);
     if (!user || !(await checkOtp(user, 'reset', req.body.otp, { consume: false }))) throw new HttpError(400, 'Invalid or expired code.');
     res.json({ message: 'Code verified.' });
   });
 
   router.post('/reset-password', limits.auth, validate(resetBody), async (req, res) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findByEmail(req.body.email);
     if (!user || !(await checkOtp(user, 'reset', req.body.otp))) throw new HttpError(400, 'Invalid or expired code.');
     user.password = await bcrypt.hash(req.body.newPassword, SALT_ROUNDS);
+    user.tokenVersion += 1;
     await user.save();
     res.json({ message: 'Password changed.' });
   });

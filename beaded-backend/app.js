@@ -40,7 +40,7 @@ function createApp({ rateLimits = true } = {}) {
   });
 
   app.use('/api', authRoutes(limits));
-  app.use('/api', userRoutes());
+  app.use('/api', userRoutes(limits));
   app.use('/api', productRoutes(limits));
   app.use('/api', orderRoutes(limits));
   app.use('/api', customOrderRoutes(limits));

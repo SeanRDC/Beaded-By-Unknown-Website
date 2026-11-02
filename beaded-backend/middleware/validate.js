@@ -18,7 +18,7 @@ const validId = (req, res, next) => {
 const text = (max, message) => z.string({ error: message }).trim().min(1, message).max(max, message);
 const optionalText = (max) => z.string().trim().max(max).optional();
 
-const email = z.string({ error: 'Enter a valid email address.' }).trim().email('Enter a valid email address.').max(254);
+const email = z.string({ error: 'Enter a valid email address.' }).trim().toLowerCase().email('Enter a valid email address.').max(254);
 const code = z.string({ error: 'Enter the 6-digit code.' }).regex(/^\d{6}$/, 'Enter the 6-digit code.');
 const newPassword = z.string({ error: 'Use at least 8 characters.' }).min(8, 'Use at least 8 characters.').max(200, 'That password is too long.');
 
