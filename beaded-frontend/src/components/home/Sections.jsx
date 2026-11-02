@@ -38,7 +38,7 @@ export function Pieces() {
     gsap.utils.toArray('.pieces__stack .card', root.current).forEach((card) => {
       gsap.from(card, { y: 34, opacity: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: card, start: 'top 90%', once: true } });
     });
-  }, { scope: root, dependencies: [loaded] });
+  }, { scope: root, dependencies: [loaded], defer: true });
 
   if (productsReady && !productsFailed && !loaded) return null;
 
@@ -107,7 +107,7 @@ export function SizesLine() {
       stagger: 0.06,
       scrollTrigger: { trigger: track.current, start: 'top 92%', end: 'top 58%', scrub: 0.6 }
     });
-  }, { scope: root, dependencies: [width > 0] });
+  }, { scope: root, dependencies: [width > 0], defer: true });
 
   return (
     <section className="line-of-sizes" ref={root}>
@@ -133,7 +133,7 @@ export function Letter() {
   useMotion(() => {
     gsap.from(root.current, { scale: 0.95, ease: 'none', scrollTrigger: { trigger: root.current, start: 'top 96%', end: 'top 45%', scrub: 0.5 } });
     rise('.letter__text > *', '.letter__text', { stagger: 0.09, start: 'top 76%' });
-  }, { scope: root });
+  }, { scope: root, defer: true });
 
   return (
     <section className="letter" ref={root}>
@@ -162,7 +162,7 @@ export function SlowWords() {
       ease: 'none',
       scrollTrigger: { trigger: root.current, start: 'top bottom', end: 'bottom top', scrub: 0.4 }
     });
-  }, { scope: root });
+  }, { scope: root, defer: true });
 
   return (
     <section className="words" ref={root} aria-label={words.join('. ')}>
@@ -190,7 +190,7 @@ export function Quotes() {
   useMotion(() => {
     if (!quote) return;
     gsap.from('.quote > *', { y: 18, opacity: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out' });
-  }, { scope: root, dependencies: [index, Boolean(quote)] });
+  }, { scope: root, dependencies: [index, Boolean(quote)], defer: true });
 
   if (!quote) return null;
 
@@ -212,7 +212,7 @@ export function BeforeYouOrder() {
 
   useMotion(() => {
     gsap.from('details', { x: 26, opacity: 0, duration: 0.7, stagger: 0.07, ease: 'power3.out', scrollTrigger: { trigger: '.qa__list', start: 'top 80%', once: true } });
-  }, { scope: root });
+  }, { scope: root, defer: true });
 
   return (
     <section className="qa" ref={root}>
@@ -239,7 +239,7 @@ export function LatestPost() {
 
   useMotion(() => {
     if (post) rise('.latest > *', '.latest');
-  }, { scope: root, dependencies: [Boolean(post)] });
+  }, { scope: root, dependencies: [Boolean(post)], defer: true });
 
   if (!post) return null;
 
@@ -248,9 +248,9 @@ export function LatestPost() {
       <Link className="latest" to={`/journal/${slugify(post.title)}`}>
         <span className="pic pic--fill latest__pic"><ProductImage src={post.img} alt="" sizes="(max-width: 860px) 100vw, 33vw" /></span>
         <span>
-          <span className="soft">From the journal</span>
           <span className="t-title latest__title">{post.title}</span>
           <span>{post.ex}</span>
+          <span className="link">Read it in the journal</span>
         </span>
       </Link>
     </section>

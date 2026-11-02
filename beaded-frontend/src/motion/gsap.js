@@ -8,12 +8,43 @@ export const NO_REDUCED = '(prefers-reduced-motion: no-preference)';
 
 export const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* Runs setup only for people who have not asked for less motion, and cleans up with the component. */
-export function useMotion(setup, { scope, dependencies = [] } = {}) {
+const IDLE_TIMEOUT_MS = 700;
+const IDLE_FALLBACK_MS = 200;
+
+function whenIdle(task) {
+  if ('requestIdleCallback' in window) {
+    const id = window.requestIdleCallback(task, { timeout: IDLE_TIMEOUT_MS });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = setTimeout(task, IDLE_FALLBACK_MS);
+  return () => clearTimeout(id);
+}
+
+/* Waits for the coming frame to paint, then for a quiet moment. Returns a function that cancels. */
+export function afterFirstPaint(task) {
+  let cancelIdle = () => {};
+  const frame = requestAnimationFrame(() => {
+    cancelIdle = whenIdle(task);
+  });
+  return () => {
+    cancelAnimationFrame(frame);
+    cancelIdle();
+  };
+}
+
+/* Runs setup only for people who have not asked for less motion, and cleans up with the component.
+   Use defer for anything below the first screen, so it never delays the first paint. */
+export function useMotion(setup, { scope, dependencies = [], defer = false } = {}) {
   useGSAP(() => {
-    const mm = gsap.matchMedia();
-    mm.add(NO_REDUCED, setup);
-    return () => mm.revert();
+    const mm = gsap.matchMedia(scope?.current);
+    const start = () => {
+      mm.add(NO_REDUCED, setup);
+    };
+    const cancel = defer ? afterFirstPaint(start) : start();
+    return () => {
+      cancel?.();
+      mm.revert();
+    };
   }, { scope, dependencies, revertOnUpdate: true });
 }
 

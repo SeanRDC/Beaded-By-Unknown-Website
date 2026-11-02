@@ -70,6 +70,30 @@ test('the portfolio notice also greets a visitor arriving on a product link', as
   await expect(page.getByRole('dialog', { name: 'This shop is a portfolio project' })).toBeVisible();
 });
 
+const scrollY = (page) => page.evaluate(() => window.scrollY);
+
+async function scrollHomeToBracelet(page) {
+  await page.goto('/');
+  await page.locator('#fit').scrollIntoViewIfNeeded();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(300);
+  return scrollY(page);
+}
+
+test('home returns to the same place after a reload', async ({ page }) => {
+  const before = await scrollHomeToBracelet(page);
+  await page.reload();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(before - 60);
+});
+
+test('the back button returns to the same place on home', async ({ page }) => {
+  const before = await scrollHomeToBracelet(page);
+  await page.getByRole('link', { name: 'String this one' }).click();
+  await expect(page).toHaveURL(/\/custom$/);
+  await page.goBack();
+  await expect(page.locator('#fit')).toBeVisible();
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(before - 60);
+});
+
 test('home shows the name, pieces, questions and footer', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Beaded by Unknown/);

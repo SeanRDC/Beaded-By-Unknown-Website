@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { CORNER, gutter } from '../../lib/strand.js';
@@ -25,10 +25,7 @@ export function Hero({ firstVisit }) {
     line.current.style.width = `${width - gutter(width) - CORNER}px`;
   }, []);
 
-  useLayoutEffect(() => {
-    measure();
-  }, [measure]);
-
+  /* The stylesheet already sizes the name, so nothing here has to measure before the first paint. */
   useEffect(() => {
     let live = true;
     const settle = () => {
@@ -57,8 +54,7 @@ export function Hero({ firstVisit }) {
         .from(line.current, { scaleX: 0, duration: 1.05, ease: 'power3.inOut' })
         .from(letters, { x: (i, el) => width - el.getBoundingClientRect().left + 30, duration: 1.1, stagger: 0.085 }, 0.42)
         .from(gsap.utils.toArray('.hero__by, .hero__lead, .hero__note, .hero__acts', scope), { y: 22, opacity: 0, duration: 0.8, stagger: 0.08 }, 0.95)
-        .fromTo('#hero-pic', { clipPath: 'inset(100% 0 0 0 round 28px)' }, { clipPath: 'inset(0% 0 0 0 round 28px)', duration: 1.25, ease: 'power3.inOut', clearProps: 'clipPath' }, 0.7)
-        .from('#hero-pic img', { scale: 1.14, duration: 1.7, ease: 'power2.out' }, 0.7);
+        .from('#hero-pic img', { scale: 1.1, duration: 2.2, ease: 'power2.out' }, 0);
     }
 
     gsap.to('#hero-pic img', {

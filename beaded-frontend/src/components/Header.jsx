@@ -64,9 +64,12 @@ export function FloatingBar() {
 
   useEffect(() => {
     const check = () => setOn(window.scrollY > SHOW_AFTER);
-    check();
+    const frame = requestAnimationFrame(check);
     window.addEventListener('scroll', check, { passive: true });
-    return () => window.removeEventListener('scroll', check);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', check);
+    };
   }, []);
 
   return (

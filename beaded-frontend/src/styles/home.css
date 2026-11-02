@@ -6,8 +6,9 @@
 
 /* Hero */
 .hero { position: relative; z-index: 1; }
-.name { position: relative; margin: 0; padding: 0 var(--m); }
-.word { display: block; width: max-content; font-size: 23.4vw; line-height: 0.86; letter-spacing: -0.035em; white-space: nowrap; position: relative; visibility: hidden; }
+.home__rest { min-height: 100svh; }
+.name { position: relative; margin: 0; padding: 0 var(--m); container-type: inline-size; }
+.word { display: block; width: max-content; font-size: 23.4vw; font-size: calc(100cqw / 3.97106); line-height: 0.86; letter-spacing: -0.035em; white-space: nowrap; position: relative; visibility: hidden; }
 .is-ready .word { visibility: visible; }
 .word__letter { display: inline-block; position: relative; z-index: 1; }
 .name__line { position: absolute; left: 0; height: 2px; background: var(--thread); z-index: 0; transform-origin: left center; }

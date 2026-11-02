@@ -19,7 +19,7 @@ export function WristInBeads({ ringRef }) {
 
   useMotion(() => {
     rise(root.current.querySelectorAll('.fit__controls > *'), '.fit__controls', { y: 24, stagger: 0.07, start: 'top 74%' });
-  }, { scope: root });
+  }, { scope: root, defer: true });
 
   const chooseCollection = (next) => {
     setCollection(next);
