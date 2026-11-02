@@ -20,7 +20,7 @@ const middleSize = (product) => {
   return sizes[Math.floor(sizes.length / 2)];
 };
 
-export function ProductCard({ product, sizes, large = false }) {
+export function ProductCard({ product, sizes, large = false, eager = false }) {
   const { add, wish, toggleWish } = useCart();
   const { setQuickView } = useUi();
   const button = useRef(null);
@@ -36,7 +36,7 @@ export function ProductCard({ product, sizes, large = false }) {
     <article className={`card ${large ? 'card--large' : ''} ${soldOut ? 'is-out' : ''}`}>
       <div className="card__frame">
         <Link className="pic card__pic" to={productPath(product)} aria-label={product.name}>
-          <ProductImage src={product.img} alt={product.name} sizes={sizes} />
+          <ProductImage src={product.img} alt={product.name} sizes={sizes} eager={eager} />
           {product.img2 && <ProductImage src={product.img2} alt="" sizes={sizes} />}
         </Link>
         <button type="button" className="card__save" aria-pressed={saved} aria-label={saved ? `Remove ${product.name} from saved` : `Save ${product.name}`} onClick={() => toggleWish(product._id)}>

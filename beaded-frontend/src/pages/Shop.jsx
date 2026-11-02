@@ -84,7 +84,7 @@ export default function Shop() {
         <div className="shop-grid">
           {shown.map((product, index) => (
             <div key={product._id} style={placement(index)}>
-              <ProductCard product={product} large={index % GROUP === 0} sizes={index % GROUP === 0 ? '(max-width: 860px) 100vw, 58vw' : '(max-width: 860px) 100vw, 40vw'} />
+              <ProductCard product={product} large={index % GROUP === 0} eager={index === 0} sizes={index % GROUP === 0 ? '(max-width: 860px) 100vw, 58vw' : '(max-width: 860px) 100vw, 40vw'} />
             </div>
           ))}
         </div>

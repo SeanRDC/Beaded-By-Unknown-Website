@@ -35,6 +35,7 @@ export function ProductImage({ src, alt, sizes = '(max-width: 860px) 100vw, 50vw
       src={cld(src, 960)}
       srcSet={cldSrcSet(src, PRODUCT_WIDTHS)}
       sizes={sizes}
+      fetchPriority={eager ? 'high' : undefined}
       alt={alt}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
