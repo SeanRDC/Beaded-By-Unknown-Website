@@ -36,3 +36,6 @@ dist-ssr/
 
 # System Files
 .DS_Store
+
+# Original pictures. Run `npm run images` to rebuild public/img from them.
+assets-src/

@@ -110,3 +110,12 @@ test('a custom line is priced from its saved design', async () => {
 test('an old custom line with no saved design asks the customer to rebuild it', async () => {
   await assert.rejects(priceCart([{ id: 1730000000000, name: 'Custom Bracelet', price: 73, qty: 1 }], 'Luzon', settings), (err) => err.status === 400 && /rebuild/i.test(err.message));
 });
+
+test('the server and the storefront carry the same prices', async () => {
+  const storefront = await import('../../beaded-frontend/src/data/beads.js');
+  const server = require('../data/beads');
+  const prices = (list) => list.map(({ id, price, colors, size }) => ({ id, price, colors, size }));
+  assert.deepEqual(prices(storefront.COLLECTIONS), prices(server.COLLECTIONS));
+  assert.deepEqual(prices(storefront.STRINGS), prices(server.STRINGS));
+  assert.deepEqual(prices(storefront.CHARMS), prices(server.CHARMS));
+});

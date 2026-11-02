@@ -1,0 +1,65 @@
+{
+  "custom-1": {
+    "width": 2368,
+    "height": 1821,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  },
+  "hero-beads": {
+    "width": 1036,
+    "height": 1280,
+    "widths": [
+      640,
+      1024,
+      1036
+    ]
+  },
+  "heroimage": {
+    "width": 1842,
+    "height": 2304,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  },
+  "studio-1": {
+    "width": 1838,
+    "height": 2304,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  },
+  "studio-2": {
+    "width": 1850,
+    "height": 2304,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  },
+  "studio-3": {
+    "width": 1852,
+    "height": 2304,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  },
+  "studio-4": {
+    "width": 1667,
+    "height": 2094,
+    "widths": [
+      640,
+      1024,
+      1600
+    ]
+  }
+}
