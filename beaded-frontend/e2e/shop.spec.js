@@ -122,6 +122,31 @@ test('the back button returns to the same place on home', async ({ page }) => {
   await expect.poll(() => scrollY(page)).toBeGreaterThan(before - 60);
 });
 
+test('a short page keeps its footer on the first screen', async ({ page }) => {
+  await page.goto('/nowhere');
+  await expect(page.getByRole('heading', { name: 'This one slipped off the string' })).toBeVisible();
+  const top = await page.locator('#site-foot').evaluate((footer) => footer.getBoundingClientRect().top);
+  expect(top).toBeLessThan(page.viewportSize().height);
+});
+
+for (const [name, path] of [['the shop', '/shop'], ['a piece', '/shop/november-necklace']]) {
+  test(`${name} opens without the layout jumping`, async ({ page }) => {
+    await page.addInitScript(() => {
+      window.layoutShift = 0;
+      new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          if (!entry.hadRecentInput) window.layoutShift += entry.value;
+        });
+      }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.goto(path);
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => window.layoutShift)).toBeLessThan(0.1);
+  });
+}
+
 test('home shows the name, pieces, questions and footer', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Beaded by Unknown/);

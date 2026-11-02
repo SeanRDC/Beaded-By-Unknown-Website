@@ -45,7 +45,7 @@
 
 .ghost { aspect-ratio: 5 / 4; border-radius: var(--r-pic); background: var(--step); }
 .ghost--large { aspect-ratio: 1 / 1; }
-.loading { min-height: 70svh; }
+.loading { min-height: 100svh; }
 
 /* The bracelet */
 .fit { position: relative; z-index: 1; padding: clamp(150px, 16vw, 240px) var(--m) clamp(120px, 12vw, 180px); display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--m); align-items: center; }

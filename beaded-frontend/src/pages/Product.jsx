@@ -31,7 +31,7 @@ function ProductPage({ slug }) {
   }, { scope: root, dependencies: [product?._id] });
 
   if (!productsReady) {
-    return <div className="page"><div className="pdp"><div className="ghost ghost--large" /></div></div>;
+    return <div className="page"><div className="pdp" aria-busy="true"><div className="ghost ghost--large" /></div></div>;
   }
 
   if (!product) {
