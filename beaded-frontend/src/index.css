@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The admin dashboard keeps these until its own redesign. */
 html {
   scrollbar-gutter: stable;
   overflow-x: hidden;

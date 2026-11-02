@@ -8,7 +8,7 @@ export function startAnalytics() {
     window.dataLayer.push(arguments);
   };
   window.gtag('js', new Date());
-  window.gtag('config', MEASUREMENT_ID);
+  window.gtag('config', MEASUREMENT_ID, { send_page_view: false });
 
   const script = document.createElement('script');
   script.async = true;
@@ -16,7 +16,6 @@ export function startAnalytics() {
   document.head.append(script);
 }
 
-/* The theme is a shop setting now. localStorage only avoids a flash on the next visit. */
-export function applyTheme(theme) {
-  localStorage.setItem('beaded_theme', theme);
+export function trackPage(path) {
+  window.gtag?.('event', 'page_view', { page_path: path });
 }
