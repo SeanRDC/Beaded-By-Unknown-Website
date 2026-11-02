@@ -2,7 +2,7 @@
 
 Date: 2026-11-02. Status: awaiting review.
 Companion spec: `2026-11-02-backend-security-optimisation-design.md`, which ships first.
-Visual reference: `concept-a/a-strand.html` (the approved board, open it in a browser). The admin dashboard redesign comes after this and gets its own spec.
+The approved concept board has been replaced by the built site, and remains in the git history. The admin dashboard redesign comes after this and gets its own spec.
 
 ## Intent
 

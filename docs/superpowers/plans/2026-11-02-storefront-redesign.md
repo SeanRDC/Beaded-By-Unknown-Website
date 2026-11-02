@@ -4,7 +4,7 @@
 
 **Goal:** Rebuild the storefront as Direction A, The Strand, with real URLs, GSAP motion, a token-based design system and the approved fixes, keeping every current flow.
 
-**Architecture:** `App.jsx` splits into four stores, shared components and one file per route. Tailwind v3 stays, mapped to CSS variable tokens. GSAP runs through `useGSAP` and `gsap.matchMedia()`, so everything is scoped, cleaned up and reduced-motion aware. The approved board in `docs/superpowers/specs/concept-a/` is the visual reference.
+**Architecture:** `App.jsx` splits into four stores, shared components and one file per route. Tailwind v3 stays, mapped to CSS variable tokens. GSAP runs through `useGSAP` and `gsap.matchMedia()`, so everything is scoped, cleaned up and reduced-motion aware. The approved concept board was the visual reference, and remains in the git history.
 
 **Tech Stack:** React 19, React Router 7, Vite, Tailwind 3, GSAP 3 with ScrollTrigger and `@gsap/react`, Jost through `@fontsource-variable/jost`, Vitest, Playwright.
 
