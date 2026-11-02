@@ -5,6 +5,7 @@ const { z } = require('zod');
 const { requireUser } = require('../middleware/auth');
 const { HttpError } = require('../middleware/errors');
 const { code, optionalText, text, validate } = require('../middleware/validate');
+const anyCase = require('../models/anyCase');
 const CustomOrder = require('../models/CustomOrder');
 const Order = require('../models/Order');
 const mail = require('../services/email');
@@ -72,7 +73,7 @@ const designAsOrder = (design) => ({
   }]
 });
 
-function userRoutes() {
+function userRoutes(limits) {
   const router = express.Router();
 
   router.get('/user/me', requireUser, (req, res) => {
@@ -95,20 +96,22 @@ function userRoutes() {
   router.get('/user/orders', requireUser, async (req, res) => {
     const { email } = req.account;
     const [orders, designs] = await Promise.all([
-      Order.find({ customerEmail: email, status: mongoose.trusted({ $ne: Order.PENDING }) }).lean(),
-      CustomOrder.find({ email }).lean()
+      Order.find({ customerEmail: email, status: mongoose.trusted({ $ne: Order.PENDING }) }).collation(anyCase).lean(),
+      CustomOrder.find({ email, paid: mongoose.trusted({ $ne: false }) }).collation(anyCase).lean()
     ]);
-    const all = [...orders, ...designs.map(designAsOrder)];
+    /* A design bought through checkout already shows inside its order. */
+    const bought = new Set(orders.flatMap((order) => (order.items || []).map((item) => item.customOrderId)));
+    const all = [...orders, ...designs.filter((design) => !bought.has(String(design._id))).map(designAsOrder)];
     res.json(all.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
   });
 
-  router.post('/user/request-delete', requireUser, async (req, res) => {
+  router.post('/user/request-delete', limits.email, requireUser, async (req, res) => {
     const otp = await issueOtp(req.account, 'delete');
     await mail.send({ to: req.account.email, ...mail.deleteCode(otp) });
     res.json({ success: true });
   });
 
-  router.delete('/user/delete', requireUser, validate(deleteBody), async (req, res) => {
+  router.delete('/user/delete', limits.auth, requireUser, validate(deleteBody), async (req, res) => {
     if (!(await checkOtp(req.account, 'delete', req.body.otp))) throw new HttpError(400, 'Invalid or expired code.');
     await req.account.deleteOne();
     res.json({ success: true });

@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { z } = require('zod');
 
 const { requireAdmin } = require('../middleware/admin');
@@ -36,7 +37,8 @@ function customOrderRoutes(limits) {
   });
 
   router.get('/custom-orders', admin, async (req, res) => {
-    res.json(await CustomOrder.find().sort({ createdAt: -1 }).lean());
+    /* Designs saved before payments were tracked have no paid field, so they stay in the queue. */
+    res.json(await CustomOrder.find({ paid: mongoose.trusted({ $ne: false }) }).sort({ createdAt: -1 }).lean());
   });
 
   router.patch('/admin/custom-orders/:id/status', admin, validId, validate(statusBody), async (req, res) => {

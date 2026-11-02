@@ -286,3 +286,74 @@ test('an invalid custom design is refused', async () => {
   assert.equal(res.status, 400);
   assert.equal(await CustomOrder.countDocuments(), 0);
 });
+
+const design = (overrides = {}) => CustomOrder.create({ email: form.email, name: 'Mine', totalPrice: 73, beadType: 'Cat Eye', ...overrides });
+const tokenFor = (user) => jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const customer = () => User.create({ firstName: 'Ana', email: form.email, password: 'x' });
+const history = async (user) => (await api().get('/api/user/orders').set('Authorization', `Bearer ${tokenFor(user)}`)).body;
+
+test('a built-in object name is not a shipping region', async () => {
+  const res = await start([line(await product())], 'constructor');
+  assert.equal(res.status, 400);
+  assert.equal(await Order.countDocuments(), 0);
+});
+
+test('a design left in the bag is not an order', async () => {
+  const user = await customer();
+  await design();
+  assert.deepEqual(await history(user), []);
+  const queue = await api().get('/api/custom-orders').set(ADMIN);
+  assert.deepEqual(queue.body, []);
+});
+
+test('nobody can plant a design in another customer\'s history', async () => {
+  const user = await customer();
+  await api().post('/api/custom-orders').send({ email: form.email, collectionId: 'ce8', beads: Array.from({ length: 20 }, () => ({ name: 'Blue' })), stringId: 's1', wristCm: 16.5 });
+  assert.deepEqual(await history(user), []);
+});
+
+test('paying for a design sends it to the studio and lists it once for the customer', async () => {
+  const user = await customer();
+  const mine = await design();
+  await start([{ id: 99, name: 'Mine', price: 1, qty: 1, customOrderId: String(mine._id) }]);
+  await webhook(signed(paidEvent()));
+  await flush();
+
+  const queue = await api().get('/api/custom-orders').set(ADMIN);
+  assert.equal(queue.body.length, 1);
+  const list = await history(user);
+  assert.equal(list.length, 1);
+  assert.equal(list[0].status, 'Paid');
+});
+
+test('a design from before payments were tracked stays visible', async () => {
+  const user = await customer();
+  await CustomOrder.collection.insertOne({ email: form.email, name: 'Older', totalPrice: 73, status: 'Crafting', createdAt: new Date() });
+  assert.equal((await history(user)).length, 1);
+  const queue = await api().get('/api/custom-orders').set(ADMIN);
+  assert.equal(queue.body.length, 1);
+});
+
+test('orders appear for an older account with capitals in its email', async () => {
+  const user = await User.create({ firstName: 'Ana', email: 'Ana@Example.test', password: 'x' });
+  await start([line(await product())]);
+  await webhook(signed(paidEvent()));
+  await flush();
+  assert.equal((await history(user)).length, 1);
+});
+
+test('unpaid checkouts are set to expire, and paid orders are not', async () => {
+  await Order.init();
+  const indexes = await Order.collection.indexes();
+  const expiry = indexes.find((index) => index.expireAfterSeconds !== undefined);
+  assert.ok(expiry);
+  assert.deepEqual(expiry.partialFilterExpression, { status: Order.PENDING });
+});
+
+test('abandoned designs are set to expire, and paid ones are not', async () => {
+  await CustomOrder.init();
+  const indexes = await CustomOrder.collection.indexes();
+  const expiry = indexes.find((index) => index.expireAfterSeconds !== undefined);
+  assert.ok(expiry);
+  assert.deepEqual(expiry.partialFilterExpression, { paid: false });
+});
