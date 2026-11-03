@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigationType } from 'react-router-dom';
 
 import { gsap, reduced, ScrollTrigger } from '../motion/gsap.js';
 import { trackPage } from '../analytics.js';
+import { CONSENT_EVENT, getConsent, setConsent } from '../lib/consent.js';
 import { arriveAt, watchPlaces } from '../lib/places.js';
 import { useShop } from '../store/shop.jsx';
 import { useUi } from '../store/ui.jsx';
@@ -100,6 +101,48 @@ export function ShowcaseNotice() {
       </div>
     </Sheet>
   );
+}
+
+/* Asks once whether Google Analytics may run. Slides up from the bottom and never blocks the page. */
+export function CookieBanner() {
+  const [choice, setChoice] = useState(getConsent);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const follow = (event) => setChoice(event.detail ?? null);
+    window.addEventListener(CONSENT_EVENT, follow);
+    return () => window.removeEventListener(CONSENT_EVENT, follow);
+  }, []);
+
+  /* Mount first, then raise, so the slide plays. */
+  useEffect(() => {
+    if (choice) return undefined;
+    const frame = requestAnimationFrame(() => setShown(true));
+    return () => {
+      cancelAnimationFrame(frame);
+      setShown(false);
+    };
+  }, [choice]);
+
+  if (choice) return null;
+
+  return (
+    <section className={`consent ${shown ? 'is-shown' : ''}`} aria-label="Cookie choice">
+      <p>
+        I use Google Analytics to count visits and see how the site performs. Signing in and your bag work either way.{' '}
+        <Link className="link" to="/terms">Terms and privacy</Link>
+      </p>
+      <div className="consent__actions">
+        <button type="button" className="btn consent__no" onClick={() => setConsent('denied')}>Decline</button>
+        <button type="button" className="btn consent__yes" onClick={() => setConsent('granted')}>Accept</button>
+      </div>
+    </section>
+  );
+}
+
+/* Reopens the cookie banner from the footer. */
+export function CookieSettingsLink({ className = 'link' }) {
+  return <button type="button" className={className} onClick={() => setConsent(null)}>Cookie settings</button>;
 }
 
 /* A pared-back top bar for checkout, with one way back. */

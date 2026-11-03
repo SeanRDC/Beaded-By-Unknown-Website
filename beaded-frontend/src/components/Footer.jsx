@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { gsap, useMotion } from '../motion/gsap.js';
+import { CookieSettingsLink } from './Chrome.jsx';
 import { useShop } from '../store/shop.jsx';
 import { threadCenter } from '../lib/type.js';
 
@@ -58,6 +59,7 @@ export function Footer() {
           <li><Link to="/size-guide">Size guide</Link></li>
           <li><Link to="/shipping">Shipping and returns</Link></li>
           <li><Link to="/terms">Terms and privacy</Link></li>
+          <li><CookieSettingsLink className="foot__button" /></li>
         </ul>
         <ul>
           <li><a href="https://www.instagram.com/beeeaded_/" target="_blank" rel="noreferrer">Instagram</a></li>

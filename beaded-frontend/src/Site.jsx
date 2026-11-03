@@ -7,7 +7,7 @@ import { lazy, Suspense, useLayoutEffect } from 'react';
 import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import { BagDrawer } from './components/BagDrawer.jsx';
-import { CheckoutBar, PageLoading, PageTransition, ScrollManager, ShowcaseNotice, Toast } from './components/Chrome.jsx';
+import { CheckoutBar, CookieBanner, PageLoading, PageTransition, ScrollManager, ShowcaseNotice, Toast } from './components/Chrome.jsx';
 import { Footer } from './components/Footer.jsx';
 import { FloatingBar, Header } from './components/Header.jsx';
 import { LoginDialog } from './components/LoginDialog.jsx';
@@ -64,6 +64,7 @@ function Layout() {
       <QuickView />
       <Toast />
       <ShowcaseNotice />
+      <CookieBanner />
       <PageTransition />
     </div>
   );

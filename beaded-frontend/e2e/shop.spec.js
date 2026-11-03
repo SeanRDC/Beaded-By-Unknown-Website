@@ -8,6 +8,7 @@ const unique = (name) => `${name}.${Date.now()}.${Math.floor(Math.random() * 100
 
 /* Most tests start past the portfolio notice. */
 test.beforeEach(async ({ page }, info) => {
+  if (!info.title.includes('cookie')) await page.addInitScript(() => localStorage.setItem('beaded_cookie_choice', 'denied'));
   if (info.title.includes('notice')) return;
   await page.addInitScript(() => sessionStorage.setItem('beaded_notice_seen', '1'));
 });
@@ -551,4 +552,33 @@ test('Escape closes the notice and keeps it closed', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'I understand' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(notice).toBeHidden();
+});
+
+test('the cookie banner keeps Analytics off until accepted', async ({ page }) => {
+  const analytics = [];
+  await page.route('**/www.googletagmanager.com/**', (route) => {
+    analytics.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: 'text/javascript', body: '' });
+  });
+  await page.goto('/shop');
+  const banner = page.getByRole('region', { name: 'Cookie choice' });
+  await expect(banner).toBeVisible();
+  await page.waitForTimeout(800);
+  expect(analytics).toHaveLength(0);
+  const { violations } = await new AxeBuilder({ page }).include('.consent').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(violations.map((item) => item.id)).toEqual([]);
+
+  await banner.getByRole('button', { name: 'Decline' }).click();
+  await expect(banner).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'The pieces' })).toBeVisible();
+  await expect(banner).toBeHidden();
+  expect(analytics).toHaveLength(0);
+
+  await page.getByRole('button', { name: 'Cookie settings' }).click();
+  await expect(banner).toBeVisible();
+  await banner.getByRole('button', { name: 'Accept' }).click();
+  await expect(banner).toBeHidden();
+  await expect.poll(() => analytics.length).toBeGreaterThan(0);
+  expect(await page.evaluate(() => localStorage.getItem('beaded_cookie_choice'))).toBe('granted');
 });

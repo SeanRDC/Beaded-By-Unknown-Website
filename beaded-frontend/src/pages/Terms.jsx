@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { useSeo } from '../components/Chrome.jsx';
+import { CookieSettingsLink, useSeo } from '../components/Chrome.jsx';
 
 export default function Terms() {
   useSeo('Terms and privacy', 'What I collect, how orders work, and who owns what.');
@@ -15,8 +15,12 @@ export default function Terms() {
         <li><strong>Account details.</strong> Your name and email, from Google or from registering, and the phone number and address you choose to save.</li>
         <li><strong>Bag and saved pieces.</strong> Stored in my database so you can reach them on other devices.</li>
         <li><strong>Payments.</strong> I never store card details. All payments go through PayMongo.</li>
-        <li><strong>Analytics.</strong> Google Analytics counts visits to this site.</li>
+        <li><strong>Analytics.</strong> Google Analytics counts visits and measures how the site performs, but only if you accept it in the cookie banner.</li>
       </ul>
+
+      <h2 className="t-lead">Cookies and storage</h2>
+      <p>Your browser keeps a few things for the site to work: your sign-in, your bag, your saved pieces, your colour theme and your cookie choice. These are needed for the shop itself, so they do not ask first.</p>
+      <p>Google Analytics sets its own cookies, named <code>_ga</code>, and only after you choose Accept. If you decline, it never loads. You can change your answer at any time with <CookieSettingsLink />, which is also at the bottom of every page.</p>
 
       <h2 className="t-lead">The pieces</h2>
       <p>Everything is made by hand from seed and glass beads, acrylic, imitation jade and imitation pearl. Small differences in colour, shape and size are expected, and they make your piece your own.</p>
