@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 
 import { api } from '../api/client.js';
 import { useSeo } from '../components/Chrome.jsx';
+import { Sheet } from '../components/Sheet.jsx';
 import { lineKey } from '../lib/cart.js';
 import { cld } from '../lib/cloudinary.js';
 import { peso } from '../lib/money.js';
@@ -51,6 +52,7 @@ function CheckoutSteps({ user }) {
   const [form, setForm] = useState(() => startingForm(user));
   const [region, setRegion] = useState(user?.shippingAddress?.region || regions[0]);
   const [paying, setPaying] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const fee = shippingFor(subtotal, region, settings);
   const total = subtotal + fee;
@@ -65,6 +67,7 @@ function CheckoutSteps({ user }) {
   const set = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
 
   const pay = async () => {
+    setConfirming(false);
     setPaying(true);
     try {
       const session = await api('/create-checkout-session', { method: 'POST', body: { cart: lines, checkoutForm: form, shippingRegion: region } });
@@ -153,12 +156,25 @@ function CheckoutSteps({ user }) {
               )}
               <div className="checkout__nav">
                 <button type="button" className="link" onClick={() => setStep(2)}>Back</button>
-                <button type="button" className="btn" disabled={paying} onClick={pay}>
+                <button type="button" className="btn" disabled={paying} onClick={settings.showcase ? () => setConfirming(true) : pay}>
                   {paying ? 'One moment' : settings.showcase ? 'Continue to PayMongo' : `Pay ${peso(total)}`}
                 </button>
               </div>
             </div>
           )}
+
+          {/* In showcase mode PayMongo charges ₱1, not the total shown here, so say so before anyone leaves. */}
+          <Sheet open={confirming} onClose={() => setConfirming(false)} side="center" label="Before you pay">
+            <div className="notice">
+              <h2>Before you pay</h2>
+              <p>
+                This shop is a portfolio project. Your total here is {peso(total)}, but PayMongo will charge only ₱1,
+                so the payment can be tested for real. Nothing will be made or shipped.
+              </p>
+              <button type="button" className="btn btn--wide" data-autofocus onClick={pay}>Continue and pay ₱1</button>
+              <button type="button" className="btn btn--wide btn--quiet" onClick={() => setConfirming(false)}>Go back</button>
+            </div>
+          </Sheet>
         </div>
 
         <aside className="summary" aria-label="Order summary">

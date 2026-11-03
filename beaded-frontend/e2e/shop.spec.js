@@ -252,6 +252,12 @@ test('checkout charges the region rate, explains the test charge and confirms th
   await expect(page.getByText("You'll be charged ₱1 through PayMongo and nothing will ship.")).toBeVisible();
 
   await page.getByRole('button', { name: 'Continue to PayMongo' }).click();
+  const before = page.getByRole('dialog', { name: 'Before you pay' });
+  await expect(before).toContainText('PayMongo will charge only ₱1');
+  await before.getByRole('button', { name: 'Go back' }).click();
+  await expect(before).toBeHidden();
+  await page.getByRole('button', { name: 'Continue to PayMongo' }).click();
+  await before.getByRole('button', { name: 'Continue and pay ₱1' }).click();
   await expect(page).toHaveURL(/\/checkout\/confirmed\?ref=/);
   await expect(page.getByRole('heading', { name: 'Thank you' })).toBeVisible();
   await expect(page.getByText('nothing will ship')).toBeVisible();
@@ -309,6 +315,7 @@ test('the home bracelet carries into the builder and can be bought', async ({ pa
   await expect(page.locator('.summary .sum__total')).toContainText('₱183');
   await page.getByRole('button', { name: 'Continue to payment' }).click();
   await page.getByRole('button', { name: 'Continue to PayMongo' }).click();
+  await page.getByRole('button', { name: 'Continue and pay ₱1' }).click();
   await expect(page.getByRole('heading', { name: 'Thank you' })).toBeVisible();
 });
 
