@@ -31,7 +31,7 @@ for (const file of files) {
 
 await sharp(join(SOURCE, 'logo.png')).resize(64).png({ compressionLevel: 9 }).toFile('public/favicon.png');
 await sharp(join(SOURCE, 'logo.png')).resize(180).png({ compressionLevel: 9 }).toFile('public/apple-touch-icon.png');
-await sharp(join(SOURCE, 'HeroImage.png')).resize(1200, 630, { fit: 'cover', position: 'centre' }).jpeg({ quality: 78, mozjpeg: true }).toFile('public/og.jpg');
+await sharp(join(SOURCE, 'hero-flatlay.jpg')).resize(1200, 630, { fit: 'cover', position: 'centre' }).jpeg({ quality: 78, mozjpeg: true }).toFile('public/og.jpg');
 
 await writeFile('src/data/images.json', `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`${files.length} pictures written to ${OUTPUT}`);

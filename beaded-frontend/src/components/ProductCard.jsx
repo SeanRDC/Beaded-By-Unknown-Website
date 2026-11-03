@@ -80,11 +80,13 @@ export function QuickView() {
             <h2 className="t-lead">{product.name}</h2>
             <p className="nums">{peso(product.price)}</p>
             {product.desc && <p className="soft">{product.desc}</p>}
-            <div className="sizes" role="group" aria-label="Size">
-              {productSizes(product).map((option) => (
-                <button key={option} type="button" className="chip size-chip" aria-pressed={(size || middleSize(product)) === option} onClick={() => setSize(option)}>{option}</button>
-              ))}
-            </div>
+            {productSizes(product).length > 1 && (
+              <div className="sizes" role="group" aria-label="Size">
+                {productSizes(product).map((option) => (
+                  <button key={option} type="button" className="chip size-chip" aria-pressed={(size || middleSize(product)) === option} onClick={() => setSize(option)}>{option}</button>
+                ))}
+              </div>
+            )}
             <div className="qty qty--large" role="group" aria-label="Quantity" style={{ alignSelf: 'flex-start' }}>
               <button type="button" aria-label="One less" onClick={() => setQty((value) => Math.max(1, value - 1))}>−</button>
               <span className="nums">{qty}</span>

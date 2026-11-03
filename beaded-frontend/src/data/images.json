@@ -8,18 +8,18 @@
       1600
     ]
   },
-  "hero-beads": {
-    "width": 1036,
-    "height": 1280,
+  "hero-flatlay": {
+    "width": 1696,
+    "height": 2528,
     "widths": [
       640,
       1024,
-      1036
+      1600
     ]
   },
-  "heroimage": {
-    "width": 1842,
-    "height": 2304,
+  "letter-north-star": {
+    "width": 1600,
+    "height": 2143,
     "widths": [
       640,
       1024,

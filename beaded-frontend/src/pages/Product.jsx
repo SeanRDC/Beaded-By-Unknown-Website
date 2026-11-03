@@ -72,14 +72,16 @@ function ProductPage({ slug }) {
 
           {!soldOut && (
             <>
-              <div>
-                <p className="ctl__row"><span>Size</span></p>
-                <div className="sizes" role="group" aria-label="Size">
-                  {sizes.map((option) => (
-                    <button key={option} type="button" className="chip size-chip" aria-pressed={chosen === option} onClick={() => setSize(option)}>{option}</button>
-                  ))}
+              {sizes.length > 1 && (
+                <div>
+                  <p className="ctl__row"><span>Size</span></p>
+                  <div className="sizes" role="group" aria-label="Size">
+                    {sizes.map((option) => (
+                      <button key={option} type="button" className="chip size-chip" aria-pressed={chosen === option} onClick={() => setSize(option)}>{option}</button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               <div>
                 <p className="ctl__row"><span>Quantity</span></p>
                 <div className="qty qty--large" role="group" aria-label="Quantity">

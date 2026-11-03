@@ -138,7 +138,7 @@ export function Letter() {
   return (
     <section className="letter" ref={root}>
       <figure className="pic pic--fill letter__pic">
-        <Picture name="heroimage" alt="A grey and black beaded necklace on a jute stand" sizes="(max-width: 860px) 100vw, 50vw" style={{ objectPosition: '50% 78%' }} />
+        <Picture name="letter-north-star" alt="A fine silver chain with a frosted bead, a safety pin and a star charm on a stone tile" sizes="(max-width: 860px) 100vw, 50vw" style={{ objectPosition: '50% 55%' }} />
       </figure>
       <div className="letter__text">
         <h2 className="t-title">It began as a late-night hobby</h2>

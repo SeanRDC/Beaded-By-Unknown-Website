@@ -87,7 +87,7 @@ export function Hero({ firstVisit }) {
           </div>
         </div>
         <figure className="pic hero__pic" id="hero-pic">
-          <Picture name="hero-beads" alt="Two strands of yellow and blue seed beads resting on a printed card" sizes="(max-width: 860px) 100vw, 66vw" eager />
+          <Picture name="hero-flatlay" alt="Five pieces laid out on stone tiles over linen: two charm pins, a star necklace, a pearl and shell strap and a pair of charm hair clips" sizes="(max-width: 860px) 100vw, 66vw" eager />
         </figure>
       </div>
     </section>

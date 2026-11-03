@@ -17,7 +17,7 @@
 .pdp { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(24px, 4vw, 64px); align-items: start; }
 .pdp__pics { display: grid; gap: var(--m); min-width: 0; }
 .pdp__pic { aspect-ratio: 1 / 1; max-height: calc(100svh - 100px); width: 100%; }
-.pdp__pic img { object-position: 50% 88%; }
+.pdp__pic img { object-position: 50% 50%; }
 .pdp__details { position: sticky; top: 84px; display: grid; gap: 18px; min-width: 0; }
 .pdp__row { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .pdp__bar { display: none; }
