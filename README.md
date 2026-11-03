@@ -1,10 +1,10 @@
 <a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
-[![React](https://img.shields.io/badge/React-18-blue.svg?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue.svg?style=for-the-badge&logo=react)](https://react.dev/)
+[![GSAP](https://img.shields.io/badge/GSAP-3-88CE02.svg?style=for-the-badge&logo=greensock)](https://gsap.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-Backend-green.svg?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-lightgreen.svg?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC.svg?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 
 <!-- PROJECT LOGO -->
 <br />
@@ -12,10 +12,10 @@
   <h3 align="center">Beaded by Unknown</h3>
 
   <p align="center">
-    A production-ready, full-stack e-commerce platform for handcrafted, intentional bead jewelry. Features a custom jewelry builder, secure payments via PayMongo, and a bespoke headless CMS admin dashboard.
+    A full-stack e-commerce platform for handcrafted bead jewelry. Features a custom jewelry builder, secure payments via PayMongo, and a bespoke admin dashboard.
     <br />
     <br />
-    <strong>Tags:</strong> <code>react</code>, <code>node.js</code>, <code>mongodb</code>, <code>ecommerce</code>, <code>paymongo</code>, <code>cms</code>, <code>full-stack</code>, <code>tailwindcss</code>, <code>firebase-auth</code>, <code>order-fulfillment</code>, <code>business-management</code>
+    <strong>Tags:</strong> <code>react</code>, <code>gsap</code>, <code>node.js</code>, <code>mongodb</code>, <code>ecommerce</code>, <code>paymongo</code>, <code>cms</code>, <code>full-stack</code>, <code>firebase-auth</code>, <code>order-fulfillment</code>, <code>business-management</code>
     <br />
     <br />
     <a href="https://www.beadedbyunknown.shop/"><strong>View Live Demo »</strong></a>
@@ -34,6 +34,8 @@
     </li>
     <li><a href="#live-preview">Live Preview</a></li>
     <li><a href="#key-features">Key Features</a></li>
+    <li><a href="#running-it-locally">Running It Locally</a></li>
+    <li><a href="#testing">Testing</a></li>
     <li><a href="#project-structure">Project Structure</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
@@ -42,22 +44,25 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository contains the source code for Beaded by Unknown, a comprehensive full-stack e-commerce platform built to manage an end-to-end small-scale business. Beyond serving as a highly interactive storefront for handcrafted bead jewelry, the system handles the complete operational pipeline—from domain hosting configuration and live website deployment to secure payment processing and comprehensive product order fulfillment. It features a custom jewelry builder for customers and a bespoke headless CMS to give administrators full control over inventory, themes, and orders.
+This repository contains the source code for Beaded by Unknown, a full-stack e-commerce platform built to manage a small business from end to end. Beyond the storefront itself, the system handles the complete operational pipeline: domain hosting, deployment, secure payment processing and order fulfillment. It features a custom jewelry builder for customers and a bespoke dashboard that gives administrators control over inventory, themes and orders.
+
+> **This is a portfolio project.** The shop is fully functional, but orders are not fulfilled. Every checkout charges ₱1 and nothing is shipped, and a notice tells visitors so when they arrive.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
-* **Frontend (Client):** React 18 (Vite), Tailwind CSS, Lucide React, Firebase Authentication, Deployed on Vercel
-* **Backend (Server):** Node.js, Express.js, JSON Web Tokens (JWT) & bcryptjs, PayMongo API & Webhooks, Nodemailer, Cloudinary & Multer, Deployed on Render
-* **Database:** MongoDB Atlas, Mongoose (Strict schemas for Users, Products, Orders, Blogs, Reviews, and Settings)
+* **Frontend:** React 19 (Vite), React Router, GSAP with ScrollTrigger, hand-written CSS on design tokens shared by the storefront and the dashboard, Firebase Authentication, deployed on Vercel
+* **Backend:** Node.js, Express 5, Zod, Helmet, express-rate-limit, JSON Web Tokens and bcryptjs, PayMongo API and webhooks, Resend, Cloudinary and Multer, deployed on Render
+* **Database:** MongoDB Atlas, Mongoose (schemas for Users, Products, Orders, Custom Orders, Blogs, Reviews and Settings)
+* **Testing:** Node's test runner with Supertest and mongodb-memory-server, Vitest, Playwright with axe
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- LIVE PREVIEW -->
 ## Live Preview
 
-You can explore the interactive storefront, custom jewelry builder, checkout flow, and dynamic themes directly in your browser. *(Note: Admin dashboard routes are securely locked behind authentication).*
+You can explore the storefront, custom jewelry builder, checkout flow and themes directly in your browser. *(Note: Admin dashboard routes are locked behind authentication).*
 
 * 🔗 **[Visit Beaded by Unknown - www.beadedbyunknown.shop](https://www.beadedbyunknown.shop)**
 
@@ -67,26 +72,78 @@ You can explore the interactive storefront, custom jewelry builder, checkout flo
 ## Key Features
 
 ### The Storefront
-* **Custom Bracelet Builder:** An interactive visualizer allowing users to design jewelry by selecting specific stones, strings, hardware, and charms, featuring live price calculations and smart fit suggestions.
-* **Persistent Cart Sync:** Carts and wishlists are automatically saved to the database in real-time and restored upon login across any device.
-* **Dynamic Theme Engine:** Global UI toggles between "Earthy Brown" and "Blush Pink" themes, controlled directly from the admin panel.
-* **Production Polish:** Built with React Error Boundaries to prevent white-screens, Google Analytics 4 (GA4) tracking, and Open Graph tags for rich social sharing.
+* **The Strand:** The shop's name is set huge with a gold thread through its letters. As you scroll, the thread runs down the margin carrying beads, loops into a bracelet drawn to true proportions, and ends through the footer.
+* **Your Wrist, in Beads:** Move the thread to your wrist size and the bead count, the price and the bracelet change with it, then carry that design straight into the builder.
+* **Custom Bracelet Builder:** Design jewelry by choosing beads, colours, patterns, hardware and charms, with live pricing and a fit calculated from real bead sizes.
+* **A Bag That Follows You:** A guest's bag stays on their device, and signing in syncs the bag and saved pieces across devices.
+* **Dynamic Theme Engine:** The whole site switches between "Earthy Brown" and "Blush Pink" from the admin panel.
+* **Real Page Addresses:** Every page has its own URL, with product links, search, a sitemap and Open Graph tags for sharing.
+* **Built to Be Used by Everyone:** Pages pass an automated WCAG AA audit in both themes, and all motion gives way for people who ask for reduced motion.
+* **Fast on a Phone:** The opening screen paints first and the long page follows, Firebase loads only when someone signs in with Google, and pictures are served as AVIF and WebP in sizes that fit the screen.
 
 ### Authentication & Security
-* **Dual-Login System:** Supports traditional Email/Password (bcrypt + JWT) and Google OAuth via Firebase.
-* **In-App Password Recovery:** Custom-built OTP (One Time Password) reset flow powered by Nodemailer, keeping users inside the app without external redirects.
-* **Rate Limiting:** Email dispatch endpoints are guarded to prevent bot abuse.
+* **Dual-Login System:** Email and password (bcrypt and JWT) alongside Google sign-in, with Firebase ID tokens verified on the server.
+* **Sign-In Codes:** Hashed, single-purpose one-time codes for sign-in, password resets and account deletion, limited to five guesses counted atomically, with a lock after that.
+* **Sessions That End:** Changing a password signs out every earlier session.
+* **Validated Requests:** Every request body is checked with Zod and database filters are sanitised against injection.
+* **Layered Protection:** Helmet headers, a strict Content Security Policy, rate limits on sensitive routes and a fail-closed, constant-time admin check.
+* **Honest Prices:** Totals are always worked out on the server, so a tampered browser cannot change what an order costs.
 
 ### Checkout & Payments
-* **Integrated PayMongo Checkout:** Live payment processing supporting GCash, Maya, QR Ph, and Credit/Debit cards.
-* **Automated Webhooks & Receipts:** PayMongo webhooks instantly sync successful payments to the database and trigger Nodemailer to send branded HTML email receipts.
+* **Integrated PayMongo Checkout:** Payment processing supporting GCash, Maya, QR Ph and Credit/Debit cards.
+* **Signed Webhooks:** PayMongo webhooks are verified by signature and handled idempotently, so a repeated event never confirms an order twice.
+* **Branded Receipts:** Successful payments trigger HTML email receipts through Resend.
+* **Shipping by Region:** Rates depend on the destination and are set from the dashboard, with free shipping over a set amount.
+* **Showcase Mode:** Real prices are displayed while checkout charges ₱1, until `CHECKOUT_MODE` is set to `live`.
 
-### Admin Dashboard (SaaS CMS)
-* **Secret Access Route:** A locked dashboard requiring a secure Admin Key to access.
-* **Live Analytics:** Real-time revenue tracking and SVG sparkline charts visualizing 7-day sales trends.
-* **Order Fulfillment:** Comprehensive order management system to track and update statuses (Preparing ➔ Shipped ➔ Delivered).
-* **Inventory CRUD:** Manage the product catalog with seamless image hosting via **Cloudinary**.
-* **Global Store Controls:** Edit website announcement banners, feature highlights, and dynamically add/remove shop categories without touching the codebase.
+### The Studio (Admin Dashboard)
+* **One Design Language:** The dashboard shares the shop's tokens, type and controls, and its navigation is the same gold thread with a bead on the current page.
+* **Locked by a Server-Checked Key:** Nothing loads until the server accepts the studio key, and a changed key sends the dashboard back to the door.
+* **Sales at a Glance:** Revenue, orders and a seven-day chart.
+* **Order Fulfillment:** Read each order's details and move it through Paid, Shipped and Delivered, with the customer emailed at each step.
+* **Custom Designs:** A drawn preview of every paid design, with its beads, charms and measurements.
+* **Catalogue:** Add, edit, sell out and delete pieces, with pictures hosted on **Cloudinary**.
+* **Store Controls:** Edit the banner, highlights, categories, shipping rates, the free shipping amount, reviews, journal articles and the theme without touching the code.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- RUNNING IT LOCALLY -->
+## Running It Locally
+
+The quickest way needs no accounts at all. A throwaway API runs on an in-memory database, with fake payments and email:
+
+```sh
+cd beaded-backend
+npm install
+node scripts/dev-server.js        # http://localhost:4599
+```
+
+```sh
+cd beaded-frontend
+npm install
+VITE_API_URL=http://localhost:4599 npm run dev
+```
+
+To run the real backend, copy `beaded-backend/.env.example` to `.env`, fill it in, and start it with `npm start`. The file explains each setting, and the server refuses to start without the required ones.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- TESTING -->
+## Testing
+
+```sh
+cd beaded-backend
+npm test                          # API tests on an in-memory MongoDB
+```
+
+```sh
+cd beaded-frontend
+npm run lint
+npm test                          # Unit tests
+npm run test:e2e                  # Browser tests at desktop and phone sizes, with accessibility audits
+```
+
+The browser tests start the throwaway API and a production build by themselves. They run in Google Chrome.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -94,44 +151,42 @@ You can explore the interactive storefront, custom jewelry builder, checkout flo
 ## Project Structure
 
 ```text
-├── beaded-backend/               # Express.js backend directory
+├── beaded-backend/               # Express API
+│   ├── config/                   # Environment checks
+│   ├── data/                     # Bead catalogue used for server-side pricing
+│   ├── middleware/               # Auth, admin check, validation, rate limits, errors
 │   ├── models/                   # Mongoose database schemas
-│   │   ├── Blog.js               # Blog post schema
-│   │   ├── CustomOrder.js        # Bracelet builder order schema
-│   │   ├── Order.js              # Standard order schema
-│   │   ├── Product.js            # Product catalog schema
-│   │   ├── Review.js             # Customer review schema
-│   │   ├── Settings.js           # Global store settings schema
-│   │   └── User.js               # User account schema
-│   ├── .gitignore                # Ignored backend files
-│   ├── cloudinary.js             # Cloudinary image hosting configuration
-│   ├── package-lock.json         # Backend dependency tree
-│   ├── package.json              # Backend dependencies and scripts
-│   └── server.js                 # Main Express server entry point
-├── beaded-frontend/              # React (Vite) frontend directory
-│   ├── node_modules/             # Frontend dependencies
-│   ├── public/                   # Static public assets
-│   │   ├── Beaded-logo.png       # Brand logo
-│   │   └── admin-icon.png        # Admin dashboard icon
-│   ├── src/                      # Frontend source code
-│   │   ├── assets/               # Local images and fonts
-│   │   ├── AdminDashboard.jsx    # Secured CMS dashboard component
-│   │   ├── App.css               # Global application styles
-│   │   ├── App.jsx               # Root React component
-│   │   ├── ErrorBoundary.jsx     # Fallback UI for app crashes
-│   │   ├── firebase.js           # Firebase Auth configuration
-│   │   ├── index.css             # Tailwind base imports
-│   │   └── main.jsx              # React DOM render entry point
-│   ├── .gitignore                # Ignored frontend files
-│   ├── eslint.config.js          # Linter configuration
+│   ├── routes/                   # Auth, user, products, orders, webhooks, content, admin
+│   ├── scripts/                  # Throwaway dev API and the showcase catalogue script
+│   ├── services/                 # Email, codes, payments, pricing, orders, uploads, cache
+│   ├── test/                     # API tests
+│   ├── .env.example              # Every setting the server reads
+│   ├── app.js                    # Builds the Express app
+│   └── server.js                 # Starts the server
+├── beaded-frontend/              # React (Vite) frontend
+│   ├── e2e/                      # Playwright browser tests
+│   ├── public/                   # Pictures, icons, robots.txt and sitemap
+│   ├── scripts/                  # Picture optimiser
+│   ├── src/
+│   │   ├── admin/                # One file for each screen of the dashboard
+│   │   ├── api/                  # API client
+│   │   ├── components/           # Header, footer, bag, dialogs, cards and home sections
+│   │   ├── data/                 # Bead catalogue, questions and picture sizes
+│   │   ├── lib/                  # Fit, pricing, shipping, bead drawing and the strand engine
+│   │   ├── motion/               # GSAP setup and shared animations
+│   │   ├── pages/                # One file for each page of the shop
+│   │   ├── store/                # Shop, bag, account and interface state
+│   │   ├── styles/               # Design tokens and storefront styles
+│   │   ├── AdminDashboard.jsx    # Dashboard shell, loaded only on /admin
+│   │   ├── Site.jsx              # Storefront routes and layout
+│   │   └── main.jsx              # App entry point
 │   ├── index.html                # Base HTML template
-│   ├── index.js                  # Frontend entry script
-│   ├── package-lock.json         # Frontend dependency tree
-│   ├── package.json              # Frontend dependencies and scripts
-│   ├── postcss.config.js         # PostCSS configuration for Tailwind
-│   ├── tailwind.config.js        # Tailwind CSS theme configuration
-│   ├── vercel.json               # Vercel deployment routing rules
-│   └── vite.config.js            # Vite bundler configuration
+│   ├── playwright.config.js      # Browser test setup
+│   ├── tailwind.config.js        # Tailwind, used for its CSS reset
+│   ├── vercel.json               # Routing and security headers
+│   └── vite.config.js            # Bundler and unit test configuration
+├── docs/                         # Design specs and implementation plans
+├── DEPLOYMENT.md                 # Step by step guide to going live
 └── LICENSE                       # Project license
 ```
 
@@ -142,7 +197,7 @@ You can explore the interactive storefront, custom jewelry builder, checkout flo
 
 Sean Rhani Jarin Dela Cruz
 
-Project Link: https://github.com/SeanRDC/beaded-by-unknown <br />
+Project Link: https://github.com/SeanRDC/Beaded-By-Unknown-Website <br />
 LinkedIn Link: https://www.linkedin.com/in/sean-rhani-dela-cruz-834573334/
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

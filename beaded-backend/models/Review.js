@@ -6,4 +6,6 @@ const reviewSchema = new mongoose.Schema({
   rating: { type: Number, default: 5 }
 }, { timestamps: true });
 
+reviewSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Review', reviewSchema);

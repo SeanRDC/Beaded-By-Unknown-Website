@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema({
   rating: { type: Number, default: 5 },
   reviews: { type: Number, default: 0 },
   mat: { type: String }, // Material description
+  desc: { type: String }, // Short description shown on the product page
   sizes: [{ type: String, default: ['S', 'M', 'L'] }],
   tag: { type: String }, // Optional (e.g., 'Bestseller')
   isAvailable: { type: Boolean, default: true } 

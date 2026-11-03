@@ -1,23 +1,36 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import App from './App.jsx'
-import AdminDashboard from './AdminDashboard.jsx'
-import ErrorBoundary from './ErrorBoundary.jsx'
-import './index.css'
+import { lazy, StrictMode, Suspense } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+import { startAnalytics } from './analytics.js';
+import ErrorBoundary from './ErrorBoundary.jsx';
+import './index.css';
+import Site from './Site.jsx';
+
+const AdminDashboard = lazy(() => import('./AdminDashboard.jsx'));
+
+function savedTheme() {
+  try {
+    return JSON.parse(localStorage.getItem('beaded_settings') || '{}').theme || 'brown';
+  } catch {
+    return 'brown';
+  }
+}
+
+/* Set before the first paint, so a returning visitor never sees the wrong theme flash. */
+document.documentElement.dataset.theme = savedTheme();
+
+startAnalytics();
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          {/* The Main Website */}
-          <Route path="/" element={<App />} />
-          
-          {/* The Secret Admin Page */}
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<Suspense fallback={null}><AdminDashboard /></Suspense>} />
+          <Route path="/*" element={<Site />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>
-  </React.StrictMode>,
-)
+  </StrictMode>
+);

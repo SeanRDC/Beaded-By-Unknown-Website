@@ -10,4 +10,6 @@ const blogSchema = new mongoose.Schema({
   date: { type: String, default: () => new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }
 }, { timestamps: true });
 
+blogSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Blog', blogSchema);
