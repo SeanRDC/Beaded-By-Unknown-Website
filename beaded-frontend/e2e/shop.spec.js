@@ -582,3 +582,11 @@ test('the cookie banner keeps Analytics off until accepted', async ({ page }) =>
   await expect.poll(() => analytics.length).toBeGreaterThan(0);
   expect(await page.evaluate(() => localStorage.getItem('beaded_cookie_choice'))).toBe('granted');
 });
+
+test('only bracelets show the wrist size guide', async ({ page }) => {
+  await page.goto('/shop/basic-beads-bracelet');
+  await expect(page.locator('.details-list').getByText('Size guide', { exact: true })).toBeVisible();
+  await page.goto('/shop/november-necklace');
+  await expect(page.getByRole('heading', { name: 'November Necklace' })).toBeVisible();
+  await expect(page.locator('.details-list summary')).toHaveText(['Materials and care', 'Making and shipping']);
+});

@@ -100,10 +100,13 @@ function ProductPage({ slug }) {
           </div>
 
           <div className="details-list">
-            <details>
-              <summary>Size guide</summary>
-              <SizeTable />
-            </details>
+            {/* The size guide measures wrists, so only bracelets carry it. */}
+            {product.cat === 'Bracelet' && (
+              <details>
+                <summary>Size guide</summary>
+                <SizeTable />
+              </details>
+            )}
             <details>
               <summary>Materials and care</summary>
               <p>{product.mat ? `${product.mat}. ` : ''}Take it off before swimming, and store it in its pouch.</p>
