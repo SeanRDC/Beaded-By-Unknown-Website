@@ -182,6 +182,19 @@ function DeleteAccount({ open, onClose }) {
   );
 }
 
+function SignOut({ open, onClose, onConfirm }) {
+  return (
+    <Sheet open={open} onClose={onClose} side="center" label="Sign out">
+      <div className="notice">
+        <h2>Sign out?</h2>
+        <p>Your bag and saved pieces stay with your account and come back when you sign in again.</p>
+        <button type="button" className="btn btn--wide" data-autofocus onClick={onConfirm}>Sign out</button>
+        <button type="button" className="btn btn--wide btn--quiet" onClick={onClose}>Stay signed in</button>
+      </div>
+    </Sheet>
+  );
+}
+
 export default function Account() {
   useSeo('Your account');
   const { user, signOut } = useAuth();
@@ -189,6 +202,7 @@ export default function Account() {
   const navigate = useNavigate();
   const [tab, setTab] = useState(TABS[0]);
   const [deleting, setDeleting] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   if (!user) {
     return (
@@ -213,11 +227,12 @@ export default function Account() {
       {tab === 'Orders' ? <Orders /> : <Details />}
 
       <div className="account-end">
-        <button type="button" className="link" onClick={() => { signOut(); navigate('/'); }}>Sign out</button>
+        <button type="button" className="link" onClick={() => setLeaving(true)}>Sign out</button>
         <button type="button" className="link link--danger" onClick={() => setDeleting(true)}>Delete my account</button>
       </div>
 
       <DeleteAccount open={deleting} onClose={() => setDeleting(false)} />
+      <SignOut open={leaving} onClose={() => setLeaving(false)} onConfirm={() => { setLeaving(false); signOut(); navigate('/'); }} />
     </div>
   );
 }

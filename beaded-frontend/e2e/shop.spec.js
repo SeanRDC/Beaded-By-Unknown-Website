@@ -359,7 +359,31 @@ test('a new customer can register, sign in with a code, save details and sign ou
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Hello, Ana' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign out' }).click();
+  const leaving = page.getByRole('dialog', { name: 'Sign out' });
+  await leaving.getByRole('button', { name: 'Stay signed in' }).click();
+  await expect(leaving).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Hello, Ana' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await leaving.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL('/');
+});
+
+test('an empty field shows the shop\'s own note, not the browser bubble', async ({ page }) => {
+  await page.goto('/shop/november-necklace');
+  await page.getByRole('button', { name: /^Add to bag/ }).filter({ visible: true }).first().click();
+  await goToCheckout(page);
+  await page.getByRole('button', { name: 'Continue to shipping' }).click();
+
+  const email = page.getByLabel('Email');
+  await expect(email).toBeFocused();
+  await expect(email).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('.field__error').first()).toHaveText('Please fill this in.');
+
+  await email.fill('ana@');
+  await expect(page.locator('.field__error').first()).toContainText('name@example.com');
+  await email.fill('ana@example.com');
+  await expect(email).not.toHaveAttribute('aria-invalid', 'true');
 });
 
 test('a forgotten password can be reset with an emailed code', async ({ page, request }, info) => {
