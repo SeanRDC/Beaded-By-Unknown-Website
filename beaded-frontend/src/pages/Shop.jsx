@@ -21,7 +21,7 @@ const placement = (index) => {
 };
 
 export default function Shop() {
-  useSeo('Shop', 'Bracelets and necklaces strung by hand and made to order.');
+  useSeo('Shop', 'Necklaces, bracelets, pins and charms, made by hand and to order.');
   const { products, productsReady, productsFailed, settings } = useShop();
   const [params, setParams] = useSearchParams();
   const [sort, setSort] = useState('Featured');

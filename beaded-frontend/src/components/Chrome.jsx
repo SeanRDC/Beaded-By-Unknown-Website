@@ -13,7 +13,7 @@ import { SmallName } from './SmallName.jsx';
 const NOTICE_KEY = 'beaded_notice_seen';
 const NOTICE_DELAY_MS = 900;
 const SHOP_NAME = 'Beaded by Unknown';
-const SHOP_LINE = 'Bracelets and necklaces strung by hand, one bead at a time.';
+const SHOP_LINE = 'Beaded pieces made by hand, one bead at a time.';
 
 /* Sets the tab title and description for a page. */
 export function useSeo(title, description = SHOP_LINE) {

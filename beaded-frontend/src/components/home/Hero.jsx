@@ -78,7 +78,7 @@ export function Hero({ firstVisit }) {
         <div className="hero__text">
           <div>
             <p className="t-head hero__by" aria-hidden="true">by Unknown</p>
-            <p className="t-lead hero__lead">Bracelets and necklaces strung by hand, one bead at a time.</p>
+            <p className="t-lead hero__lead">Beaded pieces made by hand, one bead at a time.</p>
             <p className="soft hero__note">Made to order in 7 to 14 days. Free shipping over ₱500.</p>
           </div>
           <div className="hero__acts">
