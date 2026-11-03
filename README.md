@@ -185,8 +185,6 @@ The browser tests start the throwaway API and a production build by themselves. 
 │   ├── tailwind.config.js        # Tailwind, used for its CSS reset
 │   ├── vercel.json               # Routing and security headers
 │   └── vite.config.js            # Bundler and unit test configuration
-├── docs/                         # Design specs and implementation plans
-├── DEPLOYMENT.md                 # Step by step guide to going live
 └── LICENSE                       # Project license
 ```
 
