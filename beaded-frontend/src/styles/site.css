@@ -87,11 +87,19 @@ html[data-surface='site'] body {
 .chip:active { transform: scale(0.96); }
 .chip[aria-pressed='true'] { background: var(--ink); color: var(--on-ink); }
 
-.field { display: grid; gap: 6px; }
+.field { display: grid; gap: 6px; align-content: start; }
 .field > span { color: var(--soft); font-size: var(--s-small); }
 .input { width: 100%; background: var(--step); color: var(--ink); border: 2px solid transparent; border-radius: 14px; padding: 12px 14px; font: inherit; transition: border-color var(--t-hover) ease; }
 .input:focus { outline: none; border-color: var(--thread); }
 .input::placeholder { color: var(--soft); }
+
+/* The note shown under a field that needs attention. A single bead marks it, in place of the browser's bubble. */
+.input[aria-invalid='true'] { border-color: var(--danger); }
+.field > .field__error,
+.field__error { display: flex; align-items: flex-start; gap: 8px; color: var(--danger); font-size: var(--s-small); line-height: 1.35; animation: field-error-in 220ms var(--out); }
+.field__error::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-top: calc(0.675em - 3.5px); }
+@keyframes field-error-in { from { opacity: 0; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .field__error { animation: none; } }
 
 /* Pictures */
 .pic { position: relative; display: block; overflow: hidden; border-radius: var(--r-pic); background: var(--step); }

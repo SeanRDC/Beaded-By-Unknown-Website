@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { startAnalytics } from './analytics.js';
 import ErrorBoundary from './ErrorBoundary.jsx';
 import './index.css';
+import { installFieldErrors } from './lib/fieldErrors.js';
 import Site from './Site.jsx';
 
 const AdminDashboard = lazy(() => import('./AdminDashboard.jsx'));
@@ -21,6 +22,7 @@ function savedTheme() {
 document.documentElement.dataset.theme = savedTheme();
 
 startAnalytics();
+installFieldErrors();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

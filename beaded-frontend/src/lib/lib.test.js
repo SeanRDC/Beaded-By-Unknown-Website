@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { COLLECTIONS } from '../data/beads.js';
 import { addLine, cartCount, cartSubtotal, lineKey, removeLine, setLineQty } from './cart.js';
 import { cld, cldSrcSet } from './cloudinary.js';
+import { messageFor } from './fieldErrors.js';
 import { designTotal, fit } from './fit.js';
 import { peso } from './money.js';
 import { shippingFor } from './shipping.js';
@@ -146,5 +147,24 @@ describe('cloudinary', () => {
     expect(cldSrcSet(url, [320, 640])).toContain('w_320/v1/folder/a.jpg 320w');
     expect(cldSrcSet(url, [320, 640])).toContain('w_640/v1/folder/a.jpg 640w');
     expect(cldSrcSet('https://other.test/a.jpg', [320])).toBeUndefined();
+  });
+});
+
+describe('field messages', () => {
+  const field = (validity, props = {}) => ({ tagName: 'INPUT', type: 'text', validationMessage: 'browser text', ...props, validity });
+
+  test('says what an empty field needs, by kind of field', () => {
+    expect(messageFor(field({ valueMissing: true }))).toBe('Please fill this in.');
+    expect(messageFor(field({ valueMissing: true }, { tagName: 'SELECT', type: 'select-one' }))).toBe('Please choose one.');
+    expect(messageFor(field({ valueMissing: true }, { type: 'checkbox' }))).toBe('Please tick this to continue.');
+  });
+
+  test('explains a wrong email and a short password', () => {
+    expect(messageFor(field({ typeMismatch: true }, { type: 'email' }))).toContain('name@example.com');
+    expect(messageFor(field({ tooShort: true }, { minLength: 8 }))).toBe('Please use at least 8 characters.');
+  });
+
+  test('falls back to the browser text for anything else', () => {
+    expect(messageFor(field({ customError: true }))).toBe('browser text');
   });
 });
